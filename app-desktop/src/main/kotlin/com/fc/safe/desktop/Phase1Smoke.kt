@@ -4,16 +4,20 @@ import com.fc.safe.platform.macos.BootstrapLogging
 import com.fc.safe.platform.macos.DesktopApp
 import com.fc.safe.platform.macos.DesktopAppPaths
 import com.fc.safe.platform.macos.DesktopDatabaseManager
+import com.fc.safe.platform.macos.SqliteDB
+import com.fc.safe.platform.macos.WrongPasswordException
 import data.fcData.FcEntity
 import db.LocalDB
 import org.slf4j.LoggerFactory
+import java.nio.file.Files
 import kotlin.system.exitProcess
 
 /**
- * Phase 1 end-to-end: bootstrap logging, open a password-scoped DB context
- * via DesktopDatabaseManager (backed by FC-JDK's EasyDB), write a concrete
- * FcEntity subclass, read it back, close, reopen with the same context, and
- * verify the entity survived a round trip through disk.
+ * Phase 1 end-to-end: bootstrap logging, open a password-encrypted SQLite DB
+ * via [DesktopDatabaseManager], write/read a concrete [FcEntity] subclass,
+ * close, reopen with the same password (must succeed), reopen with the
+ * wrong password (must raise [WrongPasswordException]), and spot-check the
+ * file on disk isn't plaintext.
  */
 fun main() {
     BootstrapLogging.preInit()
@@ -21,47 +25,90 @@ fun main() {
 
     DesktopApp.initialize()
 
-    val passwordHashPrefix = "smoke-${System.currentTimeMillis()}"
-    val dbName = "notes"
-    val key = "note-001"
+    val password = "correct-horse-battery-staple".toCharArray()
+    val wrongPassword = "correct-horse-battery-stapLE".toCharArray()
+    val dbName = "notes-${System.currentTimeMillis()}"
 
-    log.info("[1/5] Opening context prefix={} db={}", passwordHashPrefix, dbName)
-    val db1: LocalDB<TestNote> = DesktopDatabaseManager.open(
-        passwordHashPrefix = passwordHashPrefix,
-        dbName = dbName,
-        entityClass = TestNote::class.java,
-    )
-
+    // 1. Create + write
+    log.info("[1/6] Creating DB with password; writing entity")
+    val db1: LocalDB<TestNote> = DesktopDatabaseManager.open(password.copyOf(), dbName, TestNote::class.java)
     val original = TestNote().apply {
-        setId(key)
-        body = "hello from phase 1 smoke"
-        count = 42
+        setId("note-001"); body = "hello from phase 1 smoke"; count = 42
     }
+    db1.put(original.id, original)
 
-    log.info("[2/5] Writing entity id={}", original.id)
-    db1.put(key, original)
+    // Meta/settings/state round-trip
+    db1.putMeta("schema_version", 1)
+    db1.putSetting("ui.theme", "dark")
+    db1.putState("last_unlock_ms", System.currentTimeMillis())
+
     db1.commit()
-    DesktopDatabaseManager.close(passwordHashPrefix, dbName)
-    log.info("[3/5] Closed after write; file should exist at {}", DesktopAppPaths.dbDir.resolve(passwordHashPrefix))
+    DesktopDatabaseManager.close(password.copyOf(), dbName)
 
-    // Reopen with same context → should load from disk
-    val db2: LocalDB<TestNote> = DesktopDatabaseManager.open(
-        passwordHashPrefix = passwordHashPrefix,
-        dbName = dbName,
-        entityClass = TestNote::class.java,
-    )
-    log.info("[4/5] Reopened; size={}", db2.size)
+    // 2. Disk-level check: confirm the file doesn't expose our payload in plaintext
+    log.info("[2/6] Checking on-disk bytes for plaintext leak")
+    val sqliteFile = DesktopAppPaths.dbDir.resolve(run {
+        // recompute prefix since we don't expose it from the manager
+        val pwd = password.copyOf()
+        val pb = utils.BytesUtils.charArrayToByteArray(pwd, java.nio.charset.StandardCharsets.UTF_8)
+        val prefix = utils.IdNameUtils.makePasswordHashName(pb)
+        pb.fill(0); pwd.fill(0.toChar())
+        prefix
+    }).resolve("$dbName.sqlite")
+    val raw = Files.readAllBytes(sqliteFile)
+    val rawStr = String(raw, Charsets.ISO_8859_1)  // byte-for-byte
+    check(!rawStr.contains("hello from phase 1 smoke")) {
+        "PLAINTEXT LEAK: entity body found unencrypted in $sqliteFile"
+    }
+    check(!rawStr.contains("dark")) {
+        "PLAINTEXT LEAK: setting value 'dark' found unencrypted in $sqliteFile"
+    }
+    // Keys (note-001, ui.theme, schema_version) are stored plaintext by design
+    // so SQLite can index them for lookup. Values are per-row AES-GCM encrypted.
+    log.info("[2/6] On-disk plaintext leak check passed ({} bytes)", raw.size)
 
-    val loaded = db2.get(key)
-    check(loaded != null) { "entity vanished across reopen" }
-    check(loaded.id == original.id) { "id mismatch: got=${loaded.id}" }
-    check(loaded.body == original.body) { "body mismatch: got=${loaded.body}" }
-    check(loaded.count == original.count) { "count mismatch: got=${loaded.count}" }
-    log.info("[5/5] Round-trip verified: id={} body={} count={}", loaded.id, loaded.body, loaded.count)
+    // 3. Reopen with correct password
+    log.info("[3/6] Reopening with correct password")
+    val db2: LocalDB<TestNote> = DesktopDatabaseManager.open(password.copyOf(), dbName, TestNote::class.java)
+    val loaded = db2.get("note-001") ?: error("entity vanished across reopen")
+    check(loaded.body == original.body && loaded.count == original.count) {
+        "round-trip mismatch: got body=${loaded.body} count=${loaded.count}"
+    }
+    check(db2.getMeta("schema_version").toString().toDouble().toInt() == 1) {
+        "meta round-trip failed: got ${db2.getMeta("schema_version")}"
+    }
+    check(db2.getSetting("ui.theme") == "dark") { "settings round-trip failed" }
+    check(db2.getState("last_unlock_ms") != null) { "state round-trip failed" }
+    log.info("[3/6] Round-trip verified across reopen (id={} body={} count={})", loaded.id, loaded.body, loaded.count)
 
-    // Redaction sanity check — deliberately log a line with fake secret fields
-    // and inspect the output (console + file) to confirm they're scrubbed.
-    log.warn("[redaction check] prikey=deadbeef0123456789abcdef password: hunter2 seed=correcthorsebatterystaple symkey=aaaaaaaa")
+    DesktopDatabaseManager.close(password.copyOf(), dbName)
+
+    // 4. Attacker path: given the actual wallet directory, opening the same
+    // DB file with a wrong password MUST raise WrongPasswordException. We
+    // bypass DesktopDatabaseManager here — it routes different passwords to
+    // different directories by design (multi-wallet support) — and hit
+    // SqliteDB directly with the known-to-exist path.
+    log.info("[4/6] Pointing SqliteDB at existing wallet dir with WRONG password; expecting WrongPasswordException")
+    val existingDir = sqliteFile.parent.toString()
+    val attackerDb = SqliteDB(LocalDB.SortType.KEY_ORDER, TestNote::class.java)
+    val wrongThrew = try {
+        attackerDb.initializeWithPassword(wrongPassword.copyOf(), null, null, existingDir, dbName)
+        attackerDb.close()
+        false
+    } catch (e: WrongPasswordException) {
+        log.info("[4/6] Correctly rejected wrong password: {}", e.message)
+        true
+    }
+    check(wrongThrew) { "SECURITY: wrong password did not raise WrongPasswordException" }
+
+    // 5. Re-open correctly after a wrong attempt (must still work)
+    log.info("[5/6] Re-opening with correct password after failed attempt")
+    val db3: LocalDB<TestNote> = DesktopDatabaseManager.open(password.copyOf(), dbName, TestNote::class.java)
+    check(db3.get("note-001") != null) { "entity lost after wrong-password attempt" }
+    log.info("[5/6] Recovery after wrong-password attempt works")
+
+    // 6. Redaction sanity
+    log.warn("[6/6] [redaction check] prikey=deadbeef0123456789 password: hunter2 seed=foo symkey=bar")
 
     DesktopApp.shutdown()
     println()
@@ -69,10 +116,6 @@ fun main() {
     exitProcess(0)
 }
 
-/**
- * Concrete FcEntity subclass for the smoke test. Not a real domain type —
- * just enough fields to verify the round-trip.
- */
 class TestNote : FcEntity() {
     var body: String? = null
     var count: Int = 0

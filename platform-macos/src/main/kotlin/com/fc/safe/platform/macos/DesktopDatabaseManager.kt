@@ -1,49 +1,91 @@
 package com.fc.safe.platform.macos
 
 import data.fcData.FcEntity
-import db.EasyDB
 import db.LocalDB
 import org.slf4j.LoggerFactory
+import utils.BytesUtils
+import utils.IdNameUtils
+import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Per-password-context LocalDB lifecycle holder. One EasyDB instance per
- * (passwordHashPrefix, dbName) pair, backed by a file under:
+ * Per-password-context [SqliteDB] lifecycle holder.
  *
- *     ~/Library/Application Support/com.fc.safe/db/{passwordHashPrefix}/{dbName}.db
+ * One [SqliteDB] instance per `(passwordHashPrefix, dbName)` tuple, backed by
+ * an encrypted file under:
  *
- * The password-hash-prefix folder gives each password/wallet its own
- * directory. Value-layer encryption is a follow-up (Phase 1.5); at this point
- * EasyDB writes plaintext JSON to disk.
+ *     ~/Library/Application Support/com.fc.safe/db/{passwordHashPrefix}/{dbName}.sqlite
+ *
+ * The caller provides the password each time a context is opened; the
+ * manager derives the 6-char password-hash prefix via FC-JDK's
+ * [IdNameUtils.makePasswordHashName] and passes the password straight through
+ * to the SqliteDB constructor. Password bytes are wiped here after the symkey
+ * has been derived inside SqliteDB.
  */
 object DesktopDatabaseManager {
 
     private val log = LoggerFactory.getLogger(DesktopDatabaseManager::class.java)
     private val openDbs = ConcurrentHashMap<String, LocalDB<*>>()
 
+    /**
+     * Open or reopen a DB context.
+     *
+     * @throws WrongPasswordException if [password] does not decrypt an
+     *   existing DB file under the same prefix + name.
+     */
     fun <T : FcEntity> open(
-        passwordHashPrefix: String,
+        password: CharArray,
         dbName: String,
         entityClass: Class<T>,
         sortType: LocalDB.SortType = LocalDB.SortType.KEY_ORDER,
     ): LocalDB<T> {
+        // Compute the 6-char password-hash prefix. This is what names the
+        // per-wallet directory. Derived from UTF-8 password bytes, matching
+        // Android's IdNameUtils.makePasswordHashName.
+        val passwordBytes = BytesUtils.charArrayToByteArray(password, StandardCharsets.UTF_8)
+        val passwordHashPrefix = try {
+            IdNameUtils.makePasswordHashName(passwordBytes)
+        } finally {
+            // passwordBytes is our local copy; wipe it now
+            passwordBytes.fill(0)
+        }
+
         val cacheKey = "$passwordHashPrefix/$dbName"
-        @Suppress("UNCHECKED_CAST")
-        return openDbs.computeIfAbsent(cacheKey) {
-            val dbPath = DesktopAppPaths.dbDir.resolve(passwordHashPrefix)
-            Files.createDirectories(dbPath)
-            val db = EasyDB(sortType, entityClass)
-            db.initialize(null, null, dbPath.toString(), dbName)
-            log.info("Opened db={} under context={}", dbName, passwordHashPrefix)
-            db
-        } as LocalDB<T>
+        openDbs[cacheKey]?.let {
+            @Suppress("UNCHECKED_CAST")
+            return it as LocalDB<T>
+        }
+
+        val dbPath = DesktopAppPaths.dbDir.resolve(passwordHashPrefix)
+        Files.createDirectories(dbPath)
+
+        val db = SqliteDB(sortType, entityClass)
+        try {
+            db.initializeWithPassword(password, null, null, dbPath.toString(), dbName)
+        } catch (e: Throwable) {
+            db.close()
+            throw e
+        }
+        openDbs[cacheKey] = db
+        log.info("Opened db={} under context={}", dbName, passwordHashPrefix)
+        return db
     }
 
-    fun close(passwordHashPrefix: String, dbName: String) {
+    fun close(password: CharArray, dbName: String) {
+        val passwordBytes = BytesUtils.charArrayToByteArray(password, StandardCharsets.UTF_8)
+        val prefix = try {
+            IdNameUtils.makePasswordHashName(passwordBytes)
+        } finally {
+            passwordBytes.fill(0)
+        }
+        closeByPrefix(prefix, dbName)
+    }
+
+    fun closeByPrefix(passwordHashPrefix: String, dbName: String) {
         val cacheKey = "$passwordHashPrefix/$dbName"
         openDbs.remove(cacheKey)?.let {
-            try { it.close() } catch (e: Exception) { log.warn("close failed for {}: {}", cacheKey, e.message) }
+            runCatching { it.close() }.onFailure { log.warn("close failed for {}: {}", cacheKey, it.message) }
         }
     }
 
@@ -51,7 +93,7 @@ object DesktopDatabaseManager {
         val snapshot = openDbs.toMap()
         openDbs.clear()
         snapshot.forEach { (key, db) ->
-            try { db.close() } catch (e: Exception) { log.warn("close failed for {}: {}", key, e.message) }
+            runCatching { db.close() }.onFailure { log.warn("close failed for {}: {}", key, it.message) }
         }
     }
 
