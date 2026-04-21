@@ -40,7 +40,12 @@
       "Bash(codesign --verify --deep --strict --verbose=2 \"/Volumes/SafeSpikeJavaFX/SafeSpikeJavaFX.app\")",
       "Bash(hdiutil detach *)",
       "Bash(git add *)",
-      "Bash(git -c user.name=Claude -c user.email=noreply@anthropic.com commit -m ' *)"
+      "Bash(git -c user.name=Claude -c user.email=noreply@anthropic.com commit -m ' *)",
+      "Bash(xcrun stapler *)",
+      "Bash(spctl -a -t open --context context:primary-signature -vv spike-compose/build/compose/binaries/main/dmg/SafeSpikeCompose-1.0.0.dmg)",
+      "Bash(spctl -a -vv \"/Volumes/SafeSpikeCompose/SafeSpikeCompose.app\")",
+      "Bash(codesign -dvvv \"/Volumes/SafeSpikeCompose/SafeSpikeCompose.app\")",
+      "Bash(spctl -a -vv \"/Volumes/SafeSpikeJavaFX/SafeSpikeJavaFX.app\")"
     ]
   }
 }
