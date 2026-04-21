@@ -19,4 +19,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "SafeForMac"
 
-include(":app-desktop")
+include(":platform-macos", ":app-desktop")

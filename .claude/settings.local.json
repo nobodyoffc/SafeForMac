@@ -50,7 +50,9 @@
       "Bash(git rm *)",
       "Bash(grep -E \"^\\\\s*public\\\\s+\\(static\\\\s+\\)?[A-Za-z].*\\\\{$|^\\\\s*public\\\\s+[A-Za-z].*\\\\\\)\\\\s*$\" /Users/liuchangyong/Desktop/Freeverse/FC-JDK/src/main/java/core/crypto/Encryptor.java)",
       "Bash(mvn -pl FC-JDK -am install -DskipTests -q)",
-      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:smokeTest --console=plain)"
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:smokeTest --console=plain)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:phase1Smoke --console=plain)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:dependencies --configuration runtimeClasspath)"
     ]
   }
 }

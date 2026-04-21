@@ -14,6 +14,7 @@ java {
 
 dependencies {
     implementation(compose.desktop.currentOs)
+    implementation(project(":platform-macos"))
     implementation("fc:FC-JDK:1.0-SNAPSHOT")
 }
 
@@ -40,12 +41,18 @@ compose.desktop {
     }
 }
 
-// Smoke test: FC-JDK key-gen + sign + verify on the combined classpath.
-// Verifies that FC-JDK's flat packages (utils, core, etc.) don't collide
-// with Compose/Kotlin transitives when both are on the same classpath.
+// Phase 0 smoke test: FC-JDK key-gen + sign + verify on the combined classpath.
 tasks.register<JavaExec>("smokeTest") {
     group = "verification"
     description = "Run FC-JDK crypto smoke test with Compose deps on classpath"
     mainClass.set("com.fc.safe.desktop.SmokeTestKt")
+    classpath = sourceSets["main"].runtimeClasspath
+}
+
+// Phase 1 smoke test: DesktopApp lifecycle + EasyDB round-trip.
+tasks.register<JavaExec>("phase1Smoke") {
+    group = "verification"
+    description = "Open DB context, write/read FcEntity, close, reopen, verify"
+    mainClass.set("com.fc.safe.desktop.Phase1SmokeKt")
     classpath = sourceSets["main"].runtimeClasspath
 }
