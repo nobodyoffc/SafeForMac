@@ -55,7 +55,9 @@
       "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:dependencies --configuration runtimeClasspath)",
       "Bash(sed -n '908,945p' /Users/liuchangyong/Desktop/Freeverse/FC-JDK/src/main/java/db/EasyDB.java)",
       "Bash(sed -n '858,895p' /Users/liuchangyong/Desktop/Freeverse/FC-JDK/src/main/java/db/EasyDB.java)",
-      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:compileKotlin --console=plain)"
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:compileKotlin --console=plain)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:run *)",
+      "Bash(pkill -f \"SafeForMac.*compose|compose.*desktop.*run\")"
     ]
   }
 }

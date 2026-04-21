@@ -21,6 +21,11 @@ dependencies {
     implementation("cafe.adriel.voyager:voyager-navigator:1.1.0-beta02")
     implementation("cafe.adriel.voyager:voyager-screenmodel:1.1.0-beta02")
     implementation("cafe.adriel.voyager:voyager-transitions:1.1.0-beta02")
+
+    // Compose Desktop runs on the AWT/Swing event thread. Without this
+    // module, Dispatchers.Main and everything derived from it throws
+    // "Module with the Main dispatcher is missing" at runtime.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.9.0")
 }
 
 compose.desktop {

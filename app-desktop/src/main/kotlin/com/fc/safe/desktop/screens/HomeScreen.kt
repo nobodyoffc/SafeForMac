@@ -2,6 +2,7 @@ package com.fc.safe.desktop.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -11,9 +12,9 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,8 +26,10 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import com.fc.safe.desktop.DesktopVault
 import com.fc.safe.desktop.ui.AppShell
+import com.fc.safe.desktop.ui.CreatePasswordDialog
 import com.fc.safe.desktop.ui.PasswordField
 import com.fc.safe.desktop.ui.SafeButton
+import com.fc.safe.platform.macos.DesktopAppPaths
 import com.fc.safe.platform.macos.DesktopConfigureManager
 import com.fc.safe.platform.macos.DesktopDatabaseManager
 import com.fc.safe.platform.macos.WrongPasswordException
@@ -34,24 +37,26 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
+import java.nio.file.Files
 
 private val log = LoggerFactory.getLogger("HomeScreen")
 
 /**
  * First screen of the port.
  *
- * Two flows, chosen by whether any wallets are registered:
- * - First launch (no configurations): "create password" with confirm field.
- *   On submit: register the password in [DesktopConfigureManager] and open
- *   the wallet's `vault` DB for the first time.
- * - Subsequent launches: "enter password" with single field. On submit:
- *   attempt to open the `vault` DB; `WrongPasswordException` → error shown,
- *   UI stays locked.
+ * **UX invariant**: the default surface never reveals whether a wallet
+ * exists on this machine. Always shows a single "Enter password" field
+ * plus an "Unlock" primary button. Wallet creation is an explicit user
+ * action via a secondary "Create password" button that opens
+ * [CreatePasswordDialog].
  *
- * The actual password authentication happens via `DesktopDatabaseManager.open`
- * — it derives the Argon2 symkey and decrypts the stored validator row.
- * `DesktopConfigureManager` is the cache of "known passwordNames on this
- * machine" and does not itself authenticate.
+ * **Auth flow**:
+ * - Unlock: derive passwordName, look up in [DesktopConfigureManager].
+ *   If not registered → "Wrong password" (same message as bad decrypt).
+ *   If registered → open the wallet's vault DB via
+ *   [DesktopDatabaseManager]; [WrongPasswordException] → "Wrong password".
+ * - Create: [DesktopDatabaseManager.open] writes a new encrypted DB;
+ *   [DesktopConfigureManager.createFor] registers the passwordName.
  */
 class HomeScreen : Screen {
 
@@ -60,63 +65,33 @@ class HomeScreen : Screen {
         val scaffoldState = rememberScaffoldState()
         val scope = rememberCoroutineScope()
 
-        // Snapshot of known wallets taken once when the screen enters composition.
-        val configSnapshot = remember { mutableStateOf(DesktopConfigureManager.all()) }
-        val isFirstLaunch = configSnapshot.value.isEmpty()
-
         var password by remember { mutableStateOf("") }
-        var confirmPassword by remember { mutableStateOf("") }
         var error by remember { mutableStateOf<String?>(null) }
         var busy by remember { mutableStateOf(false) }
         var unlockedAs by remember { mutableStateOf<String?>(null) }
+        var showCreateDialog by remember { mutableStateOf(false) }
 
-        // Unlocked placeholder view — real home content comes in later Phase 2 steps.
         if (unlockedAs != null) {
-            AppShell(title = "Safe — Unlocked ($unlockedAs)", scaffoldState = scaffoldState) { padding ->
-                Column(
-                    modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Text("Unlocked.", style = MaterialTheme.typography.h5)
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "Phase 2 placeholder — key management, transactions, and multisig screens will land here.",
-                        style = MaterialTheme.typography.body2,
-                    )
-                    Spacer(Modifier.height(24.dp))
-                    SafeButton(onClick = {
-                        DesktopDatabaseManager.closeAll()
-                        unlockedAs = null
-                        password = ""
-                        confirmPassword = ""
-                    }) { Text("Lock") }
-                }
-            }
+            UnlockedContent(
+                passwordName = unlockedAs!!,
+                scaffoldState = scaffoldState,
+                onLock = {
+                    DesktopDatabaseManager.closeAll()
+                    unlockedAs = null
+                    password = ""
+                    error = null
+                },
+            )
             return
         }
 
-        val title = if (isFirstLaunch) "Safe — Create wallet" else "Safe — Unlock"
-
-        AppShell(title = title, scaffoldState = scaffoldState) { padding ->
+        AppShell(title = "Safe", scaffoldState = scaffoldState) { padding ->
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(
-                    text = if (isFirstLaunch) "Create your first wallet" else "Unlock wallet",
-                    style = MaterialTheme.typography.h5,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = if (isFirstLaunch)
-                        "Choose a strong password — it protects every key in the wallet."
-                    else
-                        "${configSnapshot.value.size} wallet(s) registered on this machine",
-                    style = MaterialTheme.typography.body2,
-                    color = MaterialTheme.colors.onBackground.copy(alpha = 0.6f),
-                )
+                Text("Enter password", style = MaterialTheme.typography.h5)
                 Spacer(Modifier.height(24.dp))
 
                 PasswordField(
@@ -124,19 +99,13 @@ class HomeScreen : Screen {
                     onValueChange = { password = it; error = null },
                     label = "Password",
                     enabled = !busy,
+                    onSubmit = {
+                        if (password.isNotEmpty() && !busy) {
+                            tryUnlock(scope, password, setError = { error = it }, setBusy = { busy = it }, onUnlocked = { unlockedAs = it; password = "" })
+                        }
+                    },
                     modifier = Modifier.widthIn(min = 320.dp),
                 )
-
-                if (isFirstLaunch) {
-                    Spacer(Modifier.height(12.dp))
-                    PasswordField(
-                        value = confirmPassword,
-                        onValueChange = { confirmPassword = it; error = null },
-                        label = "Confirm password",
-                        enabled = !busy,
-                        modifier = Modifier.widthIn(min = 320.dp),
-                    )
-                }
 
                 error?.let {
                     Spacer(Modifier.height(12.dp))
@@ -145,79 +114,172 @@ class HomeScreen : Screen {
 
                 Spacer(Modifier.height(24.dp))
 
-                SafeButton(
-                    enabled = !busy,
-                    onClick = {
-                        error = null
-                        when {
-                            password.isEmpty() -> { error = "Password required"; return@SafeButton }
-                            isFirstLaunch && password.length < 8 -> {
-                                error = "Password must be at least 8 characters"
-                                return@SafeButton
-                            }
-                            isFirstLaunch && password != confirmPassword -> {
-                                error = "Passwords don't match"
-                                return@SafeButton
-                            }
-                        }
-                        busy = true
-                        val pwdChars = password.toCharArray()
-                        scope.launch(Dispatchers.Default) {
-                            try {
-                                attemptUnlock(pwdChars, isFirstLaunch) { name ->
-                                    unlockedAs = name
-                                    password = ""
-                                    confirmPassword = ""
-                                    configSnapshot.value = DesktopConfigureManager.all()
-                                }
-                            } catch (e: WrongPasswordException) {
-                                withContext(Dispatchers.Main) { error = "Wrong password" }
-                            } catch (e: Throwable) {
-                                log.warn("Unlock failed: {}", e.message)
-                                withContext(Dispatchers.Main) { error = "Unlock error: ${e.message}" }
-                            } finally {
-                                pwdChars.fill(Char.MIN_VALUE)
-                                withContext(Dispatchers.Main) { busy = false }
-                            }
-                        }
-                    },
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (busy) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colors.onPrimary,
-                        )
-                    } else {
-                        Text(if (isFirstLaunch) "Create" else "Unlock")
+                    SafeButton(
+                        enabled = !busy && password.isNotEmpty(),
+                        onClick = {
+                            tryUnlock(
+                                scope = scope,
+                                password = password,
+                                setError = { error = it },
+                                setBusy = { busy = it },
+                                onUnlocked = { unlockedAs = it; password = "" },
+                            )
+                        },
+                    ) {
+                        if (busy) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colors.onPrimary,
+                            )
+                        } else {
+                            Text("Unlock")
+                        }
+                    }
+
+                    TextButton(
+                        enabled = !busy,
+                        onClick = { showCreateDialog = true },
+                    ) {
+                        Text("Create password")
                     }
                 }
             }
         }
+
+        if (showCreateDialog) {
+            CreatePasswordDialog(
+                busy = busy,
+                onDismiss = { showCreateDialog = false },
+                onCreate = { newPwdChars ->
+                    showCreateDialog = false
+                    tryCreate(
+                        scope = scope,
+                        pwdChars = newPwdChars,
+                        setError = { error = it },
+                        setBusy = { busy = it },
+                        onUnlocked = { unlockedAs = it; password = "" },
+                    )
+                },
+            )
+        }
     }
 
-    private suspend fun attemptUnlock(
-        pwdChars: CharArray,
-        isFirstLaunch: Boolean,
-        onUnlocked: suspend (name: String) -> Unit,
+    private fun tryUnlock(
+        scope: kotlinx.coroutines.CoroutineScope,
+        password: String,
+        setError: (String?) -> Unit,
+        setBusy: (Boolean) -> Unit,
+        onUnlocked: (passwordName: String) -> Unit,
     ) {
-        val name: String
-        // Password hash-name is cheap (2× SHA256); safe to compute on default dispatcher.
-        name = DesktopConfigureManager.passwordNameFor(pwdChars.copyOf().also { /* owned here */ })
-
-        // Open the vault DB. This is the expensive step — Argon2 KDF ~100-500ms.
-        // WrongPasswordException bubbles up to the catch block if decrypt fails.
-        val db = DesktopDatabaseManager.open(
-            password = pwdChars.copyOf(),
-            dbName = "vault",
-            entityClass = DesktopVault::class.java,
-        )
-        if (isFirstLaunch) {
-            DesktopConfigureManager.createFor(pwdChars.copyOf())
-            // Seed a vault-created record so the DB isn't entirely empty.
-            db.putMeta("vault.created_at", System.currentTimeMillis())
+        setError(null)
+        setBusy(true)
+        val pwdChars = password.toCharArray()
+        scope.launch {
+            val outcome = withContext(Dispatchers.Default) {
+                try {
+                    val name = DesktopConfigureManager.passwordNameFor(pwdChars.copyOf())
+                    // "Known wallet?" check happens BEFORE opening so an
+                    // unknown-password attempt can't silently create a
+                    // new wallet. Same error copy as decrypt failure —
+                    // don't leak whether the password is unknown vs wrong.
+                    val known = DesktopConfigureManager.all().containsKey(name)
+                    val vaultFile = DesktopAppPaths.dbDir.resolve(name).resolve("vault.sqlite")
+                    if (!known || !Files.exists(vaultFile)) {
+                        return@withContext Outcome.Wrong
+                    }
+                    DesktopDatabaseManager.open(
+                        password = pwdChars.copyOf(),
+                        dbName = "vault",
+                        entityClass = DesktopVault::class.java,
+                    )
+                    Outcome.Ok(name)
+                } catch (e: WrongPasswordException) {
+                    Outcome.Wrong
+                } catch (e: Throwable) {
+                    log.warn("Unlock error", e)
+                    Outcome.Error(e.message ?: "unknown error")
+                } finally {
+                    pwdChars.fill(Char.MIN_VALUE)
+                }
+            }
+            when (outcome) {
+                is Outcome.Ok -> onUnlocked(outcome.name)
+                is Outcome.Wrong -> setError("Wrong password")
+                is Outcome.Error -> setError("Error: ${outcome.msg}")
+            }
+            setBusy(false)
         }
+    }
 
-        withContext(Dispatchers.Main) { onUnlocked(name) }
+    private fun tryCreate(
+        scope: kotlinx.coroutines.CoroutineScope,
+        pwdChars: CharArray,
+        setError: (String?) -> Unit,
+        setBusy: (Boolean) -> Unit,
+        onUnlocked: (passwordName: String) -> Unit,
+    ) {
+        setError(null)
+        setBusy(true)
+        scope.launch {
+            val outcome = withContext(Dispatchers.Default) {
+                try {
+                    val name = DesktopConfigureManager.passwordNameFor(pwdChars.copyOf())
+                    val db = DesktopDatabaseManager.open(
+                        password = pwdChars.copyOf(),
+                        dbName = "vault",
+                        entityClass = DesktopVault::class.java,
+                    )
+                    db.putMeta("vault.created_at", System.currentTimeMillis())
+                    DesktopConfigureManager.createFor(pwdChars.copyOf())
+                    Outcome.Ok(name)
+                } catch (e: Throwable) {
+                    log.warn("Create error", e)
+                    Outcome.Error(e.message ?: "unknown error")
+                } finally {
+                    pwdChars.fill(Char.MIN_VALUE)
+                }
+            }
+            when (outcome) {
+                is Outcome.Ok -> onUnlocked(outcome.name)
+                is Outcome.Error -> setError("Create failed: ${outcome.msg}")
+                is Outcome.Wrong -> { /* unreachable in create flow */ }
+            }
+            setBusy(false)
+        }
+    }
+
+    private sealed class Outcome {
+        data class Ok(val name: String) : Outcome()
+        data object Wrong : Outcome()
+        data class Error(val msg: String) : Outcome()
+    }
+}
+
+@Composable
+private fun UnlockedContent(
+    passwordName: String,
+    scaffoldState: androidx.compose.material.ScaffoldState,
+    onLock: () -> Unit,
+) {
+    AppShell(title = "Safe — Unlocked ($passwordName)", scaffoldState = scaffoldState) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Text("Unlocked.", style = MaterialTheme.typography.h5)
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Phase 2 placeholder — key management, transactions, and multisig screens will land here.",
+                style = MaterialTheme.typography.body2,
+            )
+            Spacer(Modifier.height(24.dp))
+            SafeButton(onClick = onLock) { Text("Lock") }
+        }
     }
 }
