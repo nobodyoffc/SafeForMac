@@ -1,23 +1,32 @@
 package com.fc.safe.desktop
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import cafe.adriel.voyager.navigator.Navigator
+import com.fc.safe.desktop.screens.HomeScreen
+import com.fc.safe.platform.macos.BootstrapLogging
+import com.fc.safe.platform.macos.DesktopApp
+import org.slf4j.LoggerFactory
 
-fun main() = application {
-    Window(onCloseRequest = ::exitApplication, title = "Safe") {
-        HelloWorld()
-    }
-}
+fun main() {
+    // Must run before any logger is acquired: sets safe.log.dir for logback.xml.
+    BootstrapLogging.preInit()
+    val log = LoggerFactory.getLogger("Main")
+    DesktopApp.initialize()
+    log.info("Safe desktop starting")
 
-@Composable
-fun HelloWorld() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Safe — placeholder. Phase 1 replaces this with the app shell.")
+    application {
+        Window(
+            onCloseRequest = {
+                DesktopApp.shutdown()
+                exitApplication()
+            },
+            title = "Safe",
+            state = rememberWindowState(width = 720.dp, height = 560.dp),
+        ) {
+            Navigator(HomeScreen())
+        }
     }
 }

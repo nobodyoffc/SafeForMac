@@ -16,6 +16,11 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation(project(":platform-macos"))
     implementation("fc:FC-JDK:1.0-SNAPSHOT")
+
+    // Voyager — stack-based navigation for Compose Desktop
+    implementation("cafe.adriel.voyager:voyager-navigator:1.1.0-beta02")
+    implementation("cafe.adriel.voyager:voyager-screenmodel:1.1.0-beta02")
+    implementation("cafe.adriel.voyager:voyager-transitions:1.1.0-beta02")
 }
 
 compose.desktop {
