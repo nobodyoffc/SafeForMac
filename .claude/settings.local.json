@@ -58,7 +58,8 @@
       "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:compileKotlin --console=plain)",
       "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:run *)",
       "Bash(pkill -f \"SafeForMac.*compose|compose.*desktop.*run\")",
-      "Bash(pkill -f \"com.fc.safe.desktop.MainKt\")"
+      "Bash(pkill -f \"com.fc.safe.desktop.MainKt\")",
+      "Bash(git -c user.name=Claude -c user.email=noreply@anthropic.com commit -m 'gitignore: .kotlin/ \\(compiler session files\\) *)"
     ]
   }
 }
