@@ -45,7 +45,12 @@
       "Bash(spctl -a -t open --context context:primary-signature -vv spike-compose/build/compose/binaries/main/dmg/SafeSpikeCompose-1.0.0.dmg)",
       "Bash(spctl -a -vv \"/Volumes/SafeSpikeCompose/SafeSpikeCompose.app\")",
       "Bash(codesign -dvvv \"/Volumes/SafeSpikeCompose/SafeSpikeCompose.app\")",
-      "Bash(spctl -a -vv \"/Volumes/SafeSpikeJavaFX/SafeSpikeJavaFX.app\")"
+      "Bash(spctl -a -vv \"/Volumes/SafeSpikeJavaFX/SafeSpikeJavaFX.app\")",
+      "Bash(git mv *)",
+      "Bash(git rm *)",
+      "Bash(grep -E \"^\\\\s*public\\\\s+\\(static\\\\s+\\)?[A-Za-z].*\\\\{$|^\\\\s*public\\\\s+[A-Za-z].*\\\\\\)\\\\s*$\" /Users/liuchangyong/Desktop/Freeverse/FC-JDK/src/main/java/core/crypto/Encryptor.java)",
+      "Bash(mvn -pl FC-JDK -am install -DskipTests -q)",
+      "Bash(JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home ./gradlew :app-desktop:smokeTest --console=plain)"
     ]
   }
 }

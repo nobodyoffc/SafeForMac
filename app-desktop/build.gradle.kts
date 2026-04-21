@@ -14,17 +14,18 @@ java {
 
 dependencies {
     implementation(compose.desktop.currentOs)
+    implementation("fc:FC-JDK:1.0-SNAPSHOT")
 }
 
 compose.desktop {
     application {
-        mainClass = "spike.MainKt"
+        mainClass = "com.fc.safe.desktop.MainKt"
         nativeDistributions {
             targetFormats(TargetFormat.Dmg)
-            packageName = "SafeSpikeCompose"
+            packageName = "Safe"
             packageVersion = "1.0.0"
             macOS {
-                bundleID = "com.fc.safe.spike.compose"
+                bundleID = "com.fc.safe.desktop"
                 signing {
                     sign.set(true)
                     identity.set("CHANGYONG LIU (5768V787GP)")
@@ -37,4 +38,14 @@ compose.desktop {
             }
         }
     }
+}
+
+// Smoke test: FC-JDK key-gen + sign + verify on the combined classpath.
+// Verifies that FC-JDK's flat packages (utils, core, etc.) don't collide
+// with Compose/Kotlin transitives when both are on the same classpath.
+tasks.register<JavaExec>("smokeTest") {
+    group = "verification"
+    description = "Run FC-JDK crypto smoke test with Compose deps on classpath"
+    mainClass.set("com.fc.safe.desktop.SmokeTestKt")
+    classpath = sourceSets["main"].runtimeClasspath
 }

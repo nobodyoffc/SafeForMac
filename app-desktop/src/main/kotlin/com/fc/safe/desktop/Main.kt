@@ -1,4 +1,4 @@
-package spike
+package com.fc.safe.desktop
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +10,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication, title = "Safe Spike — Compose Desktop") {
+    Window(onCloseRequest = ::exitApplication, title = "Safe") {
         HelloWorld()
     }
 }
@@ -18,6 +18,6 @@ fun main() = application {
 @Composable
 fun HelloWorld() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("hello from compose desktop")
+        Text("Safe — placeholder. Phase 1 replaces this with the app shell.")
     }
 }
