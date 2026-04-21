@@ -118,6 +118,13 @@ class HomeScreen : Screen {
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    TextButton(
+                        enabled = !busy,
+                        onClick = { showCreateDialog = true },
+                    ) {
+                        Text("Create password")
+                    }
+
                     SafeButton(
                         enabled = !busy && password.isNotEmpty(),
                         onClick = {
@@ -139,13 +146,6 @@ class HomeScreen : Screen {
                         } else {
                             Text("Unlock")
                         }
-                    }
-
-                    TextButton(
-                        enabled = !busy,
-                        onClick = { showCreateDialog = true },
-                    ) {
-                        Text("Create password")
                     }
                 }
             }

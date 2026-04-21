@@ -31,7 +31,7 @@ fun CreatePasswordDialog(
     onDismiss: () -> Unit,
     onCreate: (password: CharArray) -> Unit,
     busy: Boolean = false,
-    minLength: Int = 8,
+    minLength: Int = 6,
 ) {
     var pwd by remember { mutableStateOf("") }
     var confirm by remember { mutableStateOf("") }
