@@ -24,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopVault
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CreatePasswordDialog
@@ -32,6 +34,7 @@ import com.fc.safe.desktop.ui.SafeButton
 import com.fc.safe.platform.macos.DesktopAppPaths
 import com.fc.safe.platform.macos.DesktopConfigureManager
 import com.fc.safe.platform.macos.DesktopDatabaseManager
+import com.fc.safe.platform.macos.WalletSession
 import com.fc.safe.platform.macos.WrongPasswordException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,27 +65,20 @@ class HomeScreen : Screen {
 
     @Composable
     override fun Content() {
+        val navigator = LocalNavigator.currentOrThrow
         val scaffoldState = rememberScaffoldState()
         val scope = rememberCoroutineScope()
 
         var password by remember { mutableStateOf("") }
         var error by remember { mutableStateOf<String?>(null) }
         var busy by remember { mutableStateOf(false) }
-        var unlockedAs by remember { mutableStateOf<String?>(null) }
         var showCreateDialog by remember { mutableStateOf(false) }
 
-        if (unlockedAs != null) {
-            UnlockedContent(
-                passwordName = unlockedAs!!,
-                scaffoldState = scaffoldState,
-                onLock = {
-                    DesktopDatabaseManager.closeAll()
-                    unlockedAs = null
-                    password = ""
-                    error = null
-                },
-            )
-            return
+        fun goToUnlockedHome(passwordName: String, pwdChars: CharArray) {
+            WalletSession.unlock(pwdChars, passwordName)
+            pwdChars.fill(Char.MIN_VALUE)
+            password = ""
+            navigator.replaceAll(UnlockedHomeScreen())
         }
 
         AppShell(title = "Safe", scaffoldState = scaffoldState) { padding ->
@@ -101,7 +97,13 @@ class HomeScreen : Screen {
                     enabled = !busy,
                     onSubmit = {
                         if (password.isNotEmpty() && !busy) {
-                            tryUnlock(scope, password, setError = { error = it }, setBusy = { busy = it }, onUnlocked = { unlockedAs = it; password = "" })
+                            tryUnlock(
+                                scope = scope,
+                                password = password,
+                                setError = { error = it },
+                                setBusy = { busy = it },
+                                onUnlocked = ::goToUnlockedHome,
+                            )
                         }
                     },
                     modifier = Modifier.widthIn(min = 320.dp),
@@ -133,7 +135,7 @@ class HomeScreen : Screen {
                                 password = password,
                                 setError = { error = it },
                                 setBusy = { busy = it },
-                                onUnlocked = { unlockedAs = it; password = "" },
+                                onUnlocked = ::goToUnlockedHome,
                             )
                         },
                     ) {
@@ -162,7 +164,7 @@ class HomeScreen : Screen {
                         pwdChars = newPwdChars,
                         setError = { error = it },
                         setBusy = { busy = it },
-                        onUnlocked = { unlockedAs = it; password = "" },
+                        onUnlocked = ::goToUnlockedHome,
                     )
                 },
             )
@@ -174,7 +176,7 @@ class HomeScreen : Screen {
         password: String,
         setError: (String?) -> Unit,
         setBusy: (Boolean) -> Unit,
-        onUnlocked: (passwordName: String) -> Unit,
+        onUnlocked: (passwordName: String, pwdChars: CharArray) -> Unit,
     ) {
         setError(null)
         setBusy(true)
@@ -203,14 +205,12 @@ class HomeScreen : Screen {
                 } catch (e: Throwable) {
                     log.warn("Unlock error", e)
                     Outcome.Error(e.message ?: "unknown error")
-                } finally {
-                    pwdChars.fill(Char.MIN_VALUE)
                 }
             }
             when (outcome) {
-                is Outcome.Ok -> onUnlocked(outcome.name)
-                is Outcome.Wrong -> setError("Wrong password")
-                is Outcome.Error -> setError("Error: ${outcome.msg}")
+                is Outcome.Ok -> onUnlocked(outcome.name, pwdChars)  // callee wipes
+                is Outcome.Wrong -> { pwdChars.fill(Char.MIN_VALUE); setError("Wrong password") }
+                is Outcome.Error -> { pwdChars.fill(Char.MIN_VALUE); setError("Error: ${outcome.msg}") }
             }
             setBusy(false)
         }
@@ -221,7 +221,7 @@ class HomeScreen : Screen {
         pwdChars: CharArray,
         setError: (String?) -> Unit,
         setBusy: (Boolean) -> Unit,
-        onUnlocked: (passwordName: String) -> Unit,
+        onUnlocked: (passwordName: String, pwdChars: CharArray) -> Unit,
     ) {
         setError(null)
         setBusy(true)
@@ -240,14 +240,12 @@ class HomeScreen : Screen {
                 } catch (e: Throwable) {
                     log.warn("Create error", e)
                     Outcome.Error(e.message ?: "unknown error")
-                } finally {
-                    pwdChars.fill(Char.MIN_VALUE)
                 }
             }
             when (outcome) {
-                is Outcome.Ok -> onUnlocked(outcome.name)
-                is Outcome.Error -> setError("Create failed: ${outcome.msg}")
-                is Outcome.Wrong -> { /* unreachable in create flow */ }
+                is Outcome.Ok -> onUnlocked(outcome.name, pwdChars)  // callee wipes
+                is Outcome.Error -> { pwdChars.fill(Char.MIN_VALUE); setError("Create failed: ${outcome.msg}") }
+                is Outcome.Wrong -> { pwdChars.fill(Char.MIN_VALUE) /* unreachable */ }
             }
             setBusy(false)
         }
@@ -260,26 +258,3 @@ class HomeScreen : Screen {
     }
 }
 
-@Composable
-private fun UnlockedContent(
-    passwordName: String,
-    scaffoldState: androidx.compose.material.ScaffoldState,
-    onLock: () -> Unit,
-) {
-    AppShell(title = "Safe — Unlocked ($passwordName)", scaffoldState = scaffoldState) { padding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-        ) {
-            Text("Unlocked.", style = MaterialTheme.typography.h5)
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "Phase 2 placeholder — key management, transactions, and multisig screens will land here.",
-                style = MaterialTheme.typography.body2,
-            )
-            Spacer(Modifier.height(24.dp))
-            SafeButton(onClick = onLock) { Text("Lock") }
-        }
-    }
-}
