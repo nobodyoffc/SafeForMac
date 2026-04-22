@@ -3,23 +3,34 @@ package com.fc.safe.desktop
 import data.fcData.FcEntity
 
 /**
- * Per-wallet record of a cryptographic key. Minimal shape for the Phase 2
- * first-screen port; intentionally narrower than Safe Android's
- * `com.fc.fc_ajdk.data.fcData.KeyInfo` (which extends `Cid`/`Freer` and
- * carries on-chain bells like history, avatar, balances). We'll grow into
- * that surface as later screens need it.
+ * Per-wallet record of a cryptographic key.
  *
- * Sensitive fields ([prikey]) sit in the row value which SqliteDB encrypts
- * at rest with the wallet's Argon2-derived symkey. A separate field-level
- * encryption layer (`prikeyCipher` in Safe) is deferred until the
- * import/export flow needs portable encrypted key material.
+ * - `id` (inherited) is the FID — this is also the card's title.
+ * - `pubkey` is the 33-byte compressed public key as hex.
+ * - `prikeyCipher` is a [core.crypto.CryptoDataStr]-shaped JSON string.
+ *   Its `data` field is null; its cipher/iv/sum/alg/kdf fields are
+ *   populated by [core.crypto.Encryptor.encryptByPassword] under the
+ *   wallet's password. Decrypt via
+ *   [com.fc.safe.platform.macos.WalletSession.decryptFromJson].
+ * - `label` is user-editable.
+ * - `btcAddr`/`ethAddr`/`trxAddr`/`bchAddr`/`dogeAddr` are cached at key
+ *   creation time via [core.crypto.KeyTools.pubkeyToAddresses] so the
+ *   card can render them without re-deriving on every paint.
  *
- * `id` (inherited from FcEntity) is the FID address.
+ * The whole row is additionally encrypted at rest by SqliteDB's
+ * value-layer AES-GCM, so prikeyCipher is encrypted twice: once with
+ * the wallet password (portable, exportable) and once with the DB's
+ * Argon2-derived symkey (at-rest protection, specific to this machine).
  */
 class DesktopKeyInfo : FcEntity() {
-    var prikey: String? = null    // hex-encoded 32-byte private key; null for watch-only
-    var pubkey: String? = null    // hex-encoded 33-byte compressed public key
+    var pubkey: String? = null           // 33-byte compressed, hex
+    var prikeyCipher: String? = null     // CryptoDataStr JSON; null for watch-only
     var label: String? = null
     var watchOnly: Boolean = false
     var savedAt: Long = 0
+    var btcAddr: String? = null
+    var ethAddr: String? = null
+    var trxAddr: String? = null
+    var bchAddr: String? = null
+    var dogeAddr: String? = null
 }

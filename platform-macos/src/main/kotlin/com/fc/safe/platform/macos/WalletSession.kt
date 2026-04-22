@@ -1,5 +1,8 @@
 package com.fc.safe.platform.macos
 
+import core.crypto.CryptoDataStr
+import core.crypto.Decryptor
+import core.crypto.Encryptor
 import data.fcData.FcEntity
 import db.LocalDB
 import org.slf4j.LoggerFactory
@@ -72,5 +75,44 @@ object WalletSession {
         passwordName = null
         DesktopDatabaseManager.closeAll()
         if (hadSession) log.info("Wallet locked: {}", name)
+    }
+
+    /**
+     * Encrypt [plaintext] with the session password and return a
+     * [CryptoDataStr]-shaped JSON. The `data` field is nulled before
+     * serialization so the plaintext never goes to disk — the JSON
+     * contains only ciphertext + IV + sum + algorithm + KDF marker.
+     *
+     * Uses [Encryptor.encryptByPassword], which runs Argon2id on each
+     * call (~500ms). Appropriate for per-key operations but don't call
+     * in hot loops.
+     */
+    fun encryptToJson(plaintext: ByteArray): String {
+        val pwd = password ?: error("WalletSession is locked")
+        val pwdCopy = pwd.copyOf()
+        try {
+            val cdb = Encryptor().encryptByPassword(plaintext, pwdCopy)
+            val cds = CryptoDataStr.fromCryptoDataByte(cdb)
+            cds.data = null
+            return cds.toJson()
+        } finally {
+            pwdCopy.fill(Char.MIN_VALUE)
+        }
+    }
+
+    /**
+     * Decrypt a [CryptoDataStr] JSON produced by [encryptToJson].
+     * Caller owns the returned byte[] and must wipe it after use.
+     */
+    fun decryptFromJson(json: String): ByteArray {
+        val pwd = password ?: error("WalletSession is locked")
+        val pwdCopy = pwd.copyOf()
+        try {
+            val cdb = Decryptor().decryptJsonByPassword(json, pwdCopy)
+            check(cdb.code == 0) { "decrypt failed: code=${cdb.code} msg=${cdb.message}" }
+            return cdb.data
+        } finally {
+            pwdCopy.fill(Char.MIN_VALUE)
+        }
     }
 }
