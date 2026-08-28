@@ -3,8 +3,12 @@ package com.fc.safe.platform.macos
 import core.crypto.CryptoDataStr
 import core.crypto.Decryptor
 import core.crypto.Encryptor
+import data.fcData.AlgorithmId
 import data.fcData.FcEntity
 import db.LocalDB
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import org.slf4j.LoggerFactory
 
 /**
@@ -27,10 +31,28 @@ object WalletSession {
     @Volatile private var password: CharArray? = null
     @Volatile private var passwordName: String? = null
 
+    private val _isLockedFlow = MutableStateFlow(true)
+    /**
+     * Observable lock state. Flips false on [unlock], true on [lock].
+     * The root navigator host watches this so it can drop back to
+     * `HomeScreen` when [LockManager] (or anything else) calls
+     * [lock] from outside the active screen.
+     */
+    val isLockedFlow: StateFlow<Boolean> = _isLockedFlow.asStateFlow()
+
     val isLocked: Boolean
         get() = password == null
 
     fun currentPasswordName(): String? = passwordName
+
+    /**
+     * Defensive copy of the currently-unlocked password, or null if
+     * locked. Caller **must** wipe the returned CharArray with
+     * `fill(Char.MIN_VALUE)` after use. Used by flows that need to
+     * re-encrypt under the wallet password without re-prompting the
+     * user (e.g. export-with-current-password).
+     */
+    fun currentPasswordCopy(): CharArray? = password?.copyOf()
 
     /**
      * Called by the unlock flow once the password has been verified
@@ -40,6 +62,10 @@ object WalletSession {
     fun unlock(password: CharArray, passwordName: String) {
         this.password = password.copyOf()
         this.passwordName = passwordName
+        // Reset auto-lock timers so the new session gets the full
+        // idle window (rather than inheriting "stale" activity).
+        LockManager.resetForNewSession()
+        _isLockedFlow.value = false
         log.info("Wallet unlocked: {}", passwordName)
     }
 
@@ -74,6 +100,7 @@ object WalletSession {
         val name = passwordName
         passwordName = null
         DesktopDatabaseManager.closeAll()
+        _isLockedFlow.value = true
         if (hadSession) log.info("Wallet locked: {}", name)
     }
 
@@ -81,17 +108,20 @@ object WalletSession {
      * Encrypt [plaintext] with the session password and return a
      * [CryptoDataStr]-shaped JSON. The `data` field is nulled before
      * serialization so the plaintext never goes to disk — the JSON
-     * contains only ciphertext + IV + sum + algorithm + KDF marker.
+     * contains only ciphertext + IV + algorithm + KDF marker (GCM has
+     * no separate sum field).
      *
-     * Uses [Encryptor.encryptByPassword], which runs Argon2id on each
-     * call (~500ms). Appropriate for per-key operations but don't call
-     * in hot loops.
+     * Uses [Encryptor.encryptByPassword] with `FC_AesGcm256_No1_NrC7`
+     * — AEAD with built-in auth tag, replaces the CBC + sum4 pairing.
+     * Runs Argon2id on each call (~500ms). Appropriate for per-key
+     * operations but don't call in hot loops.
      */
     fun encryptToJson(plaintext: ByteArray): String {
         val pwd = password ?: error("WalletSession is locked")
         val pwdCopy = pwd.copyOf()
         try {
-            val cdb = Encryptor().encryptByPassword(plaintext, pwdCopy)
+            val cdb = Encryptor(AlgorithmId.FC_AesGcm256_No1_NrC7)
+                .encryptByPassword(plaintext, pwdCopy)
             val cds = CryptoDataStr.fromCryptoDataByte(cdb)
             cds.data = null
             return cds.toJson()

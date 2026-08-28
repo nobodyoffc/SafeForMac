@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.1.20"
+    kotlin("jvm")
     `java-library`
 }
 
@@ -12,6 +12,9 @@ java {
 dependencies {
     api("fc:FC-JDK:1.0-SNAPSHOT")
     api("org.slf4j:slf4j-api:2.0.16")
+    // `api` so app-desktop can collect/observe `WalletSession.isLockedFlow`
+    // and `LockManager.events` without re-declaring the dependency.
+    api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     implementation("ch.qos.logback:logback-classic:1.5.16")
     implementation("ch.qos.logback:logback-core:1.5.16")
     implementation("org.xerial:sqlite-jdbc:3.47.1.0")
