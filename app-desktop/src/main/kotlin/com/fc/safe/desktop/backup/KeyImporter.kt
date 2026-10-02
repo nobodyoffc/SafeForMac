@@ -140,7 +140,7 @@ internal object KeyImporter {
         val hex = entry.prikey
         if (!hex.isNullOrBlank()) {
             val bytes = KeyTools.getPrikey32(hex) ?: return null
-            return buildKeyFromPrikey32(bytes, label, savedAt)
+            return checkedKey(entry, bytes, label, savedAt)
         }
 
         // Password-encrypted cipher. Decoded as a bundle (which carries
@@ -167,7 +167,7 @@ internal object KeyImporter {
                         continue
                     }
                     try {
-                        return buildKeyFromPrikey32(prikey32, label, savedAt)
+                        return checkedKey(entry, prikey32, label, savedAt)
                     } finally {
                         raw.fill(0)
                     }
@@ -191,6 +191,24 @@ internal object KeyImporter {
         }
 
         return null
+    }
+
+    /**
+     * The key, once its prikey is shown to be the entry's: FTSP31 refuses a list whose
+     * prikey belongs to another FID than the `id` it is listed under (or whose `pubkey`
+     * is another key's), rather than adding it under the FID the prikey makes.
+     */
+    private fun checkedKey(entry: ExportedKeyInfo, prikey32: ByteArray, label: String?, savedAt: Long): DesktopKeyInfo {
+        val fid = KeyTools.prikeyToFid(prikey32)
+        val claimed = entry.id
+        if (!claimed.isNullOrBlank() && claimed != fid) {
+            throw IllegalArgumentException("The entry says $claimed, but its prikey belongs to $fid")
+        }
+        val pub = entry.pubkey
+        if (!pub.isNullOrBlank() && !pub.equals(Hex.toHex(KeyTools.prikeyToPubkey(prikey32)), ignoreCase = true)) {
+            throw IllegalArgumentException("The entry's pubkey is not the pubkey of its prikey ($fid)")
+        }
+        return buildKeyFromPrikey32(prikey32, label, savedAt)
     }
 
     private fun parseSaveTime(s: String?): Long? {
