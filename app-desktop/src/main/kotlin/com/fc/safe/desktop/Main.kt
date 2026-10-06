@@ -43,7 +43,7 @@ import java.awt.event.WindowEvent
 
 @OptIn(ExperimentalComposeUiApi::class, kotlinx.coroutines.DelicateCoroutinesApi::class)
 fun main() {
-    // Must run before any logger is acquired: sets safe.log.dir for logback.xml.
+    // Must run before any logger is acquired: sets safe.log.dir and selects safe-logback.xml.
     BootstrapLogging.preInit()
     val log = LoggerFactory.getLogger("Main")
     DesktopApp.initialize()
