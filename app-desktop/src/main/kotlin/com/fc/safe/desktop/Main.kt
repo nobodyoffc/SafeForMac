@@ -33,6 +33,7 @@ import com.fc.safe.desktop.screens.HomeScreen
 import com.fc.safe.platform.macos.BootstrapLogging
 import com.fc.safe.platform.macos.DesktopApp
 import com.fc.safe.platform.macos.LockManager
+import com.fc.safe.platform.macos.ScreenCaptureGuard
 import com.fc.safe.platform.macos.WalletSession
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -52,6 +53,10 @@ fun main() {
     // appropriate here — we want a process-wide background timer that
     // outlives any individual screen composition.
     GlobalScope.launch { LockManager.runLoop() }
+
+    // Keep keys and secrets out of screenshots and screen recordings, as
+    // Android Safe does with FLAG_SECURE. Covers windows opened later too.
+    ScreenCaptureGuard.install()
 
     application {
         Window(

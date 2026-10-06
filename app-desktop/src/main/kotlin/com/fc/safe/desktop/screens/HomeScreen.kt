@@ -27,21 +27,16 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.BuildInfo
-import com.fc.safe.desktop.DesktopVault
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CreatePasswordDialog
 import com.fc.safe.desktop.ui.PasswordField
 import com.fc.safe.desktop.ui.SafeButton
-import com.fc.safe.platform.macos.DesktopAppPaths
 import com.fc.safe.platform.macos.DesktopConfigureManager
-import com.fc.safe.platform.macos.DesktopDatabaseManager
-import com.fc.safe.platform.macos.WalletSession
-import com.fc.safe.platform.macos.WrongPasswordException
+import com.fc.safe.platform.macos.VaultUnlocker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
-import java.nio.file.Files
 
 private val log = LoggerFactory.getLogger("HomeScreen")
 
@@ -54,13 +49,12 @@ private val log = LoggerFactory.getLogger("HomeScreen")
  * action via a secondary "Create password" button that opens
  * [CreatePasswordDialog].
  *
- * **Auth flow**:
- * - Unlock: derive passwordName, look up in [DesktopConfigureManager].
- *   If not registered → "Wrong password" (same message as bad decrypt).
- *   If registered → open the wallet's vault DB via
- *   [DesktopDatabaseManager]; [WrongPasswordException] → "Wrong password".
- * - Create: [DesktopDatabaseManager.open] writes a new encrypted DB;
- *   [DesktopConfigureManager.createFor] registers the passwordName.
+ * **Auth flow** ([VaultUnlocker], off the UI thread — Argon2id runs on every path):
+ * - Unlock: the vault whose data key the password unwraps opens. A legacy
+ *   (pre-1.1) wallet is confirmed by its password and moved to a data key on
+ *   the way in. No match → "Wrong password", whatever the reason.
+ * - Create: refused if the password already opens a wallet; otherwise a new
+ *   vault with a random data key and vault id.
  */
 class HomeScreen : Screen {
 
@@ -74,12 +68,13 @@ class HomeScreen : Screen {
         var error by remember { mutableStateOf<String?>(null) }
         var busy by remember { mutableStateOf(false) }
         var showCreateDialog by remember { mutableStateOf(false) }
+        // Read once per visit; it only decides the wording of the busy hint.
+        val hasLegacyWallet = remember { DesktopConfigureManager.all().values.any { it.isLegacy } }
 
-        fun goToUnlockedHome(passwordName: String, pwdChars: CharArray) {
-            WalletSession.unlock(pwdChars, passwordName)
-            pwdChars.fill(Char.MIN_VALUE)
+        // VaultUnlocker has already unlocked WalletSession.
+        fun goToUnlockedHome(notice: String?) {
             password = ""
-            navigator.replaceAll(UnlockedHomeScreen())
+            navigator.replaceAll(UnlockedHomeScreen(notice))
         }
 
         AppShell(title = "Safe", scaffoldState = scaffoldState) { padding ->
@@ -113,6 +108,17 @@ class HomeScreen : Screen {
                 error?.let {
                     Spacer(Modifier.height(12.dp))
                     Text(it, color = MaterialTheme.colors.error)
+                }
+
+                if (busy) {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        if (hasLegacyWallet) "Checking the password… The first unlock after updating also moves " +
+                            "the wallet to its new key and can take a minute."
+                        else "Checking the password…",
+                        style = MaterialTheme.typography.caption,
+                        modifier = Modifier.widthIn(max = 420.dp),
+                    )
                 }
 
                 Spacer(Modifier.height(24.dp))
@@ -187,7 +193,7 @@ class HomeScreen : Screen {
         password: String,
         setError: (String?) -> Unit,
         setBusy: (Boolean) -> Unit,
-        onUnlocked: (passwordName: String, pwdChars: CharArray) -> Unit,
+        onUnlocked: (notice: String?) -> Unit,
     ) {
         setError(null)
         setBusy(true)
@@ -195,33 +201,29 @@ class HomeScreen : Screen {
         scope.launch {
             val outcome = withContext(Dispatchers.Default) {
                 try {
-                    val name = DesktopConfigureManager.passwordNameFor(pwdChars.copyOf())
-                    // "Known wallet?" check happens BEFORE opening so an
-                    // unknown-password attempt can't silently create a
-                    // new wallet. Same error copy as decrypt failure —
-                    // don't leak whether the password is unknown vs wrong.
-                    val known = DesktopConfigureManager.all().containsKey(name)
-                    val vaultFile = DesktopAppPaths.dbDir.resolve(name).resolve("vault.sqlite")
-                    if (!known || !Files.exists(vaultFile)) {
-                        return@withContext Outcome.Wrong
+                    // Same error copy for "no such wallet" and "wrong password":
+                    // don't leak which one it was.
+                    when (val r = VaultUnlocker.unlock(pwdChars)) {
+                        is VaultUnlocker.UnlockResult.WrongPassword -> Outcome.Wrong
+                        is VaultUnlocker.UnlockResult.Opened -> Outcome.Ok(
+                            r.unreadableRecordId?.let {
+                                "This wallet could not move to its new key: record $it does not decrypt. " +
+                                    "It still works as before, and the move is retried on the next unlock."
+                            }
+                        )
                     }
-                    DesktopDatabaseManager.open(
-                        password = pwdChars.copyOf(),
-                        dbName = "vault",
-                        entityClass = DesktopVault::class.java,
-                    )
-                    Outcome.Ok(name)
-                } catch (e: WrongPasswordException) {
-                    Outcome.Wrong
                 } catch (e: Throwable) {
                     log.warn("Unlock error", e)
                     Outcome.Error(e.message ?: "unknown error")
+                } finally {
+                    pwdChars.fill(Char.MIN_VALUE)
                 }
             }
             when (outcome) {
-                is Outcome.Ok -> onUnlocked(outcome.name, pwdChars)  // callee wipes
-                is Outcome.Wrong -> { pwdChars.fill(Char.MIN_VALUE); setError("Wrong password") }
-                is Outcome.Error -> { pwdChars.fill(Char.MIN_VALUE); setError("Error: ${outcome.msg}") }
+                is Outcome.Ok -> onUnlocked(outcome.notice)
+                is Outcome.Wrong -> setError("Wrong password")
+                is Outcome.Error -> setError("Error: ${outcome.msg}")
+                is Outcome.Exists -> Unit
             }
             setBusy(false)
         }
@@ -232,39 +234,38 @@ class HomeScreen : Screen {
         pwdChars: CharArray,
         setError: (String?) -> Unit,
         setBusy: (Boolean) -> Unit,
-        onUnlocked: (passwordName: String, pwdChars: CharArray) -> Unit,
+        onUnlocked: (notice: String?) -> Unit,
     ) {
         setError(null)
         setBusy(true)
         scope.launch {
             val outcome = withContext(Dispatchers.Default) {
                 try {
-                    val name = DesktopConfigureManager.passwordNameFor(pwdChars.copyOf())
-                    val db = DesktopDatabaseManager.open(
-                        password = pwdChars.copyOf(),
-                        dbName = "vault",
-                        entityClass = DesktopVault::class.java,
-                    )
-                    db.putMeta("vault.created_at", System.currentTimeMillis())
-                    DesktopConfigureManager.createFor(pwdChars.copyOf())
-                    Outcome.Ok(name)
+                    when (VaultUnlocker.create(pwdChars)) {
+                        is VaultUnlocker.CreateResult.Created -> Outcome.Ok(null)
+                        is VaultUnlocker.CreateResult.AlreadyExists -> Outcome.Exists
+                    }
                 } catch (e: Throwable) {
                     log.warn("Create error", e)
                     Outcome.Error(e.message ?: "unknown error")
+                } finally {
+                    pwdChars.fill(Char.MIN_VALUE)
                 }
             }
             when (outcome) {
-                is Outcome.Ok -> onUnlocked(outcome.name, pwdChars)  // callee wipes
-                is Outcome.Error -> { pwdChars.fill(Char.MIN_VALUE); setError("Create failed: ${outcome.msg}") }
-                is Outcome.Wrong -> { pwdChars.fill(Char.MIN_VALUE) /* unreachable */ }
+                is Outcome.Ok -> onUnlocked(null)
+                is Outcome.Exists -> setError("This password already opens a wallet. Unlock it, or choose another password.")
+                is Outcome.Error -> setError("Create failed: ${outcome.msg}")
+                is Outcome.Wrong -> Unit
             }
             setBusy(false)
         }
     }
 
     private sealed class Outcome {
-        data class Ok(val name: String) : Outcome()
+        data class Ok(val notice: String?) : Outcome()
         data object Wrong : Outcome()
+        data object Exists : Outcome()
         data class Error(val msg: String) : Outcome()
     }
 }

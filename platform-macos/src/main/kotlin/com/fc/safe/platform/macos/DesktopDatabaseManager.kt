@@ -10,10 +10,14 @@ import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Per-password-context [SqliteDB] lifecycle holder.
+ * Per-vault [SqliteDB] lifecycle holder.
  *
- * One [SqliteDB] instance per `(passwordHashPrefix, dbName)` tuple, backed by
- * an encrypted file under:
+ * A data-key vault ([openWithKey]) keeps its files under
+ *
+ *     ~/Library/Application Support/com.fc.safe/db/{vaultId}/{dbName}.sqlite
+ *
+ * One [SqliteDB] instance per `(passwordHashPrefix, dbName)` tuple of a
+ * legacy wallet ([open]), backed by an encrypted file under:
  *
  *     ~/Library/Application Support/com.fc.safe/db/{passwordHashPrefix}/{dbName}.sqlite
  *
@@ -69,6 +73,36 @@ object DesktopDatabaseManager {
         }
         openDbs[cacheKey] = db
         log.info("Opened db={} under context={}", dbName, passwordHashPrefix)
+        return db
+    }
+
+    /**
+     * Open or reopen a DB of a data-key vault, under
+     * `db/{vaultId}/{dbName}.sqlite`. No KDF runs: [dek] keys the rows.
+     *
+     * @throws WrongPasswordException if [dek] does not open an existing file.
+     */
+    fun <T : FcEntity> openWithKey(
+        vaultId: String,
+        dek: ByteArray,
+        dbName: String,
+        entityClass: Class<T>,
+        sortType: LocalDB.SortType = LocalDB.SortType.KEY_ORDER,
+    ): LocalDB<T> {
+        val cacheKey = "$vaultId/$dbName"
+        openDbs[cacheKey]?.let {
+            @Suppress("UNCHECKED_CAST")
+            return it as LocalDB<T>
+        }
+        val db = SqliteDB(sortType, entityClass)
+        try {
+            db.initializeWithKey(dek, DesktopAppPaths.dbDir.resolve(vaultId).toString(), dbName)
+        } catch (e: Throwable) {
+            db.close()
+            throw e
+        }
+        openDbs[cacheKey] = db
+        log.info("Opened db={} in vault={}", dbName, vaultId)
         return db
     }
 

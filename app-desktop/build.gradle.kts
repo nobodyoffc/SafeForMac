@@ -16,7 +16,7 @@ java {
 // bundle (packageVersion, below) and the string the UI shows, so a
 // screenshot of the About box can never disagree with the .app it
 // came out of. Bump it here and nowhere else.
-val appVersion = "1.0.1"
+val appVersion = "1.1.0"
 
 // Generates BuildInfo.kt into a source dir Kotlin compiles alongside
 // src/main/kotlin. The alternative — reading Implementation-Version off
@@ -99,6 +99,9 @@ compose.desktop {
             packageVersion = appVersion
             macOS {
                 bundleID = "com.fc.safe.desktop"
+                // Android Safe's launcher icon on the macOS icon grid;
+                // regenerate with icons/MakeIcon.java (see its header).
+                iconFile.set(project.file("icons/Safe.icns"))
                 signing {
                     sign.set(true)
                     identity.set("CHANGYONG LIU (5768V787GP)")
@@ -127,6 +130,11 @@ tasks.register<JavaExec>("phase1Smoke") {
     description = "Open DB context, write/read FcEntity, close, reopen, verify"
     mainClass.set("com.fc.safe.desktop.Phase1SmokeKt")
     classpath = sourceSets["main"].runtimeClasspath
+    // Its DBs land under ~/Library/Application Support/com.fc.safe — keep
+    // them in a throwaway home instead of next to the real wallets.
+    val home = layout.buildDirectory.dir("phase1-smoke-home")
+    doFirst { delete(home) }
+    systemProperty("user.home", home.get().asFile.path)
 }
 
 // Phase 2 smoke test: AvatarMaker layer loading + composite.
@@ -161,6 +169,30 @@ tasks.register<JavaExec>("secretBackupInteropSmoke") {
     description = "Round-trip a secret through the Android-shaped export envelope"
     mainClass.set("com.fc.safe.desktop.SecretBackupInteropSmokeKt")
     classpath = sourceSets["main"].runtimeClasspath
+}
+
+// FTSP cross-implementation vectors against the FC-JDK on our classpath:
+// Freeverse's reference set, then Android Safe's bundle/algorithm files
+// (Android 2.4 writes type-4 Password bundles).
+tasks.register<JavaExec>("ftspVectorsSmoke") {
+    group = "verification"
+    description = "Run the FTSP crypto vectors (Freeverse + Android Safe) through FC-JDK"
+    mainClass.set("com.fc.safe.desktop.FtspVectorsSmokeKt")
+    classpath = sourceSets["main"].runtimeClasspath
+    args(rootProject.file("vectors/ftsp").path, rootProject.file("vectors/ftsp-android").path)
+}
+
+// FTSP31 backup vectors through our own Key/Secret importers into a
+// data-key vault. Creates a wallet, so it runs in a throwaway home.
+tasks.register<JavaExec>("backupVectorsSmoke") {
+    group = "verification"
+    description = "Import the FTSP31 backup vectors with KeyImporter/SecretImporter"
+    mainClass.set("com.fc.safe.desktop.BackupVectorsSmokeKt")
+    classpath = sourceSets["main"].runtimeClasspath
+    args(rootProject.file("vectors/ftsp").path)
+    val home = layout.buildDirectory.dir("backup-vectors-home")
+    doFirst { delete(home) }
+    systemProperty("user.home", home.get().asFile.path)
 }
 
 // Make-QR round trip: split a payload, encode + rasterise every chunk,

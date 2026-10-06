@@ -52,6 +52,7 @@ import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.platform.macos.DesktopApp
 import com.fc.safe.platform.macos.LockManager
 import com.fc.safe.platform.macos.WalletSession
+import com.fc.safe.desktop.ui.ChangePasswordDialog
 import kotlin.system.exitProcess
 import kotlinx.coroutines.delay
 
@@ -68,13 +69,18 @@ import kotlinx.coroutines.delay
  * password entry view is never reachable by hitting the back button
  * after unlock.
  */
-class UnlockedHomeScreen : Screen {
+class UnlockedHomeScreen(
+    /** Shown once at the top, e.g. why a legacy wallet could not move to its new key. */
+    private val notice: String? = null,
+) : Screen {
 
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val scaffoldState = rememberScaffoldState()
-        val name = WalletSession.currentPasswordName() ?: "?"
+        val name = WalletSession.currentVaultName() ?: "?"
+        var showChangePassword by remember { mutableStateOf(false) }
+        var changedMessage by remember { mutableStateOf<String?>(null) }
 
         // Tick once a second to refresh the auto-lock countdown.
         // markActive() is wired at the root in Main.kt, so this loop
@@ -109,6 +115,15 @@ class UnlockedHomeScreen : Screen {
                                 style = MaterialTheme.typography.h6,
                                 textAlign = TextAlign.Center,
                             )
+                            (changedMessage ?: notice)?.let {
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    it,
+                                    style = MaterialTheme.typography.caption,
+                                    color = if (changedMessage != null) MaterialTheme.colors.primary else MaterialTheme.colors.error,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
                             if (secondsLeft in 0..60) {
                                 Spacer(Modifier.height(4.dp))
                                 Text(
@@ -159,6 +174,7 @@ class UnlockedHomeScreen : Screen {
                                     "Hash" to { navigator.push(HashScreen()) },
                                     "Sign message" to { navigator.push(SignMsgScreen()) },
                                     "Verify message" to { navigator.push(VerifyScreen()) },
+                                    "Change password" to { showChangePassword = true },
                                 ),
                             ),
                             DropdownTile(
@@ -213,6 +229,16 @@ class UnlockedHomeScreen : Screen {
                     }
                 }
             }
+        }
+
+        if (showChangePassword) {
+            ChangePasswordDialog(
+                onDismiss = { showChangePassword = false },
+                onChanged = {
+                    showChangePassword = false
+                    changedMessage = "Password changed."
+                },
+            )
         }
     }
 }

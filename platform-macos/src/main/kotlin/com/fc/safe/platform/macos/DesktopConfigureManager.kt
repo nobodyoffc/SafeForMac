@@ -2,37 +2,60 @@ package com.fc.safe.platform.macos
 
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import core.crypto.VaultKey
 import org.slf4j.LoggerFactory
 import utils.BytesUtils
 import utils.IdNameUtils
+import java.nio.channels.FileChannel
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardCopyOption
+import java.nio.file.StandardOpenOption
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * One entry per known wallet password. Stored plaintext JSON at:
+ * One entry per wallet vault. Stored plaintext JSON at:
  *
  *     ~/Library/Application Support/com.fc.safe/config/configurations.json
  *
- * Safe to store: `passwordName` is a 6-char hex prefix of the double-SHA256
- * of the password bytes — it identifies a wallet but does not enable
- * decryption. No secret material is written here.
+ * Two kinds of entry, told apart by the length of [passwordName] (the map key):
+ *
+ * - **Vault** (12 hex chars, [VaultKey.VAULT_ID_LENGTH]): [passwordName] is a
+ *   random vault id and [dekCipher] is the vault's data key wrapped under
+ *   Argon2id(password). Nothing derived from the password is stored, so the
+ *   file gives an attacker nothing to test guesses against faster than Argon2id.
+ * - **Legacy** (6 hex chars): [passwordName] is the double-SHA256 prefix of the
+ *   password, as every build before 1.1 wrote it. Its DBs are keyed by the
+ *   password itself. [VaultUnlocker] migrates it to a vault on first unlock;
+ *   the migration fields record how far that got, so a crash can resume.
+ *
+ * Same model and field names as Android Safe 2.4's Configure (dekCipher,
+ * legacyName), so the two stay easy to compare.
  */
 data class DesktopConfigure(
     val passwordName: String,
     val createdAt: Long,
     /** User-visible label. Optional; defaults to passwordName. */
     val label: String? = null,
-)
+    /** Data key wrapped under the password ([VaultKey.wrap]); null for a legacy entry. */
+    val dekCipher: String? = null,
+    /** On a vault made by migration, the legacy name it came from, until the legacy files are gone. */
+    val legacyName: String? = null,
+    /** [core.crypto.VaultMigration.State] name; null means LEGACY (or a vault made fresh). */
+    val migrationState: String? = null,
+    /** Vault id chosen by a migration that has not flipped yet. */
+    val pendingVaultId: String? = null,
+    /** Wrapped data key chosen by a migration that has not flipped yet. */
+    val pendingDekCipher: String? = null,
+) {
+    val isLegacy: Boolean get() = VaultKey.isLegacyName(passwordName)
+}
 
 /**
- * JSON-backed replacement for Safe Android's ConfigureManager. Knows which
- * wallets exist on this machine and provides the lookup the UI needs to
- * decide "is this a new password or an existing wallet?".
- *
- * Deliberately narrow: holds no Configure/symkey/auth state — those
- * live in memory during a session and are managed by DesktopDatabaseManager.
+ * JSON-backed replacement for Safe Android's ConfigureManager: which vaults
+ * exist on this machine and how to open them. Holds no key material in
+ * memory; [WalletSession] holds the open vault's key.
  */
 object DesktopConfigureManager {
 
@@ -62,9 +85,28 @@ object DesktopConfigureManager {
         log.info("Loaded {} wallet configuration(s)", configs.size)
     }
 
+    /** Forgets the in-memory copy, so the next call reads the file again. */
+    @Synchronized
+    fun reload() {
+        loaded = false
+        ensureLoaded()
+    }
+
+    /**
+     * Writes the whole map to a temp file, forces it to disk, and renames it
+     * over the old file. A crash leaves either the old file or the new one,
+     * never a torn one — the wrapped data key lives only here.
+     */
     private fun save() {
         Files.createDirectories(configFile.parent)
-        Files.writeString(configFile, gson.toJson(configs))
+        val tmp = configFile.resolveSibling("configurations.json.tmp")
+        FileChannel.open(
+            tmp, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE,
+        ).use { ch ->
+            ch.write(StandardCharsets.UTF_8.encode(gson.toJson(configs.toSortedMap())))
+            ch.force(true)
+        }
+        Files.move(tmp, configFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
     }
 
     /** Every known wallet, keyed by passwordName. */
@@ -78,8 +120,14 @@ object DesktopConfigureManager {
         return configs.isEmpty()
     }
 
+    fun get(passwordName: String): DesktopConfigure? {
+        ensureLoaded()
+        return configs[passwordName]
+    }
+
     /**
-     * Compute the passwordName for [password] without mutating state.
+     * The legacy 6-hex name for [password]. Only legacy entries are found by
+     * it; a vault is found by unwrapping its data key.
      * Caller retains ownership of the char[] and is responsible for wiping it.
      */
     fun passwordNameFor(password: CharArray): String {
@@ -91,30 +139,43 @@ object DesktopConfigureManager {
         }
     }
 
-    /** True if a wallet with this password's hash-name already exists. */
-    fun exists(password: CharArray): Boolean {
+    /** Adds or replaces [entry], durably. */
+    @Synchronized
+    fun put(entry: DesktopConfigure) {
         ensureLoaded()
-        return configs.containsKey(passwordNameFor(password))
+        configs[entry.passwordName] = entry
+        save()
+    }
+
+    /** Removes [oldName] and adds [entry] in one durable write. */
+    @Synchronized
+    fun replace(oldName: String, entry: DesktopConfigure) {
+        ensureLoaded()
+        configs.remove(oldName)
+        configs[entry.passwordName] = entry
+        save()
     }
 
     /**
-     * Register a new wallet for [password]. Idempotent — if the password
-     * already maps to a configuration, returns the existing one.
+     * Registers a legacy, password-named wallet — what every build before 1.1
+     * did on "Create password". Kept for tests that need a legacy vault to
+     * migrate; the app creates vaults with [VaultUnlocker.create].
      */
-    fun createFor(password: CharArray, label: String? = null): DesktopConfigure {
+    fun createLegacyFor(password: CharArray, label: String? = null): DesktopConfigure {
         ensureLoaded()
         val name = passwordNameFor(password)
-        return configs.getOrPut(name) {
-            DesktopConfigure(passwordName = name, createdAt = System.currentTimeMillis(), label = label)
-                .also { save() }
-        }
+        configs[name]?.let { return it }
+        return DesktopConfigure(passwordName = name, createdAt = System.currentTimeMillis(), label = label)
+            .also { put(it) }
     }
 
+    @Synchronized
     fun remove(passwordName: String) {
         ensureLoaded()
         configs.remove(passwordName)?.let { save() }
     }
 
+    @Synchronized
     fun clearAll() {
         configs.clear()
         if (Files.exists(configFile)) Files.delete(configFile)

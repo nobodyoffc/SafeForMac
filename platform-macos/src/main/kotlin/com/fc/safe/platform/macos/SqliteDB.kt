@@ -34,7 +34,9 @@ class WrongPasswordException(msg: String) : RuntimeException(msg)
  * [Kdf.Argon2id_No1_NrC7] (password, salt) and held in memory until [close].
  * A known validator plaintext ("SafeForMac-v1") is encrypted and stored on
  * creation; subsequent opens decrypt it to verify the password — mismatch
- * raises [WrongPasswordException].
+ * raises [WrongPasswordException]. That is the legacy (pre-1.1) layout;
+ * a data-key vault opens with [initializeWithKey] instead, where the
+ * vault's DEK is the symkey and no KDF runs per DB.
  *
  * **Per-row encryption.** Every value BLOB is [Encryptor.encryptToBundleBySymkey]
  * (`FC_AesGcm256_No1_NrC7`), which prepends a fresh IV and appends a GCM
@@ -64,10 +66,13 @@ class SqliteDB<T : FcEntity>(
     private val tempIndex = ThreadLocal<Long>()
     private val tempId = ThreadLocal<String?>()
 
-    private companion object {
+    internal companion object {
         const val VALIDATOR_PLAINTEXT = "SafeForMac-v1"
         const val CONFIG_KEY_SALT = "salt"
         const val CONFIG_KEY_VALIDATOR = "validator"
+        const val CONFIG_KEY_MODE = "mode"
+        const val MODE_VAULT_KEY = "vaultKey"
+        val DATA_TABLES = listOf("items", "meta", "settings", "state")
     }
 
     /**
@@ -83,24 +88,7 @@ class SqliteDB<T : FcEntity>(
         dbName: String,
     ) {
         lock.write {
-            check(!closed) { "SqliteDB already closed" }
-            require(conn == null) { "already initialized" }
-
-            Files.createDirectories(Paths.get(dbPath))
-            val fileName = "${dbName.lowercase(Locale.ROOT)}.sqlite"
-            dbFile = File(dbPath, fileName)
-            val isNew = !dbFile!!.exists()
-
-            Class.forName("org.sqlite.JDBC")
-            conn = DriverManager.getConnection("jdbc:sqlite:${dbFile!!.absolutePath}")
-
-            conn!!.createStatement().use { st ->
-                st.execute("PRAGMA journal_mode = WAL")
-                st.execute("PRAGMA synchronous = NORMAL")
-                st.execute("PRAGMA foreign_keys = ON")
-            }
-
-            createSchema()
+            val isNew = openConnection(dbPath, dbName)
 
             if (isNew) {
                 val salt = ByteArray(16).also { SecureRandom().nextBytes(it) }
@@ -128,6 +116,119 @@ class SqliteDB<T : FcEntity>(
                 log.info("Opened existing SqliteDB: {}", dbFile)
             }
         }
+    }
+
+    /**
+     * Open or create the DB file of a data-key vault. [key] is the vault's
+     * 32-byte DEK and encrypts the rows directly, so no KDF runs here: the
+     * one Argon2id run happened when the DEK was unwrapped. A file made by
+     * [initializeWithPassword] has a salt row and is refused, so a legacy
+     * file can never be opened as if it were already migrated.
+     */
+    fun initializeWithKey(key: ByteArray, dbPath: String, dbName: String) {
+        lock.write {
+            require(key.size == 32) { "vault key must be 32 bytes" }
+            val isNew = openConnection(dbPath, dbName)
+            symkey = key.copyOf()
+            if (isNew) {
+                putConfigPlain(CONFIG_KEY_MODE, MODE_VAULT_KEY.toByteArray(Charsets.UTF_8))
+                putConfigPlain(CONFIG_KEY_VALIDATOR, encryptToBundle(VALIDATOR_PLAINTEXT.toByteArray(Charsets.UTF_8)))
+                log.info("Created new SqliteDB: {}", dbFile)
+                return@write
+            }
+            if (getConfigPlain(CONFIG_KEY_SALT) != null) {
+                wipeKey()
+                error("$dbName is a password-keyed DB; migrate it before opening it with a vault key")
+            }
+            val validatorCipher = getConfigPlain(CONFIG_KEY_VALIDATOR)
+            val decrypted = validatorCipher?.let { runCatching { decryptFromBundle(it) }.getOrNull() }
+            if (decrypted == null || String(decrypted, Charsets.UTF_8) != VALIDATOR_PLAINTEXT) {
+                wipeKey()
+                throw WrongPasswordException("Vault key does not open $dbName")
+            }
+            log.info("Opened existing SqliteDB: {}", dbFile)
+        }
+    }
+
+    /** @return true if the file did not exist and was just created. */
+    private fun openConnection(dbPath: String, dbName: String): Boolean {
+        check(!closed) { "SqliteDB already closed" }
+        require(conn == null) { "already initialized" }
+
+        Files.createDirectories(Paths.get(dbPath))
+        val fileName = "${dbName.lowercase(Locale.ROOT)}.sqlite"
+        dbFile = File(dbPath, fileName)
+        val isNew = !dbFile!!.exists()
+
+        Class.forName("org.sqlite.JDBC")
+        conn = DriverManager.getConnection("jdbc:sqlite:${dbFile!!.absolutePath}")
+
+        conn!!.createStatement().use { st ->
+            st.execute("PRAGMA journal_mode = WAL")
+            st.execute("PRAGMA synchronous = NORMAL")
+            st.execute("PRAGMA foreign_keys = ON")
+        }
+
+        createSchema()
+        return isNew
+    }
+
+    // ---- Raw rows, for the vault migration ----
+
+    /** One decrypted row of any table; [value] is the row's plaintext JSON. */
+    class RawRow(val key: String, val value: ByteArray, val createdAt: Long, val updatedAt: Long)
+
+    /** Every row of [table] ("items", "meta", "settings" or "state"), decrypted. */
+    fun rawRows(table: String): List<RawRow> = lock.read {
+        requireOpen()
+        require(table in DATA_TABLES) { "unknown table $table" }
+        val timed = table == "items"
+        val sql = if (timed) "SELECT key, value, created_at, updated_at FROM items" else "SELECT key, value FROM $table"
+        val out = ArrayList<RawRow>()
+        conn!!.createStatement().executeQuery(sql).use { rs ->
+            while (rs.next()) {
+                out += RawRow(
+                    rs.getString(1), decryptFromBundle(rs.getBytes(2)),
+                    if (timed) rs.getLong(3) else 0L, if (timed) rs.getLong(4) else 0L,
+                )
+            }
+        }
+        out
+    }
+
+    /** Writes [rows] into [table] in one transaction, encrypted under this DB's key. */
+    fun putRawRows(table: String, rows: List<RawRow>) = lock.write {
+        requireOpen()
+        require(table in DATA_TABLES) { "unknown table $table" }
+        if (rows.isEmpty()) return@write
+        val c = conn!!
+        c.autoCommit = false
+        try {
+            val sql = if (table == "items")
+                "INSERT OR REPLACE INTO items(key, value, created_at, updated_at) VALUES (?, ?, ?, ?)"
+            else "INSERT OR REPLACE INTO $table(key, value) VALUES (?, ?)"
+            c.prepareStatement(sql).use { ps ->
+                for (r in rows) {
+                    ps.setString(1, r.key); ps.setBytes(2, encryptToBundle(r.value))
+                    if (table == "items") { ps.setLong(3, r.createdAt); ps.setLong(4, r.updatedAt) }
+                    ps.addBatch()
+                }
+                ps.executeBatch()
+            }
+            c.commit()
+        } catch (t: Throwable) {
+            runCatching { c.rollback() }
+            throw t
+        } finally {
+            c.autoCommit = true
+        }
+    }
+
+    /** Folds the WAL into the main file, so a copy is on disk before the caller records it as done. */
+    fun checkpoint() = lock.write {
+        requireOpen()
+        conn!!.createStatement().use { it.execute("PRAGMA wal_checkpoint(FULL)") }
+        Unit
     }
 
     private fun createSchema() {
