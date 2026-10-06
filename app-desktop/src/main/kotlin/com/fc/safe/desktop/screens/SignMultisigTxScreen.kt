@@ -212,6 +212,7 @@ class SignMultisigTxScreen(
                         label = "Signing key (member of ${raw.senderMultisig.id})",
                         placeholder = "Pick a wallet key via the person icon",
                         readOnly = true,
+                        enableMakeQr = true,
                         singleLine = true,
                         heightDp = 64,
                         pickKey = { showPicker = true },
@@ -234,6 +235,7 @@ class SignMultisigTxScreen(
                         onValueChange = {},
                         label = "Signed multisig tx (forward to next signer or aggregator)",
                         readOnly = true,
+                        enableMakeQr = true,
                         heightDp = 260,
                     )
                 }

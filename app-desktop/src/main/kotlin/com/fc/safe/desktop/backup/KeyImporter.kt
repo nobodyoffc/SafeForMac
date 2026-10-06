@@ -11,6 +11,7 @@ import core.crypto.KeyTools
 import utils.Hex
 import java.io.ByteArrayInputStream
 import java.io.InputStream
+import java.util.Base64
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -143,36 +144,24 @@ internal object KeyImporter {
             return checkedKey(entry, bytes, label, savedAt)
         }
 
-        // Password-encrypted cipher. Decoded as a bundle (which carries
-        // no KDF marker), then we try each known KDF in turn — parity
-        // with Android FC-AJDK's `decryptBundleByPassword`. The first
-        // KDF that produces a sum-valid decrypt wins; remaining ones
-        // are skipped. Argon2id is tried first (modern default); some
-        // older exports used Sha256Iv.
+        // Password-encrypted cipher: a Base64 bundle (FTSP30). FC-JDK runs the
+        // KDF a type-4 bundle names, or for a legacy type-3 bundle tries
+        // Argon2id and then Sha256Iv (FTSP29).
         val cipher = entry.prikeyCipher
         if (!cipher.isNullOrBlank()) {
             if (password.isNullOrEmpty()) return null
+            val bundle = runCatching { Base64.getDecoder().decode(cipher.trim()) }.getOrNull() ?: return null
             val pwdChars = password.toCharArray()
             try {
-                for (kdf in KDF_FALLBACK_ORDER) {
-                    val fresh = cryptoDataByteFromBase64(cipher) ?: continue
-                    fresh.kdf = kdf
-                    val cdbJson = fresh.toJson() ?: continue
-                    val decrypted = Decryptor().decryptJsonByPassword(cdbJson, pwdChars.copyOf())
-                    if (decrypted.code != 0) continue
-                    val raw = decrypted.data ?: continue
-                    val prikey32 = KeyTools.getPrikey32(raw)
-                    if (prikey32 == null) {
-                        raw.fill(0)
-                        continue
-                    }
-                    try {
-                        return checkedKey(entry, prikey32, label, savedAt)
-                    } finally {
-                        raw.fill(0)
-                    }
+                val decrypted = Decryptor().decryptBundleByPassword(bundle, pwdChars)
+                if (decrypted.code != 0) return null
+                val raw = decrypted.data ?: return null
+                try {
+                    val prikey32 = KeyTools.getPrikey32(raw) ?: return null
+                    return checkedKey(entry, prikey32, label, savedAt)
+                } finally {
+                    raw.fill(0)
                 }
-                return null
             } finally {
                 pwdChars.fill(Char.MIN_VALUE)
             }

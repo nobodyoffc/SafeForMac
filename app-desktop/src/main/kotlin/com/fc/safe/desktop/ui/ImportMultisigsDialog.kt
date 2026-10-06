@@ -39,6 +39,7 @@ fun ImportMultisigsDialog(
     onDismiss: () -> Unit,
 ) {
     var text by remember { mutableStateOf("") }
+    var scanError by remember { mutableStateOf<String?>(null) }
 
     Dialog(
         onDismissRequest = { if (!busy) onDismiss() },
@@ -72,7 +73,18 @@ fun ImportMultisigsDialog(
                         fontFamily = FontFamily.Monospace,
                     ),
                     label = { Text("Backup JSON") },
+                    trailingIcon = {
+                        QrScanTrailingIcon(
+                            onDecoded = { text = it.trim(); scanError = null },
+                            onError = { scanError = it },
+                            enabled = !busy,
+                            tooltip = "Scan a multisigs backup QR code",
+                        )
+                    },
                 )
+                scanError?.let {
+                    Text(it, color = MaterialTheme.colors.error, style = MaterialTheme.typography.caption)
+                }
 
                 Spacer(Modifier.height(16.dp))
                 Row(

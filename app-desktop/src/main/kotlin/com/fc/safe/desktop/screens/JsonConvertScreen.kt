@@ -87,6 +87,8 @@ class JsonConvertScreen : Screen {
                     placeholder = "Paste JSON to prettify or minify",
                     heightDp = 200,
                     onClear = { input = ""; result = ""; error = null },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(12.dp))
@@ -117,6 +119,7 @@ class JsonConvertScreen : Screen {
                     onValueChange = {},
                     label = "Result",
                     readOnly = true,
+                    enableMakeQr = true,
                     heightDp = 240,
                 )
             }

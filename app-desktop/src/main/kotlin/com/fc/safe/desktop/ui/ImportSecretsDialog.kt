@@ -46,6 +46,7 @@ fun ImportSecretsDialog(
     onDismiss: () -> Unit,
 ) {
     var text by remember { mutableStateOf("") }
+    var scanError by remember { mutableStateOf<String?>(null) }
     var password by remember { mutableStateOf("") }
 
     val canSubmit = !busy && (awaitingPassword || text.isNotBlank())
@@ -89,7 +90,18 @@ fun ImportSecretsDialog(
                         fontFamily = FontFamily.Monospace,
                     ),
                     modifier = Modifier.fillMaxWidth().weight(1f),
+                    trailingIcon = {
+                        QrScanTrailingIcon(
+                            onDecoded = { text = it.trim(); scanError = null },
+                            onError = { scanError = it },
+                            enabled = !busy && !awaitingPassword,
+                            tooltip = "Scan a secrets backup QR code",
+                        )
+                    },
                 )
+                scanError?.let {
+                    Text(it, color = MaterialTheme.colors.error, style = MaterialTheme.typography.caption)
+                }
                 Spacer(Modifier.height(8.dp))
 
                 OutlinedTextField(

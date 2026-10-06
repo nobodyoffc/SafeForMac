@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -85,14 +84,14 @@ fun AddTxInputDialog(
                 Text("Add tx input", style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
 
-                OutlinedTextField(
+                ScanTextField(
                     value = txId,
                     onValueChange = { txId = it; error = null },
-                    label = { Text("Tx ID (64 hex)") },
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.body2.copy(
-                        fontFamily = FontFamily.Monospace,
-                    ),
+                    label = "Tx ID (64 hex)",
+                    monospace = true,
+                    scanTooltip = "Scan a tx id QR code",
+                    onScanError = { error = it },
+                    onScanned = { txId = it.trim(); error = null },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))

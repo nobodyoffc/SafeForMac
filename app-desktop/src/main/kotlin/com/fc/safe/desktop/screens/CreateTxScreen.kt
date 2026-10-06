@@ -162,6 +162,8 @@ class CreateTxScreen : Screen {
                     singleLine = true,
                     heightDp = 64,
                     onClear = { sender = "" },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(4.dp))
@@ -315,6 +317,8 @@ class CreateTxScreen : Screen {
                     heightDp = 100,
                     onClear = { opReturn = "" },
                     enabled = !hasP2shOutput,
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
                 if (hasP2shOutput) {
                     Text(

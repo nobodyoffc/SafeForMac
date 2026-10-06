@@ -108,6 +108,8 @@ class DecodeScreen : Screen {
                     placeholder = "Paste hex, Base58, Base64, Base32, or plain UTF-8",
                     heightDp = 140,
                     onClear = { input = ""; result = ""; error = null },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -159,6 +161,7 @@ class DecodeScreen : Screen {
                     onValueChange = {},
                     label = "Decoded",
                     readOnly = true,
+                    enableMakeQr = true,
                     heightDp = 260,
                 )
             }

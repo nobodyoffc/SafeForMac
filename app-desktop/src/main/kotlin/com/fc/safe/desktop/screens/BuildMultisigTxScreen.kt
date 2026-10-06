@@ -256,6 +256,7 @@ class BuildMultisigTxScreen : Screen {
                         onValueChange = {},
                         label = "Signed tx (hex — broadcast this)",
                         readOnly = true,
+                        enableMakeQr = true,
                         heightDp = 200,
                     )
 

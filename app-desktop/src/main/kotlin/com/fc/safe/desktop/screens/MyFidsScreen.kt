@@ -51,6 +51,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopFid
 import com.fc.safe.desktop.ui.AddFidDialog
 import com.fc.safe.desktop.ui.AppShell
+import com.fc.safe.desktop.ui.CopyableText
 import com.fc.safe.desktop.ui.FidAvatar
 import com.fc.safe.desktop.ui.SafeButton
 import com.fc.safe.platform.macos.WalletSession
@@ -274,12 +275,7 @@ private fun FidCard(
             FidAvatar(fid = fid.id, size = 40.dp)
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = fid.id,
-                    style = MaterialTheme.typography.body2.copy(
-                        fontFamily = FontFamily.Monospace,
-                    ),
-                )
+                CopyableText(text = fid.id, showQr = true, qrTitle = "FID")
                 Spacer(Modifier.height(2.dp))
                 Text(
                     text = fid.label?.ifBlank { null } ?: "(no label)",

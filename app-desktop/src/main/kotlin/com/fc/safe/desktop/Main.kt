@@ -1,11 +1,21 @@
 package com.fc.safe.desktop
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
@@ -52,6 +62,11 @@ fun main() {
             title = "Safe",
             state = rememberWindowState(width = 720.dp, height = 840.dp),
         ) {
+            // The lock screen carries the version too, but that's gone
+            // the moment the wallet is unlocked — About is where someone
+            // mid-session goes looking for it.
+            var showAbout by remember { mutableStateOf(false) }
+
             // macOS menu bar. Standard Edit menu (Cut/Copy/Paste/
             // Select All) isn't here because Compose Desktop's
             // text fields handle Cmd-X/C/V/A natively without us
@@ -62,6 +77,10 @@ fun main() {
             // workflow contests it).
             MenuBar {
                 Menu("File") {
+                    Item(
+                        text = "About Safe",
+                        onClick = { showAbout = true },
+                    )
                     Item(
                         text = "Quit Safe",
                         shortcut = KeyShortcut(Key.Q, meta = true),
@@ -129,7 +148,43 @@ fun main() {
                     @Suppress("UNUSED_EXPRESSION") priorScreen
                     cafe.adriel.voyager.navigator.CurrentScreen()
                 }
+
+                if (showAbout) {
+                    AboutDialog(onDismiss = { showAbout = false })
+                }
             }
         }
     }
+}
+
+/**
+ * Name, version, and what this app is. Deliberately says nothing about
+ * the vault — About is reachable while unlocked, and a dialog anyone
+ * can open is the wrong place for anything about the user's keys.
+ */
+@Composable
+private fun AboutDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Safe") },
+        text = {
+            Column {
+                Text(
+                    "Version ${BuildInfo.VERSION}",
+                    style = MaterialTheme.typography.body1,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "An offline wallet for keys, multisigs and secrets. " +
+                        "Values move in and out by QR code — nothing here " +
+                        "needs a network.",
+                    style = MaterialTheme.typography.caption,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Close") }
+        },
+    )
 }

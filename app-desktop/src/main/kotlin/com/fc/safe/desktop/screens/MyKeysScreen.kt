@@ -67,6 +67,7 @@ import com.fc.safe.desktop.ui.AddKeyInputs
 import com.fc.safe.desktop.ui.AddKeyMode
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.ConfirmReplaceDialog
+import com.fc.safe.desktop.ui.CopyableField
 import com.fc.safe.desktop.ui.ConfirmReplaceResult
 import com.fc.safe.desktop.ui.FidAvatar
 import com.fc.safe.desktop.ui.PasswordPromptDialog
@@ -761,14 +762,15 @@ private fun KeyCard(
 
                     Divider(modifier = Modifier.padding(vertical = 12.dp))
 
-                    MonoField(label = "Public key", value = key.pubkey)
+                    CopyableField(label = "FID", value = key.id)
+                    CopyableField(label = "Public key", value = key.pubkey)
 
                     // prikeyCipher row with reveal action
                     if (!key.prikeyCipher.isNullOrBlank()) {
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                MonoField(label = "Private key (cipher)", value = key.prikeyCipher)
+                                CopyableField(label = "Private key (cipher)", value = key.prikeyCipher)
                             }
                             IconButton(onClick = onRevealPrikey) {
                                 Text(
@@ -781,11 +783,11 @@ private fun KeyCard(
 
                     Divider(modifier = Modifier.padding(vertical = 12.dp))
 
-                    MonoField(label = "BTC", value = key.btcAddr)
-                    MonoField(label = "ETH", value = key.ethAddr)
-                    MonoField(label = "TRX", value = key.trxAddr)
-                    MonoField(label = "BCH", value = key.bchAddr)
-                    MonoField(label = "DOGE", value = key.dogeAddr)
+                    CopyableField(label = "BTC", value = key.btcAddr)
+                    CopyableField(label = "ETH", value = key.ethAddr)
+                    CopyableField(label = "TRX", value = key.trxAddr)
+                    CopyableField(label = "BCH", value = key.bchAddr)
+                    CopyableField(label = "DOGE", value = key.dogeAddr)
                 }
             }
         }
@@ -831,22 +833,6 @@ private fun EditableLabelRow(
             }
         }
     }
-}
-
-@Composable
-private fun MonoField(label: String, value: String?) {
-    Column {
-        Text(
-            label,
-            style = MaterialTheme.typography.caption,
-            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-        )
-        Text(
-            text = value ?: "—",
-            style = MaterialTheme.typography.body2.copy(fontFamily = FontFamily.Monospace),
-        )
-    }
-    Spacer(Modifier.height(4.dp))
 }
 
 private val dateFmt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())

@@ -174,6 +174,12 @@ fun SecretEditorDialog(
                     textStyle = MaterialTheme.typography.body2.copy(
                         fontFamily = FontFamily.Monospace,
                     ),
+                    trailingIcon = {
+                        QrScanTrailingIcon(
+                            onDecoded = { content = it.trim() },
+                            tooltip = "Scan the secret's content",
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 )
                 Spacer(Modifier.height(8.dp))

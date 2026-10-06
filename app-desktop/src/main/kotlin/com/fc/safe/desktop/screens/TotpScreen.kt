@@ -59,6 +59,7 @@ import com.fc.safe.desktop.totp.TotpExporter
 import com.fc.safe.desktop.totp.TotpUtil
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.SafeButton
+import com.fc.safe.desktop.ui.ShowQrTextButton
 import com.fc.safe.desktop.ui.TotpExportDialog
 import com.fc.safe.desktop.ui.TotpImportDialog
 import com.fc.safe.platform.macos.WalletSession
@@ -517,6 +518,10 @@ private fun TotpCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
+                    ShowQrTextButton(
+                        text = code,
+                        title = secret.title?.ifBlank { null } ?: "TOTP code",
+                    )
                     TextButton(onClick = { onCopy(code) }) { Text("Copy") }
                 }
             }

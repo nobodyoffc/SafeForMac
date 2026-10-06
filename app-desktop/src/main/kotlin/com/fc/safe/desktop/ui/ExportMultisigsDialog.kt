@@ -140,6 +140,10 @@ fun ExportMultisigsDialog(
                         TextButton(
                             onClick = { clipboard.setText(AnnotatedString(result.text)) },
                         ) { Text("Copy JSON") }
+                        ShowQrTextButton(
+                            text = result.text,
+                            title = "Exported multisigs",
+                        )
                     }
                 }
             }

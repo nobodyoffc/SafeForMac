@@ -103,6 +103,8 @@ class DecryptScreen : Screen {
                     label = "Cipher (CryptoDataStr JSON or base64 bundle)",
                     heightDp = 160,
                     onClear = { cipher = "" },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 CryptoIoBlock(
@@ -115,6 +117,8 @@ class DecryptScreen : Screen {
                     heightDp = 64,
                     onClear = { key = ""; pickedKey = null },
                     pickKey = { showPicker = true },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(12.dp))
@@ -142,6 +146,7 @@ class DecryptScreen : Screen {
                     onValueChange = {},
                     label = "Plaintext",
                     readOnly = true,
+                    enableMakeQr = true,
                     heightDp = 200,
                 )
             }

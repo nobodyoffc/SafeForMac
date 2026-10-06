@@ -156,7 +156,7 @@ internal object KeyExporter {
                     // matches this choice.
                     val cdb = Encryptor(AlgorithmId.FC_AesGcm256_No1_NrC7)
                         .encryptByPassword(rawPrikey, exportPassword)
-                    val base64 = cdb.toBase64OrNull()
+                    val base64 = cdb.toBase64()
                         ?: throw IllegalStateException("Failed to encode cipher")
                     export.prikey = null
                     export.prikeyCipher = base64

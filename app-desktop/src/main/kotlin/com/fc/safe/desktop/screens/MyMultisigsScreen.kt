@@ -64,6 +64,8 @@ import com.fc.safe.desktop.ui.ConfirmReplaceResult
 import com.fc.safe.desktop.ui.CreateMultisigDialog
 import com.fc.safe.desktop.ui.CreateMultisigInputs
 import com.fc.safe.desktop.ui.ExportMultisigsDialog
+import com.fc.safe.desktop.ui.CopyableField
+import com.fc.safe.desktop.ui.CopyableText
 import com.fc.safe.desktop.ui.FidAvatar
 import com.fc.safe.desktop.ui.ImportMultisigsDialog
 import com.fc.safe.desktop.ui.SafeButton
@@ -544,6 +546,11 @@ private fun MultisigCard(
 
                     Divider(modifier = Modifier.padding(vertical = 12.dp))
 
+                    CopyableField(label = "Multisig FID", value = group.id)
+                    CopyableField(label = "Threshold", value = "${group.m}-of-${group.n}", showQr = false)
+
+                    Divider(modifier = Modifier.padding(vertical = 12.dp))
+
                     Text(
                         "Members (${group.fids.size})",
                         style = MaterialTheme.typography.caption,
@@ -554,25 +561,24 @@ private fun MultisigCard(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             FidAvatar(fid = fid, size = 24.dp)
                             Spacer(Modifier.width(8.dp))
-                            Text(
-                                "${i + 1}. $fid",
-                                style = MaterialTheme.typography.body2.copy(
-                                    fontFamily = FontFamily.Monospace,
-                                ),
+                            // Numbered for reading; only the FID itself is copied.
+                            CopyableText(
+                                text = "${i + 1}. $fid",
+                                value = fid,
+                                showQr = true,
+                                qrTitle = "Member FID",
                             )
                         }
                     }
 
                     Divider(modifier = Modifier.padding(vertical = 12.dp))
 
-                    Text(
-                        "Redeem script",
-                        style = MaterialTheme.typography.caption,
-                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-                    )
-                    Text(
-                        group.redeemScript ?: "—",
-                        style = MaterialTheme.typography.caption.copy(fontFamily = FontFamily.Monospace),
+                    CopyableField(
+                        label = "Redeem script",
+                        value = group.redeemScript,
+                        valueStyle = MaterialTheme.typography.caption.copy(
+                            fontFamily = FontFamily.Monospace,
+                        ),
                     )
                 }
             }

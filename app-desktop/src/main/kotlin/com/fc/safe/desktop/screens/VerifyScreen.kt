@@ -79,6 +79,8 @@ class VerifyScreen : Screen {
                     label = "Signature JSON",
                     heightDp = 200,
                     onClear = { sigJson = "" },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 CryptoIoBlock(
@@ -89,6 +91,8 @@ class VerifyScreen : Screen {
                     singleLine = true,
                     heightDp = 64,
                     onClear = { key = "" },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(12.dp))

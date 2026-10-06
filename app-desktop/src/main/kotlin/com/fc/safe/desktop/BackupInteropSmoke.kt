@@ -4,7 +4,6 @@ import com.fc.safe.desktop.backup.BackupCodec
 import com.fc.safe.desktop.backup.BackupHeader
 import com.fc.safe.desktop.backup.BackupKey
 import com.fc.safe.desktop.backup.ExportedKeyInfo
-import com.fc.safe.desktop.backup.toBase64OrNull
 import com.google.gson.GsonBuilder
 import core.crypto.Decryptor
 import core.crypto.Encryptor
@@ -45,7 +44,7 @@ fun main() {
     val password = "correct-horse-battery-staple".toCharArray()
     val cdb = Encryptor(AlgorithmId.FC_AesGcm256_No1_NrC7)
         .encryptByPassword(prikey.copyOf(), password.copyOf())
-    val base64 = cdb.toBase64OrNull() ?: error("base64 encoding failed")
+    val base64 = cdb.toBase64() ?: error("base64 encoding failed")
     log.info("[2/5] Password-encrypted cipher bundle: {} bytes of base64", base64.length)
 
     // 3. Build the blob: BackupKey + BackupHeader + one ExportedKeyInfo.
@@ -97,17 +96,12 @@ fun main() {
 
     val recoveredEntry = gson.fromJson(String(parsed[2]), ExportedKeyInfo::class.java)
     check(recoveredEntry.id == fid) { "id mismatch after parse" }
-    val recoveredCdb = core.crypto.CryptoDataByte.fromBundle(
-        java.util.Base64.getDecoder().decode(recoveredEntry.prikeyCipher)
-    ) ?: error("fromBundle returned null")
-    // The bundle format drops the KDF marker — we must set it explicitly
-    // (Encryptor's default is Argon2id). KeyImporter tries both KDFs in
-    // a fallback loop; here we know we encrypted with the default so
-    // one setKdf suffices.
-    recoveredCdb.kdf = core.crypto.Kdf.Argon2id_No1_NrC7
-    val cdbJson = recoveredCdb.toJson() ?: error("toJson returned null")
-    val decrypted = Decryptor().decryptJsonByPassword(cdbJson, password.copyOf())
+    // The bundle records no KDF (type 3); FC-JDK tries Argon2id and then Sha256Iv.
+    val decrypted = Decryptor().decryptBundleByPassword(
+        java.util.Base64.getDecoder().decode(recoveredEntry.prikeyCipher), password.copyOf()
+    )
     check(decrypted.code == 0) { "decrypt returned code=${decrypted.code} msg=${decrypted.message}" }
+    check(decrypted.kdf == core.crypto.Kdf.Argon2id_No1_NrC7) { "expected Argon2id, got ${decrypted.kdf}" }
     val recoveredPrikey = decrypted.data ?: error("decrypt produced no bytes")
     val recoveredFid = KeyTools.prikeyToFid(recoveredPrikey)
     check(recoveredFid == fid) { "FID mismatch: expected $fid got $recoveredFid" }

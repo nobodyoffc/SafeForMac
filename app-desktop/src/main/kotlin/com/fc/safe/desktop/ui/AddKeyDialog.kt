@@ -18,7 +18,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 
@@ -104,16 +103,15 @@ fun AddKeyDialog(
         title = { Text(mode.title) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                OutlinedTextField(
+                ScanTextField(
                     value = primary,
                     onValueChange = { primary = it },
-                    label = { Text(mode.primaryLabel) },
-                    placeholder = { Text(mode.primaryHint) },
+                    label = mode.primaryLabel,
+                    placeholder = mode.primaryHint,
                     singleLine = !mode.primaryMultiline,
                     maxLines = if (mode.primaryMultiline) 6 else 1,
-                    textStyle = if (mode.primaryMonospace)
-                        MaterialTheme.typography.body2.copy(fontFamily = FontFamily.Monospace)
-                    else MaterialTheme.typography.body2,
+                    monospace = mode.primaryMonospace,
+                    scanTooltip = "Scan ${mode.primaryLabel.lowercase()}",
                     modifier = Modifier.fillMaxWidth(),
                 )
                 if (mode.requiresExternalPassword) {

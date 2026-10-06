@@ -116,6 +116,8 @@ class PrikeyConverterScreen : Screen {
                     placeholder = "Mnemonic (12 / 24 words), 64-char hex, or WIF",
                     heightDp = 120,
                     onClear = { input = ""; result = ""; error = null },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -155,6 +157,7 @@ class PrikeyConverterScreen : Screen {
                     onValueChange = {},
                     label = target.display,
                     readOnly = true,
+                    enableMakeQr = true,
                     heightDp = 120,
                 )
             }

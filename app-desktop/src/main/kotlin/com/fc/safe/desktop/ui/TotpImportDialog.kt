@@ -90,6 +90,13 @@ fun TotpImportDialog(
                         fontFamily = FontFamily.Monospace,
                     ),
                     modifier = Modifier.fillMaxWidth().weight(1f),
+                    trailingIcon = {
+                        QrScanTrailingIcon(
+                            onDecoded = { source = it.trim(); parseError = null },
+                            onError = { parseError = it },
+                            tooltip = "Scan the authenticator QR code",
+                        )
+                    },
                 )
                 Spacer(Modifier.height(8.dp))
 

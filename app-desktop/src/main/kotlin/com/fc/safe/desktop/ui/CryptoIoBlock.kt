@@ -1,16 +1,14 @@
 package com.fc.safe.desktop.ui
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
@@ -20,10 +18,6 @@ import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -31,15 +25,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.rememberCoroutineScope
-import com.fc.safe.desktop.qr.QrDecode
-import com.fc.safe.desktop.qr.ScanQrLauncher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.awt.FileDialog
-import java.awt.Frame
-import java.io.File
 
 /**
  * Shared I/O field used by the crypto-utility screens (Hash, Encrypt,
@@ -72,14 +57,24 @@ fun CryptoIoBlock(
     onCopy: (() -> Unit)? = null,
     pickKey: (() -> Unit)? = null,
     /**
-     * When true, the block shows a "QR ▾" dropdown next to Paste
-     * exposing "From clipboard image" and "From file…" options.
-     * Decoded text replaces the field value on success. Noisy
-     * "no QR found" is surfaced via [onQrError] (a toast / inline
+     * When true, the action row gains a scan-QR icon
+     * ([QrScanIconButton]) offering clipboard image / file / camera
+     * as sources. Decoded text replaces the field value on success;
+     * decode failures are surfaced via [onQrError] (a toast / inline
      * error — caller's choice).
      */
     enableQr: Boolean = false,
     onQrError: ((String) -> Unit)? = null,
+    /**
+     * When true, the field gains a make-QR icon ([MakeQrIconButton])
+     * that puts the current value on screen as a scannable code —
+     * greyed while the field is empty. This is the outbound half of
+     * [enableQr], and the one that matters on an air-gapped machine:
+     * it's how a result leaves this app. Result boxes should set it.
+     */
+    enableMakeQr: Boolean = false,
+    /** Dialog title for [enableMakeQr]; defaults to the field's label. */
+    makeQrTitle: String? = null,
 ) {
     val clipboard = LocalClipboardManager.current
     val effectivePaste = onPaste ?: if (!readOnly && enabled) {
@@ -88,6 +83,7 @@ fun CryptoIoBlock(
     val effectiveCopy = onCopy ?: if (value.isNotEmpty()) {
         { clipboard.setText(AnnotatedString(value)) }
     } else null
+    val showScanIcon = enableQr && !readOnly && enabled
 
     Column(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
@@ -103,6 +99,31 @@ fun CryptoIoBlock(
             textStyle = if (monospace)
                 MaterialTheme.typography.body2.copy(fontFamily = FontFamily.Monospace)
             else MaterialTheme.typography.body2,
+            trailingIcon = if (showScanIcon || enableMakeQr) {
+                {
+                    // Bottom-right: the box is up to 260dp tall, and a
+                    // centred icon floats unmoored in the middle of it.
+                    Column(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.Bottom,
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (enableMakeQr) {
+                                MakeQrIconButton(
+                                    text = value,
+                                    title = makeQrTitle ?: label,
+                                )
+                            }
+                            if (showScanIcon) {
+                                QrScanIconButton(
+                                    onDecoded = onValueChange,
+                                    onError = { msg -> onQrError?.invoke(msg) },
+                                )
+                            }
+                        }
+                    }
+                }
+            } else null,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(heightDp.dp),
@@ -127,12 +148,6 @@ fun CryptoIoBlock(
             if (effectivePaste != null) {
                 TextButton(onClick = { effectivePaste() }) { Text("Paste") }
             }
-            if (enableQr && !readOnly && enabled) {
-                QrSourceMenu(
-                    onDecoded = onValueChange,
-                    onError = { msg -> onQrError?.invoke(msg) },
-                )
-            }
             if (effectiveCopy != null) {
                 TextButton(onClick = { effectiveCopy() }) { Text("Copy") }
             }
@@ -140,109 +155,3 @@ fun CryptoIoBlock(
         Spacer(Modifier.height(4.dp))
     }
 }
-
-/**
- * "QR ▾" dropdown: lets the user feed a field from a QR code
- * picked either off the clipboard or out of a file on disk.
- * Decoded text replaces the field via [onDecoded]; decoder
- * failures are surfaced through [onError] (the caller can render
- * a toast / inline message).
- *
- * The file picker uses AWT [FileDialog] instead of a Compose
- * file dialog — AWT is macOS-native and we already host a Swing
- * window, so no extra deps or styling work.
- */
-@Composable
-private fun QrSourceMenu(
-    onDecoded: (String) -> Unit,
-    onError: (String) -> Unit,
-) {
-    var menuOpen by remember { mutableStateOf(false) }
-    var cameraBusy by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    // Cache install check across recompositions; cheap to re-check
-    // but avoids hitting the filesystem every recomposition cycle.
-    val scanQrInstalled = remember { ScanQrLauncher.isInstalled() }
-
-    Box {
-        TextButton(
-            enabled = !cameraBusy,
-            onClick = { menuOpen = true },
-        ) {
-            Text(if (cameraBusy) "QR (waiting for ScanQR…)" else "QR ▾")
-        }
-        DropdownMenu(
-            expanded = menuOpen,
-            onDismissRequest = { menuOpen = false },
-        ) {
-            DropdownMenuItem(onClick = {
-                menuOpen = false
-                val txt = QrDecode.fromClipboardImage()
-                if (txt != null) onDecoded(txt)
-                else onError("No QR code found on clipboard image")
-            }) { Text("From clipboard image") }
-            DropdownMenuItem(onClick = {
-                menuOpen = false
-                val parent = findAwtFrame()
-                val dlg = FileDialog(parent, "Pick a QR image", FileDialog.LOAD).apply {
-                    isMultipleMode = false
-                    // Very loose filter — users may pass PNG, JPG,
-                    // whatever. ZXing reads what ImageIO reads.
-                    setFilenameFilter { _, name ->
-                        val lower = name.lowercase()
-                        lower.endsWith(".png") || lower.endsWith(".jpg") ||
-                            lower.endsWith(".jpeg") || lower.endsWith(".gif") ||
-                            lower.endsWith(".bmp")
-                    }
-                }
-                dlg.isVisible = true
-                val dir = dlg.directory
-                val file = dlg.file
-                if (dir != null && file != null) {
-                    val f = File(dir, file)
-                    val txt = QrDecode.fromFile(f)
-                    if (txt != null) onDecoded(txt)
-                    else onError("No QR code found in ${f.name}")
-                }
-            }) { Text("From file…") }
-            // Camera scan via the standalone ScanQR companion app.
-            // Disabled (greyed) when ScanQR isn't installed at the
-            // expected path — keeps the menu honest about what
-            // works without bouncing the user into a failure dialog.
-            DropdownMenuItem(
-                enabled = scanQrInstalled,
-                onClick = {
-                    menuOpen = false
-                    cameraBusy = true
-                    scope.launch {
-                        val result = withContext(Dispatchers.IO) {
-                            ScanQrLauncher.launchAndWait()
-                        }
-                        cameraBusy = false
-                        when (result) {
-                            is ScanQrLauncher.Result.Ok -> onDecoded(result.text)
-                            is ScanQrLauncher.Result.Cancelled -> {
-                                // No surface — user clicked away in
-                                // ScanQR; treat as a quiet no-op.
-                            }
-                            is ScanQrLauncher.Result.Failed -> onError(result.message)
-                        }
-                    }
-                },
-            ) {
-                Text(
-                    if (scanQrInstalled) "From camera (ScanQR)…"
-                    else "From camera (install ScanQR.app)"
-                )
-            }
-        }
-    }
-}
-
-/**
- * Walk AWT's window list to find any visible Frame — used as
- * the parent for [FileDialog]. Returning null is fine; AWT
- * falls back to a detached dialog.
- */
-private fun findAwtFrame(): Frame? =
-    Frame.getFrames().firstOrNull { it.isShowing }

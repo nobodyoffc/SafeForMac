@@ -94,6 +94,13 @@ fun CashImportDialog(
                         fontFamily = FontFamily.Monospace,
                     ),
                     modifier = Modifier.fillMaxWidth().weight(1f),
+                    trailingIcon = {
+                        QrScanTrailingIcon(
+                            onDecoded = { text = it.trim(); error = null },
+                            onError = { error = it },
+                            tooltip = "Scan a cash QR code",
+                        )
+                    },
                 )
 
                 error?.let {

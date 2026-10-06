@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.BuildInfo
 import com.fc.safe.desktop.DesktopVault
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CreatePasswordDialog
@@ -150,6 +151,16 @@ class HomeScreen : Screen {
                         }
                     }
                 }
+
+                // The lock screen is the one surface every user sees on
+                // every launch, and the first thing worth knowing when
+                // someone reports a problem is which build they're on.
+                Spacer(Modifier.height(32.dp))
+                Text(
+                    "v${BuildInfo.VERSION}",
+                    style = MaterialTheme.typography.caption,
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.4f),
+                )
             }
         }
 

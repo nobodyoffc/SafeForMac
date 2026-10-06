@@ -96,6 +96,8 @@ class HashScreen : Screen {
                     placeholder = "Type or paste; toggle \"as hex\" to hash the hex-decoded bytes",
                     heightDp = 140,
                     onClear = { input = ""; result = "" },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -166,6 +168,7 @@ class HashScreen : Screen {
                     onValueChange = {},
                     label = "Hash (hex)",
                     readOnly = true,
+                    enableMakeQr = true,
                     heightDp = 80,
                 )
             }

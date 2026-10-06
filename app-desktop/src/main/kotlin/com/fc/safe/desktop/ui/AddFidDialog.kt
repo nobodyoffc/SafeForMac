@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -69,14 +68,14 @@ fun AddFidDialog(
                 Text("Add FID to address book", style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
 
-                OutlinedTextField(
+                ScanTextField(
                     value = fid,
                     onValueChange = { fid = it; error = null },
-                    label = { Text("FID") },
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.body2.copy(
-                        fontFamily = FontFamily.Monospace,
-                    ),
+                    label = "FID",
+                    monospace = true,
+                    scanTooltip = "Scan an FID QR code",
+                    onScanError = { error = it },
+                    onScanned = { fid = it.trim(); error = null },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))

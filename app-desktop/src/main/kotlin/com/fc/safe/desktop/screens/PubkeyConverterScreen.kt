@@ -92,6 +92,8 @@ class PubkeyConverterScreen : Screen {
                     placeholder = "66-char compressed hex, 130-char uncompressed hex, or WIF",
                     heightDp = 120,
                     onClear = { input = ""; result = ""; error = null },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(12.dp))
@@ -118,6 +120,7 @@ class PubkeyConverterScreen : Screen {
                     onValueChange = {},
                     label = "Derived forms",
                     readOnly = true,
+                    enableMakeQr = true,
                     heightDp = 240,
                 )
             }

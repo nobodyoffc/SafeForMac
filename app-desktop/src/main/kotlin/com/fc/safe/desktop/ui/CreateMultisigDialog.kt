@@ -193,6 +193,17 @@ fun CreateMultisigDialog(
                                 enabled = !busy,
                                 modifier = Modifier.weight(1f),
                             )
+                            QrScanIconButton(
+                                onDecoded = { scanned ->
+                                    pubkeys = pubkeys.mapIndexed { idx, old ->
+                                        if (idx == i) scanned.trim() else old
+                                    }
+                                    error = null
+                                },
+                                onError = { error = it },
+                                enabled = !busy,
+                                tooltip = "Scan member #${i + 1}'s public key",
+                            )
                             IconButton(
                                 onClick = { showPickerFor = i },
                                 enabled = !busy,

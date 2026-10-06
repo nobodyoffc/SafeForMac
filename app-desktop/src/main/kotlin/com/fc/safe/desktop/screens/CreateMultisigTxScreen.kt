@@ -329,6 +329,8 @@ class CreateMultisigTxScreen : Screen {
                     heightDp = 100,
                     onClear = { opReturn = "" },
                     enabled = !hasP2shOutput,
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
                 if (hasP2shOutput) {
                     Text(

@@ -156,6 +156,15 @@ fun ExportKeysDialog(
                             textStyle = MaterialTheme.typography.body1.copy(
                                 fontFamily = FontFamily.Monospace,
                             ),
+                            // The password is the key to the JSON above and
+                            // travels separately — on an offline machine that
+                            // means a second QR, not a second clipboard hop.
+                            trailingIcon = {
+                                MakeQrIconButton(
+                                    text = result.randomPassword,
+                                    title = "Export password",
+                                )
+                            },
                             modifier = Modifier.fillMaxWidth(),
                         )
                         Spacer(Modifier.height(12.dp))
@@ -228,6 +237,10 @@ fun ExportKeysDialog(
                         TextButton(
                             onClick = { clipboard.setText(AnnotatedString(result.text)) },
                         ) { Text("Copy JSON") }
+                        ShowQrTextButton(
+                            text = result.text,
+                            title = "Exported keys",
+                        )
                     }
                 }
             }

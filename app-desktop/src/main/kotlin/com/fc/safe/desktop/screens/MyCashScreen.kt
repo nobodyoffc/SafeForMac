@@ -54,6 +54,7 @@ import com.fc.safe.desktop.ui.CashImportDialog
 import com.fc.safe.desktop.ui.ConfirmReplaceDialog
 import com.fc.safe.desktop.ui.ConfirmReplaceResult
 import com.fc.safe.desktop.ui.CreateCashDialog
+import com.fc.safe.desktop.ui.CopyableText
 import com.fc.safe.desktop.ui.FidAvatar
 import com.fc.safe.desktop.ui.ImportCashFromTxDialog
 import com.fc.safe.desktop.ui.SafeButton
@@ -404,15 +405,15 @@ private fun CashCard(
                 Spacer(Modifier.width(10.dp))
             }
             Column(modifier = Modifier.weight(1f)) {
-                Text(
+                // Shown abbreviated; the full cash id is what gets copied.
+                CopyableText(
                     text = "$short:${cash.birthIndex ?: -1}",
-                    style = MaterialTheme.typography.body2.copy(
-                        fontFamily = FontFamily.Monospace,
-                    ),
+                    value = cash.id ?: txId.orEmpty(),
                 )
                 Spacer(Modifier.height(2.dp))
-                Text(
+                CopyableText(
                     text = cash.owner ?: "(no owner)",
+                    value = cash.owner.orEmpty(),
                     style = MaterialTheme.typography.caption,
                     color = if (cash.owner.isNullOrBlank())
                         MaterialTheme.colors.onSurface.copy(alpha = 0.5f)

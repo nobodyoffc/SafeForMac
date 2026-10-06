@@ -216,6 +216,7 @@ class SignTxScreen(
                         label = "Signing key",
                         placeholder = "Pick a wallet key via the person icon",
                         readOnly = true,
+                        enableMakeQr = true,
                         singleLine = true,
                         heightDp = 64,
                         pickKey = { showPicker = true },
@@ -238,6 +239,7 @@ class SignTxScreen(
                         onValueChange = {},
                         label = "Signed tx (hex — broadcast this)",
                         readOnly = true,
+                        enableMakeQr = true,
                         heightDp = 200,
                     )
 

@@ -82,6 +82,8 @@ class EncryptScreen : Screen {
                     placeholder = "Text to encrypt",
                     heightDp = 140,
                     onClear = { text = "" },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Text("Key type", style = MaterialTheme.typography.subtitle2)
@@ -109,6 +111,8 @@ class EncryptScreen : Screen {
                     pickKey = if (mode == EncryptMode.PUBKEY) {
                         { showPicker = true }
                     } else null,
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(12.dp))
@@ -143,6 +147,7 @@ class EncryptScreen : Screen {
                     onValueChange = {},
                     label = "Cipher (CryptoDataStr JSON)",
                     readOnly = true,
+                    enableMakeQr = true,
                     heightDp = 240,
                 )
             }

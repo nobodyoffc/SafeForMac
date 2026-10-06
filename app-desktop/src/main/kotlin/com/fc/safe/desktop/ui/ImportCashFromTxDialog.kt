@@ -132,6 +132,14 @@ fun ImportCashFromTxDialog(
                     ),
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth().weight(1f),
+                    trailingIcon = {
+                        QrScanTrailingIcon(
+                            onDecoded = { txHex = it.trim(); error = null },
+                            onError = { error = it },
+                            enabled = !busy,
+                            tooltip = "Scan the signed tx",
+                        )
+                    },
                 )
 
                 Spacer(Modifier.height(8.dp))
@@ -146,6 +154,12 @@ fun ImportCashFromTxDialog(
                             fontFamily = FontFamily.Monospace,
                         ),
                         modifier = Modifier.weight(1f),
+                    )
+                    QrScanIconButton(
+                        onDecoded = { fid = it.trim(); error = null },
+                        onError = { error = it },
+                        enabled = !busy,
+                        tooltip = "Scan the owner's FID",
                     )
                     Box {
                         IconButton(

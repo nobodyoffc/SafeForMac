@@ -94,6 +94,8 @@ class AddressConverterScreen : Screen {
                     placeholder = "Compressed pubkey hex, or any chain's legacy address",
                     heightDp = 100,
                     onClear = { input = ""; result = ""; error = null },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(12.dp))
@@ -120,6 +122,7 @@ class AddressConverterScreen : Screen {
                     onValueChange = {},
                     label = "Derived addresses",
                     readOnly = true,
+                    enableMakeQr = true,
                     heightDp = 260,
                 )
             }

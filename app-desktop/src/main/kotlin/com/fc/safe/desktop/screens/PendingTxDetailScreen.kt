@@ -38,6 +38,7 @@ import com.fc.safe.desktop.DesktopPendingTx
 import com.fc.safe.desktop.PENDING_TXS_DB_NAME
 import com.fc.safe.desktop.fch.TxHandler
 import com.fc.safe.desktop.ui.AppShell
+import com.fc.safe.desktop.ui.CopyableText
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.SafeButton
 import com.fc.safe.desktop.ui.TxPreview
@@ -214,8 +215,9 @@ class PendingTxDetailScreen(
                         color = MaterialTheme.colors.error,
                     )
                     else -> {
-                        Text(
-                            "TXID: ${r.id}",
+                        CopyableText(
+                            text = "TXID: ${r.id}",
+                            value = r.id,
                             style = MaterialTheme.typography.caption,
                         )
                         Spacer(Modifier.height(4.dp))
@@ -243,6 +245,7 @@ class PendingTxDetailScreen(
                                 onValueChange = {},
                                 label = "Signed tx (hex — broadcast this)",
                                 readOnly = true,
+                                enableMakeQr = true,
                                 heightDp = 180,
                             )
                         }

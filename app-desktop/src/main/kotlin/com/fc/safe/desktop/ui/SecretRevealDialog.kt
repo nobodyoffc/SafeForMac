@@ -101,6 +101,8 @@ fun SecretRevealDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
+                    ShowQrTextButton(text = content, title = title)
+                    Spacer(Modifier.width(8.dp))
                     TextButton(onClick = { clipboard.setText(AnnotatedString(content)) }) {
                         Text("Copy")
                     }

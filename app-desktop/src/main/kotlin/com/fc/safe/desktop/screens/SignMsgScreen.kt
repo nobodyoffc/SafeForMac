@@ -107,6 +107,8 @@ class SignMsgScreen : Screen {
                     placeholder = "Text to sign",
                     heightDp = 140,
                     onClear = { msg = "" },
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Text("Algorithm", style = MaterialTheme.typography.subtitle2)
@@ -136,6 +138,8 @@ class SignMsgScreen : Screen {
                     password = false,
                     onClear = { key = ""; pickedKey = null },
                     pickKey = if (alg.wantsPrikey) { { showPicker = true } } else null,
+                    enableQr = true,
+                    onQrError = { error = it },
                 )
 
                 Spacer(Modifier.height(12.dp))
@@ -163,6 +167,7 @@ class SignMsgScreen : Screen {
                     onValueChange = {},
                     label = "Signature JSON",
                     readOnly = true,
+                    enableMakeQr = true,
                     heightDp = 220,
                 )
             }

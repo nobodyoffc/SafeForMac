@@ -58,7 +58,7 @@ import kotlinx.coroutines.delay
 /**
  * Landing menu shown after a successful unlock. Mirrors Safe
  * Android's `activity_home.xml` 3-column icon grid: data-entity
- * tiles (Keys / Secrets / TOTP / Cash / FIDs / Multisig) navigate
+ * tiles (Keys / Secrets / TOTP / Cash / Freers / Multisig) navigate
  * directly, while the three grouped toolkits (Transactions / Tools
  * / Convert) open a dropdown so the grid stays compact regardless
  * of how many actions each group hosts.
@@ -133,7 +133,7 @@ class UnlockedHomeScreen : Screen {
                         )
                         IconRow(
                             IconTile("Cash", Icons.Filled.AccountBalance) { navigator.push(MyCashScreen()) },
-                            IconTile("FIDs", Icons.Filled.Contacts) { navigator.push(MyFidsScreen()) },
+                            IconTile("Freers", Icons.Filled.Contacts) { navigator.push(MyFidsScreen()) },
                             IconTile("Multisig", Icons.Filled.Group) { navigator.push(MyMultisigsScreen()) },
                         )
                         IconRow(
