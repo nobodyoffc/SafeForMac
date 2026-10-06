@@ -10,7 +10,7 @@ java {
 }
 
 dependencies {
-    api("fc:FC-JDK:1.0-SNAPSHOT")
+    api("com.github.nobodyoffc.Freeverse:FC-JDK:v0.2")
     api("org.slf4j:slf4j-api:2.0.16")
     // `api` so app-desktop can collect/observe `WalletSession.isLockedFlow`
     // and `LockManager.events` without re-declaring the dependency.

@@ -53,7 +53,7 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation(compose.materialIconsExtended)
     implementation(project(":platform-macos"))
-    implementation("fc:FC-JDK:1.0-SNAPSHOT")
+    implementation("com.github.nobodyoffc.Freeverse:FC-JDK:v0.2")
 
     // Voyager — stack-based navigation for Compose Desktop
     implementation("cafe.adriel.voyager:voyager-navigator:1.1.0-beta02")
