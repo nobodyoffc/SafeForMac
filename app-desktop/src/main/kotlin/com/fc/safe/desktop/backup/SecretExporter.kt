@@ -6,9 +6,6 @@ import com.google.gson.GsonBuilder
 import core.crypto.CryptoDataStr
 import core.crypto.Encryptor
 import data.fcData.AlgorithmId
-import utils.BytesUtils
-import utils.IdNameUtils
-import java.security.SecureRandom
 
 /**
  * Secrets export — byte-compatible with Android
@@ -79,15 +76,10 @@ internal object SecretExporter {
             ExportMode.CURRENT_PASSWORD -> {
                 requireNotNull(enteredPassword) { "Password required for current-password export" }
                 require(enteredPassword.isNotEmpty()) { "Password is empty" }
-                header.keyName = IdNameUtils.makeKeyName(
-                    BytesUtils.utf8CharArrayToByteArray(enteredPassword)
-                )
                 pwdForKeys = enteredPassword
             }
             ExportMode.RANDOM_PASSWORD -> {
-                val randomBytes = ByteArray(8).also(SecureRandom()::nextBytes)
-                randomPassword = Base32Shim.toBase32(randomBytes)
-                header.keyName = IdNameUtils.makeKeyName(randomPassword.toByteArray())
+                randomPassword = BackupKey.makeRandomPassword()
                 pwdForKeys = randomPassword.toCharArray()
             }
             ExportMode.NONE -> {
@@ -99,12 +91,10 @@ internal object SecretExporter {
         if (mode != ExportMode.NONE) {
             val backupKey = BackupKey().apply {
                 time = header.time
-                keyName = header.keyName
-                when (mode) {
-                    ExportMode.RANDOM_PASSWORD -> password = randomPassword
-                    ExportMode.CURRENT_PASSWORD -> hint =
-                        "App password cannot be shown — keep it carefully."
-                    else -> {}
+                // The random password is handed over apart from the export, never inside it.
+                hint = when (mode) {
+                    ExportMode.RANDOM_PASSWORD -> BackupKey.RANDOM_PASSWORD_HINT
+                    else -> BackupKey.APP_PASSWORD_HINT
                 }
             }
             jsonList += gson.toJson(backupKey)
@@ -124,6 +114,9 @@ internal object SecretExporter {
                     ExportMode.RANDOM_PASSWORD -> {
                         val cdb = Encryptor(AlgorithmId.FC_AesGcm256_No1_NrC7)
                             .encryptByPassword(body.toByteArray(Charsets.UTF_8), pwdForKeys)
+                        // FVEP8: a Password cipher names no key — the derived key
+                        // changes with every salt. FC-JDK v0.2 still sets one.
+                        cdb.keyName = null
                         val cds = CryptoDataStr.fromCryptoDataByte(cdb)
                         // Same convention as WalletSession.encryptToJson:
                         // null the plaintext data field so it can't leak

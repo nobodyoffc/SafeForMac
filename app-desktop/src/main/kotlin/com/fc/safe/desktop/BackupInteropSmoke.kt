@@ -53,11 +53,9 @@ fun main() {
         items = 1
         tClass = "KeyInfo"
         alg = AlgorithmId.FC_AesGcm256_No1_NrC7.getDisplayName()
-        keyName = "demoKeyName"
     }
     val backupKey = BackupKey().apply {
         time = header.time
-        keyName = header.keyName
         hint = "demo"
     }
     val exportedKey = ExportedKeyInfo().apply {

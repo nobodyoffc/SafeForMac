@@ -48,7 +48,6 @@ fun main() {
     // 3. Build the envelope: BackupKey + BackupHeader + cipher
     val backupKey = BackupKey().apply {
         time = "2026-04-23 12:00:00"
-        keyName = "demoKey"
         hint = "demo"
     }
     val header = BackupHeader().apply {
@@ -56,7 +55,6 @@ fun main() {
         items = 1
         tClass = "Secret"
         alg = AlgorithmId.FC_AesGcm256_No1_NrC7.getDisplayName()
-        keyName = backupKey.keyName
     }
     val blob = BackupCodec.makeJsonListString(
         listOf(gson.toJson(backupKey), gson.toJson(header), cdbJson)

@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -64,8 +63,13 @@ fun ExportSecretsDialog(
     var mode by remember { mutableStateOf(ExportMode.CURRENT_PASSWORD) }
     val clipboard: ClipboardManager = LocalClipboardManager.current
 
+    // The export does not carry its random password, so it is shown once
+    // and the dialog stays open until the user confirms it is saved.
+    var passwordSaved by remember(result) { mutableStateOf(false) }
+    val canClose = result?.randomPassword == null || passwordSaved
+
     Dialog(
-        onDismissRequest = { if (!busy) onDismiss() },
+        onDismissRequest = { if (!busy && canClose) onDismiss() },
         properties = DialogProperties(
             dismissOnClickOutside = false,
             dismissOnBackPress = true,
@@ -121,29 +125,10 @@ fun ExportSecretsDialog(
                     }
                 } else {
                     if (result.randomPassword != null) {
-                        Text(
-                            "Random password — copy this separately:",
-                            style = MaterialTheme.typography.body2,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = result.randomPassword,
-                            onValueChange = {},
-                            readOnly = true,
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.body1.copy(
-                                fontFamily = FontFamily.Monospace,
-                            ),
-                            // The password is the key to the JSON above and
-                            // travels separately — on an offline machine that
-                            // means a second QR, not a second clipboard hop.
-                            trailingIcon = {
-                                MakeQrIconButton(
-                                    text = result.randomPassword,
-                                    title = "Export password",
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth(),
+                        RandomPasswordBlock(
+                            password = result.randomPassword,
+                            saved = passwordSaved,
+                            onSavedChange = { passwordSaved = it },
                         )
                         Spacer(Modifier.height(12.dp))
                     }
@@ -197,7 +182,7 @@ fun ExportSecretsDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(enabled = !busy, onClick = onDismiss) {
+                    TextButton(enabled = !busy && canClose, onClick = onDismiss) {
                         Text(if (result == null) "Cancel" else "Done")
                     }
                     Spacer(Modifier.width(8.dp))

@@ -21,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -50,15 +49,16 @@ import com.fc.safe.platform.macos.WalletSession
  * Phase 1 (result == null): pick an encryption mode. CURRENT_PASSWORD
  * reuses the already-unlocked [WalletSession] password, so no extra
  * prompt — the wallet is authenticated enough to act on the user's
- * behalf. RANDOM_PASSWORD generates an 8-byte Base32 string that's
- * surfaced in the result view — the user must copy it out alongside
- * the cipher text, because without it the export is unrecoverable.
+ * behalf. RANDOM_PASSWORD generates a 128-bit Base32 password that the
+ * export does not carry (FTSP31) — without it the export is
+ * unrecoverable.
  * NONE emits hex prikeys — plainly readable, safe only for
  * same-person, same-machine transfers.
  *
  * Phase 2 (result != null): show the concatenated JSON + Copy. If the
- * mode was RANDOM_PASSWORD, the random password is shown separately
- * so it doesn't get lost in the JSON paste.
+ * mode was RANDOM_PASSWORD, the password is shown once in a
+ * [RandomPasswordBlock], and Done stays disabled until the user
+ * confirms it is saved.
  */
 @Composable
 fun ExportKeysDialog(
@@ -82,8 +82,13 @@ fun ExportKeysDialog(
     // clicks that briefly change window focus (e.g. clicking a radio
     // button that was previously out-of-focus), which spuriously
     // closes the dialog. Dismiss is only via Cancel/Done.
+    // The export does not carry its random password, so it is shown once
+    // and the dialog stays open until the user confirms it is saved.
+    var passwordSaved by remember(result) { mutableStateOf(false) }
+    val canClose = result?.randomPassword == null || passwordSaved
+
     Dialog(
-        onDismissRequest = { if (!busy) onDismiss() },
+        onDismissRequest = { if (!busy && canClose) onDismiss() },
         properties = DialogProperties(
             dismissOnClickOutside = false,
             dismissOnBackPress = true,
@@ -143,29 +148,10 @@ fun ExportKeysDialog(
                     // JSON viewer takes the remaining vertical space
                     // (weight(1f)) and owns the single scroll region.
                     if (result.randomPassword != null) {
-                        Text(
-                            "Random password — copy this separately:",
-                            style = MaterialTheme.typography.body2,
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = result.randomPassword,
-                            onValueChange = {},
-                            readOnly = true,
-                            singleLine = true,
-                            textStyle = MaterialTheme.typography.body1.copy(
-                                fontFamily = FontFamily.Monospace,
-                            ),
-                            // The password is the key to the JSON above and
-                            // travels separately — on an offline machine that
-                            // means a second QR, not a second clipboard hop.
-                            trailingIcon = {
-                                MakeQrIconButton(
-                                    text = result.randomPassword,
-                                    title = "Export password",
-                                )
-                            },
-                            modifier = Modifier.fillMaxWidth(),
+                        RandomPasswordBlock(
+                            password = result.randomPassword,
+                            saved = passwordSaved,
+                            onSavedChange = { passwordSaved = it },
                         )
                         Spacer(Modifier.height(12.dp))
                     }
@@ -219,7 +205,7 @@ fun ExportKeysDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(enabled = !busy, onClick = onDismiss) {
+                    TextButton(enabled = !busy && canClose, onClick = onDismiss) {
                         Text(if (result == null) "Cancel" else "Done")
                     }
                     Spacer(Modifier.width(8.dp))

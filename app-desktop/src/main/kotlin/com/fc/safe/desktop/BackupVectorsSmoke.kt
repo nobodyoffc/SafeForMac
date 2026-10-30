@@ -1,6 +1,9 @@
 package com.fc.safe.desktop
 
+import com.fc.safe.desktop.backup.ExportMode
+import com.fc.safe.desktop.backup.KeyExporter
 import com.fc.safe.desktop.backup.KeyImporter
+import com.fc.safe.desktop.backup.SecretExporter
 import com.fc.safe.desktop.backup.SecretImporter
 import com.fc.safe.platform.macos.BootstrapLogging
 import com.fc.safe.platform.macos.DesktopApp
@@ -24,6 +27,10 @@ import kotlin.system.exitProcess
  * - `expect: "reject"`: the importer refuses the list — it throws or yields
  *   nothing, so the screen saves nothing.
  *
+ * Then our own exports of the imported items in each encrypted mode: no
+ * keyName, a random password that is 128 bits and not in the export, and
+ * the export reads back only with its password.
+ *
  * Run: ./gradlew :app-desktop:backupVectorsSmoke
  */
 fun main(args: Array<String>) {
@@ -34,9 +41,13 @@ fun main(args: Array<String>) {
 
     val file = File(args.firstOrNull() ?: "vectors/ftsp", "backup.json")
     val run = VectorRun()
-    for (e in JsonParser.parseString(file.readText()).asJsonObject.getAsJsonArray("vectors")) {
-        val v = e.asJsonObject
+    val vectors = JsonParser.parseString(file.readText()).asJsonObject.getAsJsonArray("vectors").map { it.asJsonObject }
+    for (v in vectors) {
         run.check(v.str("id")!!) { checkBackupVector(v) }
+    }
+    for (mode in listOf(ExportMode.RANDOM_PASSWORD, ExportMode.CURRENT_PASSWORD)) {
+        run.check("EXPORT-KEYS-$mode") { checkKeyExport(vectors, mode) }
+        run.check("EXPORT-SECRETS-$mode") { checkSecretExport(vectors, mode) }
     }
     WalletSession.lock()
     println(if (run.failed == 0) "BACKUP VECTORS PASSED (${run.passed})" else "BACKUP VECTORS: ${run.failed} FAILED of ${run.passed + run.failed}")
@@ -45,7 +56,8 @@ fun main(args: Array<String>) {
 
 private fun checkBackupVector(v: JsonObject) {
     val text = v.str("backupText")!!
-    val password = if (v.str("mode") == "appPassword") v.str("password") else null
+    // A random password is handed over apart from the backup, so the vector carries it.
+    val password = if (v.str("mode") in setOf("appPassword", "randomPassword")) v.str("password") else null
     val isKeys = v.str("tClass") == "KeyInfo"
 
     if (v.str("expect") == "reject") {
@@ -80,5 +92,56 @@ private fun checkBackupVector(v: JsonObject) {
             expect(CryptoDataByte.fromJson(cipher).type == EncryptType.Symkey) { "${s.title} not stored under the vault key" }
             expect(String(WalletSession.decryptFromJson(cipher)) == want.str("content")) { "content of ${s.title}" }
         }
+    }
+}
+
+private val VAULT_PASSWORD = "backup-vectors-vault".toCharArray()
+
+private fun plainVector(vectors: List<JsonObject>, tClass: String) =
+    vectors.first { it.str("mode") == "plain" && it.str("tClass") == tClass && it.str("expect") == "import" }
+
+/** What an export must look like and how it reads back (FTSP31). */
+private fun checkExportText(text: String, randomPassword: String?, mode: ExportMode) {
+    expect(!text.contains("keyName")) { "export carries a keyName" }
+    if (mode == ExportMode.RANDOM_PASSWORD) {
+        val pwd = randomPassword ?: throw AssertionError("no random password returned")
+        expect(pwd.length == 26) { "random password has ${pwd.length} characters, expected 26 (128 bits)" }
+        expect(!text.contains(pwd)) { "export carries its random password" }
+    } else {
+        expect(randomPassword == null) { "random password returned for $mode" }
+    }
+}
+
+private fun checkKeyExport(vectors: List<JsonObject>, mode: ExportMode) {
+    val keys = KeyImporter.importText(plainVector(vectors, "KeyInfo").str("backupText")!!, null)
+    val result = KeyExporter.export(keys, mode, if (mode == ExportMode.CURRENT_PASSWORD) VAULT_PASSWORD.copyOf() else null)
+    checkExportText(result.text, result.randomPassword, mode)
+    val password = result.randomPassword ?: String(VAULT_PASSWORD)
+    expect(runCatching { KeyImporter.importText(result.text, null) }.exceptionOrNull() is KeyImporter.PasswordRequired) {
+        "export reads back without a password"
+    }
+    val back = KeyImporter.importText(result.text, password)
+    expect(back.map { it.id } == keys.map { it.id }) { "read back ${back.map { it.id }}, expected ${keys.map { it.id }}" }
+    for ((b, k) in back.zip(keys)) {
+        val got = WalletSession.decryptFromJson(b.prikeyCipher!!)
+        val want = WalletSession.decryptFromJson(k.prikeyCipher!!)
+        expect(got.contentEquals(want)) { "prikey of ${k.id} changed in the round trip" }
+    }
+}
+
+private fun checkSecretExport(vectors: List<JsonObject>, mode: ExportMode) {
+    val secrets = SecretImporter.importText(plainVector(vectors, "Secret").str("backupText")!!, null)
+    val result = SecretExporter.export(secrets, mode, if (mode == ExportMode.CURRENT_PASSWORD) VAULT_PASSWORD.copyOf() else null)
+    checkExportText(result.text, result.randomPassword, mode)
+    val password = result.randomPassword ?: String(VAULT_PASSWORD)
+    expect(runCatching { SecretImporter.importText(result.text, null) }.exceptionOrNull() is SecretImporter.PasswordRequired) {
+        "export reads back without a password"
+    }
+    val back = SecretImporter.importText(result.text, password)
+    expect(back.map { it.title } == secrets.map { it.title }) { "read back ${back.map { it.title }}, expected ${secrets.map { it.title }}" }
+    for ((b, s) in back.zip(secrets)) {
+        val got = String(WalletSession.decryptFromJson(b.contentCipher!!))
+        val want = String(WalletSession.decryptFromJson(s.contentCipher!!))
+        expect(got == want) { "content of ${s.title} changed in the round trip" }
     }
 }

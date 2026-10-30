@@ -64,14 +64,7 @@ internal object KeyImporter {
             throw IllegalArgumentException("No KeyInfo entries found in input")
         }
 
-        // Keyname consistency check mirrors Android.
         val bk = backupKeys.firstOrNull()
-        val bh = headers.firstOrNull()
-        if (bk != null && bh != null && bk.keyName != null && bh.keyName != null &&
-            bk.keyName != bh.keyName
-        ) {
-            throw IllegalArgumentException("Backup key and header key names do not match")
-        }
 
         val decryptPwd: String? = bk?.password ?: password
 
@@ -91,9 +84,9 @@ internal object KeyImporter {
         headers: MutableList<BackupHeader>,
         keyEntries: MutableList<ExportedKeyInfo>,
     ) {
-        // BackupKey has a password or symkey field populated.
+        // BackupKey has a password, symkey or (FTSP31) only a hint.
         tryParse<BackupKey>(json)?.let {
-            if (it.password != null || it.symkey != null) {
+            if (it.password != null || it.symkey != null || it.hint != null) {
                 backupKeys += it
                 return
             }

@@ -1,5 +1,7 @@
 package com.fc.safe.desktop.backup
 
+import java.security.SecureRandom
+
 /**
  * Mirrors `com.fc.safe.models.BackupHeader`. Field names match 1:1 so
  * Android and macOS can parse each other's exports via Gson.
@@ -13,23 +15,30 @@ internal class BackupHeader {
     var time: String? = null
     var items: Int? = null
     var qrCodes: Int? = null
-    var keyName: String? = null
     var alg: String? = null
     var tClass: String? = null
 }
 
 /**
- * Mirrors `com.fc.safe.models.BackupKey`. Carries the per-export
- * random password (or the symkey string) so the receiver can decrypt
- * the subsequent per-key `prikeyCipher` blobs. Gson field order
- * matches Android.
+ * Mirrors `com.fc.safe.models.BackupKey`. Gson field order matches
+ * Android. Exports write only a [hint]: a random password is handed
+ * over apart from the data (FTSP31), so [password] is read only from
+ * version-1 files, which carried it here.
  */
 internal class BackupKey {
     var password: String? = null
     var symkey: String? = null
     var time: String? = null
-    var keyName: String? = null
     var hint: String? = null
+
+    companion object {
+        const val RANDOM_PASSWORD_HINT = "The password was shown once at export and is kept apart from this data."
+        const val APP_PASSWORD_HINT = "App password cannot be shown — keep it carefully."
+
+        /** A 128-bit random password, 26 Base32 characters. */
+        fun makeRandomPassword(): String =
+            Base32Shim.toBase32(ByteArray(16).also(SecureRandom()::nextBytes))
+    }
 }
 
 /**

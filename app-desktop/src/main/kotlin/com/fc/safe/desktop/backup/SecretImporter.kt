@@ -57,12 +57,6 @@ internal object SecretImporter {
         }
 
         val bk = backupKeys.firstOrNull()
-        val bh = headers.firstOrNull()
-        if (bk != null && bh != null && bk.keyName != null && bh.keyName != null &&
-            bk.keyName != bh.keyName
-        ) {
-            throw IllegalArgumentException("Backup key and header key names do not match")
-        }
 
         val decryptPwd: String? = bk?.password ?: password
 
@@ -131,9 +125,9 @@ internal object SecretImporter {
         cipherBlobs: MutableList<String>,
         plainExported: MutableList<ExportedSecret>,
     ) {
-        // BackupKey: has `password` or `symkey` populated.
+        // BackupKey: has `password`, `symkey` or (FTSP31) only a `hint`.
         tryParse<BackupKey>(json)?.let {
-            if (it.password != null || it.symkey != null) {
+            if (it.password != null || it.symkey != null || it.hint != null) {
                 backupKeys += it
                 return
             }
