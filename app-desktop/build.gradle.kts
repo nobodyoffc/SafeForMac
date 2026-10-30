@@ -16,7 +16,7 @@ java {
 // bundle (packageVersion, below) and the string the UI shows, so a
 // screenshot of the About box can never disagree with the .app it
 // came out of. Bump it here and nowhere else.
-val appVersion = "1.1.0"
+val appVersion = "1.1.1"
 
 // Generates BuildInfo.kt into a source dir Kotlin compiles alongside
 // src/main/kotlin. The alternative — reading Implementation-Version off
