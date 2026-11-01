@@ -1,0 +1,14 @@
+{
+  "github": "nobodyoffc/SafeForMac",
+  "codes": [
+    { "name": "SafeForMac", "path": ".", "langs": ["Kotlin"],
+      "desc": "Safe for macOS: offline key management, offline TX and multisig signing, secrets and TOTP for Freecash, crypto-tools.",
+      "protocols": ["FBP0", "FTSP0", "FVEP0"] }
+  ],
+  "apps": [
+    { "stdName": "SafeForMac", "asset": "Safe-*.dmg", "os": "macos", "types": ["wallet", "offline"],
+      "localNames": { "en": "Safe for macOS" },
+      "desc": "Safe for macOS: offline key management, transaction and multisig signing, secrets and TOTP for Freecash.",
+      "codes": ["SafeForMac", "FC-JDK"], "protocols": ["FBP0", "FTSP0", "FVEP0"] }
+  ]
+}
