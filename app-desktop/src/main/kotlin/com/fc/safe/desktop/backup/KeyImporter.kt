@@ -4,6 +4,7 @@ import com.fc.safe.desktop.DesktopKeyInfo
 import com.fc.safe.desktop.buildKeyFromPrikey32
 import com.fc.safe.desktop.buildWatchOnlyFromFid
 import com.fc.safe.desktop.buildWatchOnlyFromPubkey
+import com.fc.safe.desktop.i18n.tr
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import core.crypto.Decryptor
@@ -61,7 +62,7 @@ internal object KeyImporter {
         }
 
         if (keyEntries.isEmpty()) {
-            throw IllegalArgumentException("No KeyInfo entries found in input")
+            throw IllegalArgumentException(tr("No KeyInfo entries found in input"))
         }
 
         val bk = backupKeys.firstOrNull()
@@ -184,11 +185,11 @@ internal object KeyImporter {
         val fid = KeyTools.prikeyToFid(prikey32)
         val claimed = entry.id
         if (!claimed.isNullOrBlank() && claimed != fid) {
-            throw IllegalArgumentException("The entry says $claimed, but its prikey belongs to $fid")
+            throw IllegalArgumentException(tr("The entry says %s, but its prikey belongs to %s", claimed, fid))
         }
         val pub = entry.pubkey
         if (!pub.isNullOrBlank() && !pub.equals(Hex.toHex(KeyTools.prikeyToPubkey(prikey32)), ignoreCase = true)) {
-            throw IllegalArgumentException("The entry's pubkey is not the pubkey of its prikey ($fid)")
+            throw IllegalArgumentException(tr("The entry's pubkey is not the pubkey of its prikey (%s)", fid))
         }
         return buildKeyFromPrikey32(prikey32, label, savedAt)
     }

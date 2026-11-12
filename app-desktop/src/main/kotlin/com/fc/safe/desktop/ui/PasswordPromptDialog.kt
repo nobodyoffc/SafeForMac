@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 
 /**
@@ -39,7 +40,7 @@ import com.fc.safe.platform.macos.WalletSession
 fun PasswordPromptDialog(
     title: String,
     message: String,
-    confirmLabel: String = "Continue",
+    confirmLabel: String = tr("Continue"),
     onDismiss: () -> Unit,
     onVerified: (CharArray) -> Unit,
 ) {
@@ -49,7 +50,7 @@ fun PasswordPromptDialog(
     fun attempt() {
         val stored = WalletSession.currentPasswordCopy()
         if (stored == null) {
-            error = "Wallet is locked"
+            error = tr("Wallet is locked")
             return
         }
         try {
@@ -58,7 +59,7 @@ fun PasswordPromptDialog(
                 entered.indices.all { entered[it] == stored[it] }
             if (!match) {
                 entered.fill(Char.MIN_VALUE)
-                error = "Incorrect password"
+                error = tr("Incorrect password")
                 return
             }
             pwd = ""
@@ -78,7 +79,7 @@ fun PasswordPromptDialog(
                 PasswordField(
                     value = pwd,
                     onValueChange = { pwd = it; error = null },
-                    label = "Wallet password",
+                    label = tr("Wallet password"),
                     imeAction = ImeAction.Done,
                     onSubmit = ::attempt,
                     modifier = Modifier.fillMaxWidth(),
@@ -93,7 +94,7 @@ fun PasswordPromptDialog(
             SafeButton(onClick = ::attempt) { Text(confirmLabel) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(tr("Cancel")) }
         },
     )
 }

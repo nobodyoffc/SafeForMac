@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CashImportDialog
 import com.fc.safe.desktop.ui.ConfirmReplaceDialog
@@ -130,7 +131,7 @@ class MyCashScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Save cash failed", t)
-                    error = "Save failed: ${t.message}"
+                    error = tr("Save failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -155,8 +156,8 @@ class MyCashScreen : Screen {
                     persistCash(list)
                 } else {
                     pendingReplace = PendingReplaceCash(
-                        title = if (list.size == 1) "Replace existing UTXO?"
-                        else "Replace existing UTXO(s)?",
+                        title = if (list.size == 1) tr("Replace existing UTXO?")
+                        else tr("Replace existing UTXO(s)?"),
                         conflictIds = existingIds,
                         showSkip = list.size > existingIds.size,
                         onResult = { result ->
@@ -192,7 +193,7 @@ class MyCashScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Delete cashes failed", t)
-                    error = "Delete failed: ${t.message}"
+                    error = tr("Delete failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -203,11 +204,11 @@ class MyCashScreen : Screen {
         val totalSelected = cashes.filter { it.id in selectedIds }.sumOf { it.value ?: 0L }
 
         AppShell(
-            title = "My Cash (UTXOs)",
+            title = tr("My Cash (UTXOs)"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -220,11 +221,11 @@ class MyCashScreen : Screen {
                     if (selectedIds.isEmpty()) {
                         Column {
                             Text(
-                                if (loading) "Loading…" else "${cashes.size} UTXO(s)",
+                                if (loading) tr("Loading…") else tr("%s UTXO(s)", cashes.size),
                                 style = MaterialTheme.typography.subtitle1,
                             )
                             Text(
-                                "Total ${FchUtils.satoshiToCoin(totalAll)} FCH",
+                                tr("Total %s FCH", FchUtils.satoshiToCoin(totalAll)),
                                 style = MaterialTheme.typography.caption,
                                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                             )
@@ -234,7 +235,7 @@ class MyCashScreen : Screen {
                                 enabled = !busy,
                                 onClick = { showAddMenu = true },
                             ) {
-                                Text("Add cash")
+                                Text(tr("Add cash"))
                                 Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                             }
                             DropdownMenu(
@@ -244,15 +245,15 @@ class MyCashScreen : Screen {
                                 DropdownMenuItem(onClick = {
                                     showAddMenu = false
                                     showCreate = true
-                                }) { Text("Create manually") }
+                                }) { Text(tr("Create manually")) }
                                 DropdownMenuItem(onClick = {
                                     showAddMenu = false
                                     showImport = true
-                                }) { Text("Import JSON") }
+                                }) { Text(tr("Import JSON")) }
                                 DropdownMenuItem(onClick = {
                                     showAddMenu = false
                                     showImportFromTx = true
-                                }) { Text("From signed tx hex…") }
+                                }) { Text(tr("From signed tx hex…")) }
                             }
                         }
                     } else {
@@ -260,11 +261,11 @@ class MyCashScreen : Screen {
                             TextButton(
                                 enabled = !busy,
                                 onClick = { selectedIds = emptySet() },
-                            ) { Text("Cancel") }
+                            ) { Text(tr("Cancel")) }
                             Spacer(Modifier.width(4.dp))
                             Column {
                                 Text(
-                                    "${selectedIds.size} selected",
+                                    tr("%s selected", selectedIds.size),
                                     style = MaterialTheme.typography.subtitle1,
                                 )
                                 Text(
@@ -298,10 +299,10 @@ class MyCashScreen : Screen {
                     }
                     cashes.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("No UTXOs yet.", style = MaterialTheme.typography.subtitle1)
+                            Text(tr("No UTXOs yet."), style = MaterialTheme.typography.subtitle1)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Use \"Add cash\" → Create manually, or paste a Cash JSON.",
+                                tr("Use \"Add cash\" → Create manually, or paste a Cash JSON."),
                                 style = MaterialTheme.typography.caption,
                             )
                         }
@@ -412,7 +413,7 @@ private fun CashCard(
                 )
                 Spacer(Modifier.height(2.dp))
                 CopyableText(
-                    text = cash.owner ?: "(no owner)",
+                    text = cash.owner ?: tr("(no owner)"),
                     value = cash.owner.orEmpty(),
                     style = MaterialTheme.typography.caption,
                     color = if (cash.owner.isNullOrBlank())
@@ -460,12 +461,12 @@ private fun LongPressCashDeleteButton(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp),
             ) {
-                Text("Delete ($selectedCount)")
+                Text(tr("Delete (%s)", selectedCount))
             }
         }
         DropdownMenu(expanded = showTip, onDismissRequest = { showTip = false }) {
             DropdownMenuItem(onClick = { showTip = false }) {
-                Text("Long-press to confirm delete")
+                Text(tr("Long-press to confirm delete"))
             }
         }
     }

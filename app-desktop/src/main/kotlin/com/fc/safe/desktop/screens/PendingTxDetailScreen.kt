@@ -37,6 +37,7 @@ import com.fc.safe.desktop.DesktopMultisig
 import com.fc.safe.desktop.DesktopPendingTx
 import com.fc.safe.desktop.PENDING_TXS_DB_NAME
 import com.fc.safe.desktop.fch.TxHandler
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CopyableText
 import com.fc.safe.desktop.ui.CryptoIoBlock
@@ -115,11 +116,11 @@ class PendingTxDetailScreen(
         fun buildPreview() {
             val r = rec ?: return
             val parsedRaw = raw ?: run {
-                error = "Cannot parse stored rawJson — record may be corrupted."
+                error = tr("Cannot parse stored rawJson — record may be corrupted.")
                 return
             }
             val hex = r.signedHex ?: run {
-                error = "Record has no signed hex."
+                error = tr("Record has no signed hex.")
                 return
             }
             error = null
@@ -133,7 +134,7 @@ class PendingTxDetailScreen(
                 outcome.onSuccess { applyPreview = it }
                 outcome.onFailure {
                     log.warn("Compute apply preview failed", it)
-                    error = "Preview failed: ${it.message}"
+                    error = tr("Preview failed: %s", it.message)
                 }
             }
         }
@@ -150,8 +151,7 @@ class PendingTxDetailScreen(
                 busy = false
                 outcome.onSuccess {
                     onChanged()
-                    status = "Applied — removed ${preview.existingSpentIds.size} UTXO(s), " +
-                        "added ${preview.bornCashes.size} UTXO(s)."
+                    status = tr("Applied — removed %s UTXO(s), added %s UTXO(s).", preview.existingSpentIds.size, preview.bornCashes.size)
                     // Pop after a moment so the user sees the status.
                     // Simpler UX than auto-pop — they can also read the
                     // confirmation and back out manually.
@@ -159,7 +159,7 @@ class PendingTxDetailScreen(
                 }
                 outcome.onFailure {
                     log.warn("Apply pending tx failed", it)
-                    error = "Apply failed: ${it.message}"
+                    error = tr("Apply failed: %s", it.message)
                 }
             }
         }
@@ -186,17 +186,17 @@ class PendingTxDetailScreen(
                 }
                 outcome.onFailure {
                     log.warn("Discard pending tx failed", it)
-                    error = "Discard failed: ${it.message}"
+                    error = tr("Discard failed: %s", it.message)
                 }
             }
         }
 
         AppShell(
-            title = "Pending TX",
+            title = tr("Pending TX"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -209,9 +209,9 @@ class PendingTxDetailScreen(
             ) {
                 val r = rec
                 when {
-                    loading -> Text("Loading…")
+                    loading -> Text(tr("Loading…"))
                     r == null -> Text(
-                        "Record not found — it may have been applied or discarded already.",
+                        tr("Record not found — it may have been applied or discarded already."),
                         color = MaterialTheme.colors.error,
                     )
                     else -> {
@@ -222,9 +222,7 @@ class PendingTxDetailScreen(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "${r.flavor?.lowercase()} · sender ${r.senderFid ?: "(unknown)"} · " +
-                                "${r.inputCount} in · ${r.outputCount} out · " +
-                                "${FchUtils.satoshiToCoin(r.totalOut)} FCH out",
+                            tr("%s · sender %s · %s in · %s out · %s FCH out", r.flavor?.lowercase(), r.senderFid ?: tr("(unknown)"), r.inputCount, r.outputCount, FchUtils.satoshiToCoin(r.totalOut)),
                             style = MaterialTheme.typography.caption,
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                         )
@@ -243,7 +241,7 @@ class PendingTxDetailScreen(
                             CryptoIoBlock(
                                 value = hex,
                                 onValueChange = {},
-                                label = "Signed tx (hex — broadcast this)",
+                                label = tr("Signed tx (hex — broadcast this)"),
                                 readOnly = true,
                                 enableMakeQr = true,
                                 heightDp = 180,
@@ -258,11 +256,11 @@ class PendingTxDetailScreen(
                             SafeButton(
                                 enabled = !busy && raw != null && r.signedHex != null,
                                 onClick = ::buildPreview,
-                            ) { Text("Apply…") }
+                            ) { Text(tr("Apply…")) }
                             SafeButton(
                                 enabled = !busy,
                                 onClick = { confirmDiscard = true },
-                            ) { Text("Discard…") }
+                            ) { Text(tr("Discard…")) }
                         }
 
                         error?.let {
@@ -281,39 +279,35 @@ class PendingTxDetailScreen(
         applyPreview?.let { preview ->
             AlertDialog(
                 onDismissRequest = { if (!busy) applyPreview = null },
-                title = { Text("Apply to cash list?") },
+                title = { Text(tr("Apply to cash list?")) },
                 text = {
                     Column {
                         Text(
-                            "This will update your local UTXO list to reflect the " +
-                                "on-chain effect of this transaction.",
+                            tr("This will update your local UTXO list to reflect the on-chain effect of this transaction."),
                             style = MaterialTheme.typography.body2,
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "• Remove ${preview.existingSpentIds.size} UTXO(s) " +
-                                "(of ${preview.allSpentIds.size} referenced as inputs)",
+                            tr("• Remove %s UTXO(s) (of %s referenced as inputs)", preview.existingSpentIds.size, preview.allSpentIds.size),
                             style = MaterialTheme.typography.body2,
                         )
                         Text(
-                            "• Add ${preview.bornCashes.size} UTXO(s) paying your FIDs " +
-                                "(${preview.ownedFidCount} FIDs scanned)",
+                            tr("• Add %s UTXO(s) paying your FIDs (%s FIDs scanned)", preview.bornCashes.size, preview.ownedFidCount),
                             style = MaterialTheme.typography.body2,
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "Only proceed after confirming the transaction was " +
-                                "broadcast and included on-chain.",
+                            tr("Only proceed after confirming the transaction was broadcast and included on-chain."),
                             style = MaterialTheme.typography.caption,
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                         )
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = { commitApply(preview) }) { Text("Apply") }
+                    TextButton(onClick = { commitApply(preview) }) { Text(tr("Apply")) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { applyPreview = null }) { Text("Cancel") }
+                    TextButton(onClick = { applyPreview = null }) { Text(tr("Cancel")) }
                 },
             )
         }
@@ -321,19 +315,17 @@ class PendingTxDetailScreen(
         if (confirmDiscard) {
             AlertDialog(
                 onDismissRequest = { if (!busy) confirmDiscard = false },
-                title = { Text("Discard pending tx?") },
+                title = { Text(tr("Discard pending tx?")) },
                 text = {
                     Text(
-                        "This removes the pending record only — your cash list " +
-                            "is not changed. Use this if the tx wasn't broadcast " +
-                            "or failed to confirm.",
+                        tr("This removes the pending record only — your cash list is not changed. Use this if the tx wasn't broadcast or failed to confirm."),
                     )
                 },
                 confirmButton = {
-                    TextButton(onClick = ::commitDiscard) { Text("Discard") }
+                    TextButton(onClick = ::commitDiscard) { Text(tr("Discard")) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { confirmDiscard = false }) { Text("Cancel") }
+                    TextButton(onClick = { confirmDiscard = false }) { Text(tr("Cancel")) }
                 },
             )
         }

@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.fc.safe.desktop.avatar.AvatarMaker
+import com.fc.safe.desktop.i18n.tr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.skia.Image as SkiaImage
@@ -56,7 +57,7 @@ fun FidAvatar(fid: String, size: Dp = 40.dp) {
         if (painter != null) {
             Image(
                 painter = painter,
-                contentDescription = "Avatar",
+                contentDescription = tr("Avatar"),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize(),
             )

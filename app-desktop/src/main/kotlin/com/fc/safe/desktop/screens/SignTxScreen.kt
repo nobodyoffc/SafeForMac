@@ -32,6 +32,7 @@ import com.fc.safe.desktop.DesktopKeyInfo
 import com.fc.safe.desktop.PendingFlavor
 import com.fc.safe.desktop.fch.TxHandler
 import com.fc.safe.desktop.fch.parseRawTxInfo
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.savePendingTx
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
@@ -99,7 +100,7 @@ class SignTxScreen(
             pendingMsg = null
             parsed = parseRawTxInfo(jsonText)
             if (parsed == null && jsonText.isNotBlank()) {
-                error = "Failed to parse tx JSON (not RawTxInfo or RawTxForCs shape)"
+                error = tr("Failed to parse tx JSON (not RawTxInfo or RawTxForCs shape)")
             }
         }
 
@@ -115,11 +116,11 @@ class SignTxScreen(
                 busy = false
                 outcome.onSuccess {
                     pendingSaved = true
-                    pendingMsg = "Saved to Pending Broadcasts (txid ${it.take(8)}…)"
+                    pendingMsg = tr("Saved to Pending Broadcasts (txid %s…)", it.take(8))
                 }
                 outcome.onFailure {
                     log.warn("Save pending tx failed", it)
-                    error = "Save failed: ${it.message}"
+                    error = tr("Save failed: %s", it.message)
                 }
             }
         }
@@ -127,7 +128,7 @@ class SignTxScreen(
         fun sign() {
             val raw = parsed ?: return
             val key = pickedKey ?: run {
-                error = "Pick a signing key first"
+                error = tr("Pick a signing key first")
                 return
             }
             error = null
@@ -142,17 +143,17 @@ class SignTxScreen(
                 outcome.onSuccess { signedHex = it }
                 outcome.onFailure {
                     log.warn("Sign tx failed", it)
-                    error = "Sign failed: ${it.message}"
+                    error = tr("Sign failed: %s", it.message)
                 }
             }
         }
 
         AppShell(
-            title = "Sign TX",
+            title = tr("Sign TX"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -173,8 +174,8 @@ class SignTxScreen(
                         pendingSaved = false
                         pendingMsg = null
                     },
-                    label = "Unsigned tx JSON",
-                    placeholder = "Paste a RawTxInfo JSON (or use QR…)",
+                    label = tr("Unsigned tx JSON"),
+                    placeholder = tr("Paste a RawTxInfo JSON (or use QR…)"),
                     heightDp = 180,
                     onClear = {
                         jsonText = ""
@@ -192,7 +193,7 @@ class SignTxScreen(
                     SafeButton(
                         enabled = !busy && jsonText.isNotBlank(),
                         onClick = ::tryParse,
-                    ) { Text("Parse") }
+                    ) { Text(tr("Parse")) }
                 }
 
                 error?.let {
@@ -211,10 +212,10 @@ class SignTxScreen(
                     Spacer(Modifier.height(16.dp))
 
                     CryptoIoBlock(
-                        value = pickedKey?.let { "[wallet key: ${it.id}]" } ?: "",
+                        value = pickedKey?.let { tr("[wallet key: %s]", it.id) } ?: "",
                         onValueChange = {},
-                        label = "Signing key",
-                        placeholder = "Pick a wallet key via the person icon",
+                        label = tr("Signing key"),
+                        placeholder = tr("Pick a wallet key via the person icon"),
                         readOnly = true,
                         enableMakeQr = true,
                         singleLine = true,
@@ -226,7 +227,7 @@ class SignTxScreen(
                         SafeButton(
                             enabled = !busy && pickedKey != null && signedHex == null,
                             onClick = ::sign,
-                        ) { Text("Sign") }
+                        ) { Text(tr("Sign")) }
                     }
                 }
 
@@ -237,7 +238,7 @@ class SignTxScreen(
                     CryptoIoBlock(
                         value = hex,
                         onValueChange = {},
-                        label = "Signed tx (hex — broadcast this)",
+                        label = tr("Signed tx (hex — broadcast this)"),
                         readOnly = true,
                         enableMakeQr = true,
                         heightDp = 200,
@@ -249,7 +250,7 @@ class SignTxScreen(
                             enabled = !busy && !pendingSaved,
                             onClick = ::savePending,
                         ) {
-                            Text(if (pendingSaved) "Saved ✓" else "Save to Pending Broadcasts")
+                            Text(if (pendingSaved) tr("Saved ✓") else tr("Save to Pending Broadcasts"))
                         }
                     }
                     pendingMsg?.let {
@@ -297,14 +298,13 @@ class SignTxScreen(
  */
 private fun signTxWithWalletKey(raw: RawTxInfo, key: DesktopKeyInfo): String {
     val cipher = key.prikeyCipher
-        ?: throw IllegalStateException("Picked key has no private key (watch-only)")
+        ?: throw IllegalStateException(tr("Picked key has no private key (watch-only)"))
 
     val signerFid = key.id
     val existingSender = raw.sender
     if (!existingSender.isNullOrBlank() && existingSender != signerFid) {
         throw IllegalStateException(
-            "Picked key ($signerFid) doesn't match the tx's sender ($existingSender). " +
-                "Pick the matching wallet key, or remove the sender from the JSON."
+            tr("Picked key (%s) doesn't match the tx's sender (%s). Pick the matching wallet key, or remove the sender from the JSON.", signerFid, existingSender)
         )
     }
     raw.sender = signerFid
@@ -319,11 +319,11 @@ private fun signTxWithWalletKey(raw: RawTxInfo, key: DesktopKeyInfo): String {
         // buffer so the outer fill(0) on rawPrikey doesn't zero the
         // prikey we hand to the shim. Same trap as Decrypt/SignMsg.
         val prikey32 = KeyTools.getPrikey32(rawPrikey)?.copyOf()
-            ?: throw IllegalStateException("Decrypted value is not a valid 32-byte prikey")
+            ?: throw IllegalStateException(tr("Decrypted value is not a valid 32-byte prikey"))
         try {
             return TxHandler().signTx(raw, prikey32)
                 ?: throw IllegalStateException(
-                    "TxHandler.signTx returned null — check inputs/outputs"
+                    tr("TxHandler.signTx returned null — check inputs/outputs")
                 )
         } finally {
             prikey32.fill(0)

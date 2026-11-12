@@ -9,6 +9,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.KeyboardActions
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Password text field — masked by default, single-line, dismisses IME on
@@ -21,7 +22,7 @@ fun PasswordField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
-    label: String = "Password",
+    label: String = tr("Password"),
     enabled: Boolean = true,
     imeAction: ImeAction = ImeAction.Done,
     onSubmit: () -> Unit = {},

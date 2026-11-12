@@ -33,6 +33,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopKeyInfo
 import com.fc.safe.desktop.fch.TxHandler
 import com.fc.safe.desktop.fch.parseRawTxInfo
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.FidAvatar
@@ -97,12 +98,12 @@ class SignMultisigTxScreen(
             pickedKey = null
             val raw = parseRawTxInfo(jsonText)
             if (raw == null && jsonText.isNotBlank()) {
-                error = "Failed to parse tx JSON"
+                error = tr("Failed to parse tx JSON")
                 parsed = null
                 return
             }
             if (raw != null && raw.senderMultisig == null) {
-                error = "This tx has no senderMultisig — use Sign TX for single-sig."
+                error = tr("This tx has no senderMultisig — use Sign TX for single-sig.")
                 parsed = null
                 return
             }
@@ -112,19 +113,19 @@ class SignMultisigTxScreen(
         fun sign() {
             val raw = parsed ?: return
             val key = pickedKey ?: run {
-                error = "Pick a signing key first"
+                error = tr("Pick a signing key first")
                 return
             }
             val multisig = raw.senderMultisig ?: run {
-                error = "Missing multisig metadata"
+                error = tr("Missing multisig metadata")
                 return
             }
             if (!multisig.fids.orEmpty().contains(key.id)) {
-                error = "Key ${key.id} is not a member of this multisig group"
+                error = tr("Key %s is not a member of this multisig group", key.id)
                 return
             }
             if (raw.fidSigMap?.containsKey(key.id) == true) {
-                error = "Key ${key.id} has already signed this tx"
+                error = tr("Key %s has already signed this tx", key.id)
                 return
             }
             error = null
@@ -137,17 +138,17 @@ class SignMultisigTxScreen(
                 outcome.onSuccess { signedJson = it }
                 outcome.onFailure {
                     log.warn("Multisig sign failed", it)
-                    error = "Sign failed: ${it.message}"
+                    error = tr("Sign failed: %s", it.message)
                 }
             }
         }
 
         AppShell(
-            title = "Sign multisig TX",
+            title = tr("Sign multisig TX"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -167,8 +168,8 @@ class SignMultisigTxScreen(
                         pickedKey = null
                         error = null
                     },
-                    label = "Unsigned multisig tx JSON",
-                    placeholder = "Paste a RawTxInfo with senderMultisig set",
+                    label = tr("Unsigned multisig tx JSON"),
+                    placeholder = tr("Paste a RawTxInfo with senderMultisig set"),
                     heightDp = 180,
                     onClear = {
                         jsonText = ""
@@ -185,7 +186,7 @@ class SignMultisigTxScreen(
                     SafeButton(
                         enabled = !busy && jsonText.isNotBlank(),
                         onClick = ::tryParse,
-                    ) { Text("Parse") }
+                    ) { Text(tr("Parse")) }
                 }
 
                 error?.let {
@@ -207,10 +208,10 @@ class SignMultisigTxScreen(
                     Spacer(Modifier.height(16.dp))
 
                     CryptoIoBlock(
-                        value = pickedKey?.let { "[wallet key: ${it.id}]" } ?: "",
+                        value = pickedKey?.let { tr("[wallet key: %s]", it.id) } ?: "",
                         onValueChange = {},
-                        label = "Signing key (member of ${raw.senderMultisig.id})",
-                        placeholder = "Pick a wallet key via the person icon",
+                        label = tr("Signing key (member of %s)", raw.senderMultisig.id),
+                        placeholder = tr("Pick a wallet key via the person icon"),
                         readOnly = true,
                         enableMakeQr = true,
                         singleLine = true,
@@ -222,7 +223,7 @@ class SignMultisigTxScreen(
                         SafeButton(
                             enabled = !busy && pickedKey != null && signedJson == null,
                             onClick = ::sign,
-                        ) { Text("Sign") }
+                        ) { Text(tr("Sign")) }
                     }
                 }
 
@@ -233,7 +234,7 @@ class SignMultisigTxScreen(
                     CryptoIoBlock(
                         value = json,
                         onValueChange = {},
-                        label = "Signed multisig tx (forward to next signer or aggregator)",
+                        label = tr("Signed multisig tx (forward to next signer or aggregator)"),
                         readOnly = true,
                         enableMakeQr = true,
                         heightDp = 260,
@@ -271,12 +272,12 @@ private fun MultisigStatus(raw: RawTxInfo) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "Multisig ${m}-of-${n}  ·  ${signed.size} of $m signed",
+            tr("Multisig %s-of-%s  ·  %s of %s signed", m, n, signed.size, m),
             style = MaterialTheme.typography.subtitle2,
         )
         Spacer(Modifier.height(6.dp))
         members.forEachIndexed { i, fid ->
-            val state = if (fid in signed) "✓ signed" else "pending"
+            val state = if (fid in signed) tr("✓ signed") else tr("pending")
             Row(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
@@ -317,16 +318,16 @@ private fun MultisigStatus(raw: RawTxInfo) {
  */
 private fun signMultisigWithWalletKey(raw: RawTxInfo, key: DesktopKeyInfo): String {
     val cipher = key.prikeyCipher
-        ?: throw IllegalStateException("Picked key has no private key (watch-only)")
+        ?: throw IllegalStateException(tr("Picked key has no private key (watch-only)"))
 
     val rawPrikey = WalletSession.decryptFromJson(cipher)
     try {
         val prikey32 = KeyTools.getPrikey32(rawPrikey)?.copyOf()
-            ?: throw IllegalStateException("Decrypted value is not a valid 32-byte prikey")
+            ?: throw IllegalStateException(tr("Decrypted value is not a valid 32-byte prikey"))
         try {
             TxHandler().signSchnorrMultiSignTx(raw, prikey32)
             return raw.toNiceJson()
-                ?: throw IllegalStateException("Signed-tx serialization returned null")
+                ?: throw IllegalStateException(tr("Signed-tx serialization returned null"))
         } finally {
             prikey32.fill(0)
         }

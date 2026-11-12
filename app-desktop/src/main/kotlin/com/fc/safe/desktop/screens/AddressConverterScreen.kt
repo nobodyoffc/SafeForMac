@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.SafeButton
@@ -65,21 +66,21 @@ class AddressConverterScreen : Screen {
                     KeyTools.pubkeyToAddresses(raw)
                 } else {
                     val hash160 = KeyTools.addrToHash160(raw)
-                        ?: throw IllegalArgumentException("Not a recognisable address")
+                        ?: throw IllegalArgumentException(tr("Not a recognisable address"))
                     KeyTools.hash160ToAddresses(hash160)
                 }
                 result = map.entries.joinToString("\n\n") { "${it.key}: ${it.value}" }
             } catch (t: Throwable) {
-                error = "Convert failed: ${t.message}"
+                error = tr("Convert failed: %s", t.message)
             }
         }
 
         AppShell(
-            title = "Address converter",
+            title = tr("Address converter"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -90,8 +91,8 @@ class AddressConverterScreen : Screen {
                 CryptoIoBlock(
                     value = input,
                     onValueChange = { input = it; error = null },
-                    label = "Public key or address",
-                    placeholder = "Compressed pubkey hex, or any chain's legacy address",
+                    label = tr("Public key or address"),
+                    placeholder = tr("Compressed pubkey hex, or any chain's legacy address"),
                     heightDp = 100,
                     onClear = { input = ""; result = ""; error = null },
                     enableQr = true,
@@ -102,11 +103,11 @@ class AddressConverterScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         input = ""; result = ""; error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = input.isNotBlank(),
                         onClick = ::convert,
-                    ) { Text("Convert") }
+                    ) { Text(tr("Convert")) }
                 }
 
                 error?.let {
@@ -120,7 +121,7 @@ class AddressConverterScreen : Screen {
                 CryptoIoBlock(
                     value = result,
                     onValueChange = {},
-                    label = "Derived addresses",
+                    label = tr("Derived addresses"),
                     readOnly = true,
                     enableMakeQr = true,
                     heightDp = 260,

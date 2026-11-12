@@ -31,6 +31,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopKeyInfo
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.KeyPickerDialog
@@ -51,7 +52,7 @@ private val log = LoggerFactory.getLogger("SignMsgScreen")
 private enum class SignAlg(val display: String, val algId: AlgorithmId, val wantsPrikey: Boolean) {
     ECDSA("ECDSA", AlgorithmId.BTC_EcdsaSignMsg_No1_NrC7, true),
     SCHNORR("Schnorr", AlgorithmId.FC_SchnorrSignMsg_No1_NrC7, true),
-    SYMKEY("Symkey (HMAC-SHA256)", AlgorithmId.FC_Sha256SymSignMsg_No1_NrC7, false),
+    SYMKEY(tr("Symkey (HMAC-SHA256)"), AlgorithmId.FC_Sha256SymSignMsg_No1_NrC7, false),
 }
 
 class SignMsgScreen : Screen {
@@ -88,11 +89,11 @@ class SignMsgScreen : Screen {
         }
 
         AppShell(
-            title = "Sign message",
+            title = tr("Sign message"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -103,15 +104,15 @@ class SignMsgScreen : Screen {
                 CryptoIoBlock(
                     value = msg,
                     onValueChange = { msg = it; error = null },
-                    label = "Message",
-                    placeholder = "Text to sign",
+                    label = tr("Message"),
+                    placeholder = tr("Text to sign"),
                     heightDp = 140,
                     onClear = { msg = "" },
                     enableQr = true,
                     onQrError = { error = it },
                 )
 
-                Text("Algorithm", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Algorithm"), style = MaterialTheme.typography.subtitle2)
                 SignAlg.entries.forEach { a ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(selected = alg == a, onClick = {
@@ -126,12 +127,12 @@ class SignMsgScreen : Screen {
                 Spacer(Modifier.height(8.dp))
 
                 CryptoIoBlock(
-                    value = if (pickedKey != null) "[wallet key: ${pickedKey!!.id}]" else key,
+                    value = if (pickedKey != null) tr("[wallet key: %s]", pickedKey!!.id) else key,
                     onValueChange = { key = it; error = null },
-                    label = if (alg.wantsPrikey) "Private key (hex) or wallet key" else "Symmetric key (64 hex)",
+                    label = if (alg.wantsPrikey) tr("Private key (hex) or wallet key") else tr("Symmetric key (64 hex)"),
                     placeholder = if (alg.wantsPrikey)
-                        "64 hex chars, or pick from wallet via the person icon"
-                    else "64 hex chars",
+                        tr("64 hex chars, or pick from wallet via the person icon")
+                    else tr("64 hex chars"),
                     singleLine = true,
                     enabled = pickedKey == null,
                     heightDp = 64,
@@ -146,12 +147,12 @@ class SignMsgScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         msg = ""; key = ""; pickedKey = null; result = ""; error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = !busy && msg.isNotBlank() &&
                             (pickedKey != null || key.isNotBlank()),
                         onClick = ::run,
-                    ) { Text("Sign") }
+                    ) { Text(tr("Sign")) }
                 }
 
                 error?.let {
@@ -165,7 +166,7 @@ class SignMsgScreen : Screen {
                 CryptoIoBlock(
                     value = result,
                     onValueChange = {},
-                    label = "Signature JSON",
+                    label = tr("Signature JSON"),
                     readOnly = true,
                     enableMakeQr = true,
                     heightDp = 220,
@@ -195,10 +196,10 @@ private fun signOne(
 ): String {
     val keyBytes = if (alg.wantsPrikey) {
         resolvePrikey(typedKey, pickedKey)
-            ?: throw IllegalArgumentException("No usable private key")
+            ?: throw IllegalArgumentException(tr("No usable private key"))
     } else {
         if (!Hex.isHex32(typedKey))
-            throw IllegalArgumentException("Symkey must be 64 hex chars")
+            throw IllegalArgumentException(tr("Symkey must be 64 hex chars"))
         Hex.fromHex(typedKey)
     }
     try {
@@ -207,8 +208,8 @@ private fun signOne(
             setKey(keyBytes)
             setAlg(alg.algId)
         }
-        sig.sign() ?: throw IllegalStateException("Signing failed")
-        return sig.toNiceJson() ?: throw IllegalStateException("Signing produced no JSON")
+        sig.sign() ?: throw IllegalStateException(tr("Signing failed"))
+        return sig.toNiceJson() ?: throw IllegalStateException(tr("Signing produced no JSON"))
     } finally {
         if (alg.wantsPrikey) keyBytes.fill(0)
     }

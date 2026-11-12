@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Shows a decrypted secret with Copy button. Built on the same
@@ -104,10 +105,10 @@ fun SecretRevealDialog(
                     ShowQrTextButton(text = content, title = title)
                     Spacer(Modifier.width(8.dp))
                     TextButton(onClick = { clipboard.setText(AnnotatedString(content)) }) {
-                        Text("Copy")
+                        Text(tr("Copy"))
                     }
                     Spacer(Modifier.width(8.dp))
-                    TextButton(onClick = onDismiss) { Text("Close") }
+                    TextButton(onClick = onDismiss) { Text(tr("Close")) }
                 }
             }
         }

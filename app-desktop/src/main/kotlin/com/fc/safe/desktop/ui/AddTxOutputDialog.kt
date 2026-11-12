@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fc.safe.desktop.DesktopMultisig
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 import constants.Constants
 import core.crypto.KeyTools
@@ -108,10 +109,9 @@ fun AddTxOutputDialog(
             }
             if (ms != null) {
                 resolvedMultisig = ms
-                lookupHint = "Resolved saved multisig (${ms.m}-of-${ms.n})"
+                lookupHint = tr("Resolved saved multisig (%s-of-%s)", ms.m, ms.n)
             } else {
-                lookupHint = "Recipient is a P2SH address not saved locally — " +
-                    "plain send OK, but CLTV-to-this-multisig needs the group definition."
+                lookupHint = tr("Recipient is a P2SH address not saved locally — plain send OK, but CLTV-to-this-multisig needs the group definition.")
             }
         } catch (_: Throwable) {
             // Non-fatal — lookup is best-effort.
@@ -122,29 +122,29 @@ fun AddTxOutputDialog(
         error = null
         val amount = amountStr.toDoubleOrNull()
         if (fid.isBlank() || amountStr.isBlank()) {
-            error = "Fill both fields"; return
+            error = tr("Fill both fields"); return
         }
         if (!KeyTools.isGoodFid(fid)) {
-            error = "Recipient is not a valid FID"; return
+            error = tr("Recipient is not a valid FID"); return
         }
         if (amount == null || amount < Constants.MIN_AMOUNT || amount > Constants.MAX_AMOUNT) {
-            error = "Amount must be between ${Constants.MIN_AMOUNT} and ${Constants.MAX_AMOUNT} FCH"
+            error = tr("Amount must be between %s and %s FCH", Constants.MIN_AMOUNT, Constants.MAX_AMOUNT)
             return
         }
         if (restSatoshi > 0 && amount > FchUtils.satoshiToCoin(restSatoshi)) {
-            error = "Amount exceeds the remaining balance from inputs"; return
+            error = tr("Amount exceeds the remaining balance from inputs"); return
         }
 
         val lockTime: Long? = if (enableCltv) {
             val lv = lockValue.toLongOrNull()
             when {
-                lv == null -> { error = "Lock value must be a whole number"; return }
-                lv <= 0L -> { error = "Lock value must be > 0"; return }
+                lv == null -> { error = tr("Lock value must be a whole number"); return }
+                lv <= 0L -> { error = tr("Lock value must be > 0"); return }
                 cltvKind == CltvKind.BLOCK_HEIGHT && lv >= CLTV_THRESHOLD -> {
-                    error = "Block height must be < $CLTV_THRESHOLD"; return
+                    error = tr("Block height must be < %s", CLTV_THRESHOLD); return
                 }
                 cltvKind == CltvKind.UNIX_TIME && lv < CLTV_THRESHOLD -> {
-                    error = "Unix seconds must be ≥ $CLTV_THRESHOLD"; return
+                    error = tr("Unix seconds must be ≥ %s", CLTV_THRESHOLD); return
                 }
                 else -> lv
             }
@@ -154,8 +154,7 @@ fun AddTxOutputDialog(
         val cash = when {
             lockTime != null && isMultisigRecipient -> {
                 val ms = resolvedMultisig ?: run {
-                    error = "CLTV-to-multisig needs the group saved locally. " +
-                        "Import the multisig definition first."
+                    error = tr("CLTV-to-multisig needs the group saved locally. Import the multisig definition first.")
                     return
                 }
                 Cash(fid, amount, lockTime, toFcMultisig(ms))
@@ -180,16 +179,16 @@ fun AddTxOutputDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Add output", style = MaterialTheme.typography.h6)
+                Text(tr("Add output"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
 
                 Column(modifier = Modifier.fillMaxWidth().weight(1f).verticalScroll(rememberScrollState())) {
                     ScanTextField(
                         value = fid,
                         onValueChange = { fid = it; error = null },
-                        label = "Recipient FID",
+                        label = tr("Recipient FID"),
                         monospace = true,
-                        scanTooltip = "Scan the recipient's FID",
+                        scanTooltip = tr("Scan the recipient's FID"),
                         onScanError = { error = it },
                         onScanned = { fid = it.trim(); error = null },
                         modifier = Modifier.fillMaxWidth(),
@@ -206,7 +205,7 @@ fun AddTxOutputDialog(
                     OutlinedTextField(
                         value = amountStr,
                         onValueChange = { amountStr = it; error = null },
-                        label = { Text("Amount (FCH)") },
+                        label = { Text(tr("Amount (FCH)")) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -214,7 +213,7 @@ fun AddTxOutputDialog(
                         Spacer(Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Max: ${FchUtils.satoshiToCoin(restSatoshi)} FCH",
+                                tr("Max: %s FCH", FchUtils.satoshiToCoin(restSatoshi)),
                                 style = MaterialTheme.typography.caption,
                                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                             )
@@ -222,7 +221,7 @@ fun AddTxOutputDialog(
                             TextButton(onClick = {
                                 amountStr = FchUtils.satoshiToCoin(restSatoshi).toString()
                                 error = null
-                            }) { Text("Use max") }
+                            }) { Text(tr("Use max")) }
                         }
                     }
 
@@ -234,7 +233,7 @@ fun AddTxOutputDialog(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            "Time-lock this output (CLTV)",
+                            tr("Time-lock this output (CLTV)"),
                             style = MaterialTheme.typography.body2,
                         )
                     }
@@ -242,9 +241,7 @@ fun AddTxOutputDialog(
                     if (enableCltv) {
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Recipient cannot spend until the lock releases. Uses " +
-                                "OP_CHECKLOCKTIMEVERIFY — a new P2SH address is derived " +
-                                "from (recipient, lockTime).",
+                            tr("Recipient cannot spend until the lock releases. Uses OP_CHECKLOCKTIMEVERIFY — a new P2SH address is derived from (recipient, lockTime)."),
                             style = MaterialTheme.typography.caption,
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                         )
@@ -254,13 +251,13 @@ fun AddTxOutputDialog(
                                 selected = cltvKind == CltvKind.BLOCK_HEIGHT,
                                 onClick = { cltvKind = CltvKind.BLOCK_HEIGHT; error = null },
                             )
-                            Text("Block height", style = MaterialTheme.typography.body2)
+                            Text(tr("Block height"), style = MaterialTheme.typography.body2)
                             Spacer(Modifier.width(16.dp))
                             RadioButton(
                                 selected = cltvKind == CltvKind.UNIX_TIME,
                                 onClick = { cltvKind = CltvKind.UNIX_TIME; error = null },
                             )
-                            Text("Unix time (s)", style = MaterialTheme.typography.body2)
+                            Text(tr("Unix time (s)"), style = MaterialTheme.typography.body2)
                         }
                         OutlinedTextField(
                             value = lockValue,
@@ -268,8 +265,8 @@ fun AddTxOutputDialog(
                             label = {
                                 Text(
                                     when (cltvKind) {
-                                        CltvKind.BLOCK_HEIGHT -> "Block height (< $CLTV_THRESHOLD)"
-                                        CltvKind.UNIX_TIME -> "Unix seconds (≥ $CLTV_THRESHOLD)"
+                                        CltvKind.BLOCK_HEIGHT -> tr("Block height (< %s)", CLTV_THRESHOLD)
+                                        CltvKind.UNIX_TIME -> tr("Unix seconds (≥ %s)", CLTV_THRESHOLD)
                                     }
                                 )
                             },
@@ -298,9 +295,9 @@ fun AddTxOutputDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
-                    TextButton(onClick = ::submit) { Text("Add") }
+                    TextButton(onClick = ::submit) { Text(tr("Add")) }
                 }
             }
         }

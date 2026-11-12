@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.qr.QrDecode
 import com.fc.safe.desktop.qr.ScanQrLauncher
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +62,7 @@ fun QrScanIconButton(
     modifier: Modifier = Modifier,
     onError: (String) -> Unit = {},
     enabled: Boolean = true,
-    tooltip: String = "Scan a QR code",
+    tooltip: String = tr("Scan a QR code"),
 ) {
     var menuOpen by remember { mutableStateOf(false) }
     var cameraBusy by remember { mutableStateOf(false) }
@@ -71,7 +72,7 @@ fun QrScanIconButton(
     val scanQrInstalled = remember { ScanQrLauncher.isInstalled() }
 
     Box(modifier = modifier) {
-        HoverTooltip(if (cameraBusy) "Waiting for ScanQR…" else tooltip) {
+        HoverTooltip(if (cameraBusy) tr("Waiting for ScanQR…") else tooltip) {
             IconButton(
                 enabled = enabled && !cameraBusy,
                 onClick = { menuOpen = true },
@@ -94,17 +95,17 @@ fun QrScanIconButton(
                 menuOpen = false
                 val txt = QrDecode.fromClipboardImage()
                 if (txt != null) onDecoded(txt)
-                else onError("No QR code found on clipboard image")
-            }) { Text("From clipboard image") }
+                else onError(tr("No QR code found on clipboard image"))
+            }) { Text(tr("From clipboard image")) }
 
             DropdownMenuItem(onClick = {
                 menuOpen = false
                 pickQrFile()?.let { f ->
                     val txt = QrDecode.fromFile(f)
                     if (txt != null) onDecoded(txt)
-                    else onError("No QR code found in ${f.name}")
+                    else onError(tr("No QR code found in %s", f.name))
                 }
-            }) { Text("From file…") }
+            }) { Text(tr("From file…")) }
 
             // Camera scan via the standalone ScanQR companion app.
             // Disabled (greyed) when ScanQR isn't installed at the
@@ -132,8 +133,8 @@ fun QrScanIconButton(
                 },
             ) {
                 Text(
-                    if (scanQrInstalled) "From camera (ScanQR)…"
-                    else "From camera (install ScanQR.app)"
+                    if (scanQrInstalled) tr("From camera (ScanQR)…")
+                    else tr("From camera (install ScanQR.app)")
                 )
             }
         }
@@ -159,7 +160,7 @@ fun QrScanTrailingIcon(
     onDecoded: (String) -> Unit,
     onError: (String) -> Unit = {},
     enabled: Boolean = true,
-    tooltip: String = "Scan a QR code",
+    tooltip: String = tr("Scan a QR code"),
 ) {
     Column(
         modifier = Modifier.fillMaxHeight(),
@@ -197,7 +198,7 @@ fun ScanTextField(
     singleLine: Boolean = true,
     maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     monospace: Boolean = false,
-    scanTooltip: String = "Scan a QR code",
+    scanTooltip: String = tr("Scan a QR code"),
     onScanError: (String) -> Unit = {},
     onScanned: ((String) -> Unit)? = null,
     /**
@@ -271,7 +272,7 @@ internal fun HoverTooltip(text: String, content: @Composable () -> Unit) {
  * dependency or styling. Returns null when the user cancels.
  */
 private fun pickQrFile(): File? {
-    val dlg = FileDialog(findAwtFrame(), "Pick a QR image", FileDialog.LOAD).apply {
+    val dlg = FileDialog(findAwtFrame(), tr("Pick a QR image"), FileDialog.LOAD).apply {
         isMultipleMode = false
         // Very loose filter — users may pass PNG, JPG, whatever.
         // ZXing reads what ImageIO reads.

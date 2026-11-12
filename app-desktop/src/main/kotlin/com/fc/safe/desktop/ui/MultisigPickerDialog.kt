@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fc.safe.desktop.DesktopMultisig
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 import db.LocalDB
 import kotlinx.coroutines.Dispatchers
@@ -69,7 +70,7 @@ fun MultisigPickerDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-                Text("Pick multisig group", style = MaterialTheme.typography.h6)
+                Text(tr("Pick multisig group"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
 
                 val list = groups
@@ -77,13 +78,13 @@ fun MultisigPickerDialog(
                     list == null -> Box(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = Alignment.Center,
-                    ) { Text("Loading…") }
+                    ) { Text(tr("Loading…")) }
                     list.isEmpty() -> Box(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            "No multisig groups saved. Create one in \"My Multisigs\" first.",
+                            tr("No multisig groups saved. Create one in \"My Multisigs\" first."),
                             style = MaterialTheme.typography.body2,
                         )
                     }
@@ -100,7 +101,7 @@ fun MultisigPickerDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(tr("Cancel")) }
                 }
             }
         }
@@ -120,7 +121,7 @@ private fun MultisigPickerRow(group: DesktopMultisig, onPick: () -> Unit) {
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                group.label?.ifBlank { null } ?: "(no label)",
+                group.label?.ifBlank { null } ?: tr("(no label)"),
                 style = MaterialTheme.typography.body1,
                 color = if (group.label.isNullOrBlank())
                     MaterialTheme.colors.onSurface.copy(alpha = 0.5f)

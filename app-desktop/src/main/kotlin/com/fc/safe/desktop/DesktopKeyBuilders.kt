@@ -1,5 +1,6 @@
 package com.fc.safe.desktop
 
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 import constants.Constants as FcConstants
 import core.crypto.Hash
@@ -125,19 +126,19 @@ internal fun resolveKeyImport(
     return when (kind) {
         KeyInputDetector.Kind.PRIKEY -> {
             val prikey32 = KeyInputDetector.toPrikey32(text)
-                ?: throw IllegalArgumentException("Invalid private key")
+                ?: throw IllegalArgumentException(tr("Invalid private key"))
             KeyImportOutcome.One(buildKeyFromPrikey32(prikey32, label))
         }
         KeyInputDetector.Kind.PUBKEY -> KeyImportOutcome.One(buildWatchOnlyFromPubkey(text, label))
         KeyInputDetector.Kind.FID -> KeyImportOutcome.One(buildWatchOnlyFromFid(text, label))
         KeyInputDetector.Kind.CIPHER -> {
-            if (password.isEmpty()) throw IllegalArgumentException("Password is empty")
+            if (password.isEmpty()) throw IllegalArgumentException(tr("Password is empty"))
             val pwdChars = password.toCharArray()
             val plaintext = try {
                 KeyInputDetector.openCipher(text, pwdChars)
             } finally {
                 pwdChars.fill(Char.MIN_VALUE)
-            } ?: throw IllegalArgumentException("Wrong password or damaged cipher")
+            } ?: throw IllegalArgumentException(tr("Wrong password or damaged cipher"))
             try {
                 val prikey32 = KeyInputDetector.prikeyFromPlaintext(plaintext)
                 when {
@@ -146,13 +147,13 @@ internal fun resolveKeyImport(
                     // are opened with the same password.
                     KeyInputDetector.isJson(plaintext) ->
                         KeyImportOutcome.Backup(String(plaintext, Charsets.UTF_8), password)
-                    else -> throw IllegalArgumentException("The cipher does not hold a private key")
+                    else -> throw IllegalArgumentException(tr("The cipher does not hold a private key"))
                 }
             } finally {
                 plaintext.fill(0)
             }
         }
         KeyInputDetector.Kind.BACKUP -> KeyImportOutcome.Backup(text, password.ifEmpty { null })
-        else -> throw IllegalArgumentException("Not a key that can be imported")
+        else -> throw IllegalArgumentException(tr("Not a key that can be imported"))
     }
 }

@@ -27,6 +27,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.BuildInfo
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CreatePasswordDialog
 import com.fc.safe.desktop.ui.PasswordField
@@ -77,19 +78,19 @@ class HomeScreen : Screen {
             navigator.replaceAll(UnlockedHomeScreen(notice))
         }
 
-        AppShell(title = "Safe", scaffoldState = scaffoldState) { padding ->
+        AppShell(title = tr("Safe"), scaffoldState = scaffoldState) { padding ->
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text("Enter password", style = MaterialTheme.typography.h5)
+                Text(tr("Enter password"), style = MaterialTheme.typography.h5)
                 Spacer(Modifier.height(24.dp))
 
                 PasswordField(
                     value = password,
                     onValueChange = { password = it; error = null },
-                    label = "Password",
+                    label = tr("Password"),
                     enabled = !busy,
                     onSubmit = {
                         if (password.isNotEmpty() && !busy) {
@@ -113,9 +114,8 @@ class HomeScreen : Screen {
                 if (busy) {
                     Spacer(Modifier.height(12.dp))
                     Text(
-                        if (hasLegacyWallet) "Checking the password… The first unlock after updating also moves " +
-                            "the wallet to its new key and can take a minute."
-                        else "Checking the password…",
+                        if (hasLegacyWallet) tr("Checking the password… The first unlock after updating also moves the wallet to its new key and can take a minute.")
+                        else tr("Checking the password…"),
                         style = MaterialTheme.typography.caption,
                         modifier = Modifier.widthIn(max = 420.dp),
                     )
@@ -131,7 +131,7 @@ class HomeScreen : Screen {
                         enabled = !busy,
                         onClick = { showCreateDialog = true },
                     ) {
-                        Text("Create password")
+                        Text(tr("Create password"))
                     }
 
                     SafeButton(
@@ -153,7 +153,7 @@ class HomeScreen : Screen {
                                 color = MaterialTheme.colors.onPrimary,
                             )
                         } else {
-                            Text("Unlock")
+                            Text(tr("Unlock"))
                         }
                     }
                 }
@@ -207,22 +207,21 @@ class HomeScreen : Screen {
                         is VaultUnlocker.UnlockResult.WrongPassword -> Outcome.Wrong
                         is VaultUnlocker.UnlockResult.Opened -> Outcome.Ok(
                             r.unreadableRecordId?.let {
-                                "This wallet could not move to its new key: record $it does not decrypt. " +
-                                    "It still works as before, and the move is retried on the next unlock."
+                                tr("This wallet could not move to its new key: record %s does not decrypt. It still works as before, and the move is retried on the next unlock.", it)
                             }
                         )
                     }
                 } catch (e: Throwable) {
                     log.warn("Unlock error", e)
-                    Outcome.Error(e.message ?: "unknown error")
+                    Outcome.Error(e.message ?: tr("unknown error"))
                 } finally {
                     pwdChars.fill(Char.MIN_VALUE)
                 }
             }
             when (outcome) {
                 is Outcome.Ok -> onUnlocked(outcome.notice)
-                is Outcome.Wrong -> setError("Wrong password")
-                is Outcome.Error -> setError("Error: ${outcome.msg}")
+                is Outcome.Wrong -> setError(tr("Wrong password"))
+                is Outcome.Error -> setError(tr("Error: %s", outcome.msg))
                 is Outcome.Exists -> Unit
             }
             setBusy(false)
@@ -247,15 +246,15 @@ class HomeScreen : Screen {
                     }
                 } catch (e: Throwable) {
                     log.warn("Create error", e)
-                    Outcome.Error(e.message ?: "unknown error")
+                    Outcome.Error(e.message ?: tr("unknown error"))
                 } finally {
                     pwdChars.fill(Char.MIN_VALUE)
                 }
             }
             when (outcome) {
                 is Outcome.Ok -> onUnlocked(null)
-                is Outcome.Exists -> setError("This password already opens a wallet. Unlock it, or choose another password.")
-                is Outcome.Error -> setError("Create failed: ${outcome.msg}")
+                is Outcome.Exists -> setError(tr("This password already opens a wallet. Unlock it, or choose another password."))
+                is Outcome.Error -> setError(tr("Create failed: %s", outcome.msg))
                 is Outcome.Wrong -> Unit
             }
             setBusy(false)

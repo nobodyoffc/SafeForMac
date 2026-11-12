@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.SafeButton
@@ -64,15 +65,15 @@ class JsonConvertScreen : Screen {
                     GsonBuilder().disableHtmlEscaping().create().toJson(element)
                 }
             }.onSuccess { result = it }
-                .onFailure { error = "Not valid JSON: ${it.message}"; result = "" }
+                .onFailure { error = tr("Not valid JSON: %s", it.message); result = "" }
         }
 
         AppShell(
-            title = "JSON converter",
+            title = tr("JSON converter"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -83,8 +84,8 @@ class JsonConvertScreen : Screen {
                 CryptoIoBlock(
                     value = input,
                     onValueChange = { input = it; error = null },
-                    label = "JSON (object or array)",
-                    placeholder = "Paste JSON to prettify or minify",
+                    label = tr("JSON (object or array)"),
+                    placeholder = tr("Paste JSON to prettify or minify"),
                     heightDp = 200,
                     onClear = { input = ""; result = ""; error = null },
                     enableQr = true,
@@ -95,15 +96,15 @@ class JsonConvertScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         input = ""; result = ""; error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = input.isNotBlank(),
                         onClick = { convert(pretty = true) },
-                    ) { Text("Prettify") }
+                    ) { Text(tr("Prettify")) }
                     SafeButton(
                         enabled = input.isNotBlank(),
                         onClick = { convert(pretty = false) },
-                    ) { Text("Minify") }
+                    ) { Text(tr("Minify")) }
                 }
 
                 error?.let {
@@ -117,7 +118,7 @@ class JsonConvertScreen : Screen {
                 CryptoIoBlock(
                     value = result,
                     onValueChange = {},
-                    label = "Result",
+                    label = tr("Result"),
                     readOnly = true,
                     enableMakeQr = true,
                     heightDp = 240,

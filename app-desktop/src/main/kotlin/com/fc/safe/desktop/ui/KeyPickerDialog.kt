@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fc.safe.desktop.DesktopKeyInfo
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 import db.LocalDB
 import kotlinx.coroutines.Dispatchers
@@ -90,8 +91,8 @@ fun KeyPickerDialog(
             Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
                 Text(
                     text = when (filter) {
-                        KeyPickerFilter.WithPrikey -> "Pick a signing key"
-                        KeyPickerFilter.WithPubkey -> "Pick a public key"
+                        KeyPickerFilter.WithPrikey -> tr("Pick a signing key")
+                        KeyPickerFilter.WithPubkey -> tr("Pick a public key")
                     },
                     style = MaterialTheme.typography.h6,
                 )
@@ -102,7 +103,7 @@ fun KeyPickerDialog(
                     list == null -> Box(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = androidx.compose.ui.Alignment.Center,
-                    ) { Text("Loading…") }
+                    ) { Text(tr("Loading…")) }
                     list.isEmpty() -> Box(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = androidx.compose.ui.Alignment.Center,
@@ -110,9 +111,9 @@ fun KeyPickerDialog(
                         Text(
                             when (filter) {
                                 KeyPickerFilter.WithPrikey ->
-                                    "No keys with a private key. Add one first."
+                                    tr("No keys with a private key. Add one first.")
                                 KeyPickerFilter.WithPubkey ->
-                                    "No keys with a public key. Add one first."
+                                    tr("No keys with a public key. Add one first.")
                             },
                             style = MaterialTheme.typography.body2,
                         )
@@ -132,7 +133,7 @@ fun KeyPickerDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(tr("Cancel")) }
                 }
             }
         }
@@ -157,7 +158,7 @@ private fun KeyPickerRow(key: DesktopKeyInfo, onClick: () -> Unit) {
             )
             Spacer(Modifier.width(4.dp))
             Text(
-                text = key.label?.ifBlank { null } ?: "(no label)",
+                text = key.label?.ifBlank { null } ?: tr("(no label)"),
                 style = MaterialTheme.typography.caption,
                 color = if (key.label.isNullOrBlank())
                     MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
@@ -165,7 +166,7 @@ private fun KeyPickerRow(key: DesktopKeyInfo, onClick: () -> Unit) {
             )
             if (key.watchOnly) {
                 Text(
-                    "watch-only",
+                    tr("watch-only"),
                     style = MaterialTheme.typography.caption,
                     color = MaterialTheme.colors.primary,
                 )

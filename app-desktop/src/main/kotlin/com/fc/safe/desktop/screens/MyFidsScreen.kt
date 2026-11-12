@@ -49,6 +49,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopFid
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AddFidDialog
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CopyableText
@@ -116,7 +117,7 @@ class MyFidsScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Add FID failed", t)
-                    error = "Add failed: ${t.message}"
+                    error = tr("Add failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -140,7 +141,7 @@ class MyFidsScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Delete FIDs failed", t)
-                    error = "Delete failed: ${t.message}"
+                    error = tr("Delete failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -148,11 +149,11 @@ class MyFidsScreen : Screen {
         }
 
         AppShell(
-            title = "Address book (FIDs)",
+            title = tr("Address book (FIDs)"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -164,22 +165,22 @@ class MyFidsScreen : Screen {
                 ) {
                     if (selectedIds.isEmpty()) {
                         Text(
-                            if (loading) "Loading…" else "${fids.size} FID(s)",
+                            if (loading) tr("Loading…") else tr("%s FID(s)", fids.size),
                             style = MaterialTheme.typography.subtitle1,
                         )
                         SafeButton(
                             enabled = !busy,
                             onClick = { showAdd = true },
-                        ) { Text("Add FID") }
+                        ) { Text(tr("Add FID")) }
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             TextButton(
                                 enabled = !busy,
                                 onClick = { selectedIds = emptySet() },
-                            ) { Text("Cancel") }
+                            ) { Text(tr("Cancel")) }
                             Spacer(Modifier.width(4.dp))
                             Text(
-                                "${selectedIds.size} selected",
+                                tr("%s selected", selectedIds.size),
                                 style = MaterialTheme.typography.subtitle1,
                             )
                         }
@@ -207,10 +208,10 @@ class MyFidsScreen : Screen {
                     }
                     fids.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Address book is empty.", style = MaterialTheme.typography.subtitle1)
+                            Text(tr("Address book is empty."), style = MaterialTheme.typography.subtitle1)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Use \"Add FID\" to add a recipient.",
+                                tr("Use \"Add FID\" to add a recipient."),
                                 style = MaterialTheme.typography.caption,
                             )
                         }
@@ -278,7 +279,7 @@ private fun FidCard(
                 CopyableText(text = fid.id, showQr = true, qrTitle = "FID")
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = fid.label?.ifBlank { null } ?: "(no label)",
+                    text = fid.label?.ifBlank { null } ?: tr("(no label)"),
                     style = MaterialTheme.typography.caption,
                     color = if (fid.label.isNullOrBlank())
                         MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
@@ -321,12 +322,12 @@ private fun LongPressFidDeleteButton(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp),
             ) {
-                Text("Delete ($selectedCount)")
+                Text(tr("Delete (%s)", selectedCount))
             }
         }
         DropdownMenu(expanded = showTip, onDismissRequest = { showTip = false }) {
             DropdownMenuItem(onClick = { showTip = false }) {
-                Text("Long-press to confirm delete")
+                Text(tr("Long-press to confirm delete"))
             }
         }
     }

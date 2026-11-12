@@ -53,6 +53,7 @@ import com.fc.safe.desktop.backup.ExportMode
 import com.fc.safe.desktop.backup.ExportResult
 import com.fc.safe.desktop.backup.SecretExporter
 import com.fc.safe.desktop.backup.SecretImporter
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.ConfirmReplaceDialog
 import com.fc.safe.desktop.ui.ConfirmReplaceResult
@@ -127,7 +128,7 @@ class MySecretsScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Save secret failed", t)
-                    error = "Save failed: ${t.message}"
+                    error = tr("Save failed: %s", t.message)
                 } finally {
                     busy = false
                     creating = false
@@ -166,7 +167,7 @@ class MySecretsScreen : Screen {
                             persistSecret(sec)
                         } else {
                             pendingReplace = PendingReplaceSecrets(
-                                title = "Replace existing secret?",
+                                title = tr("Replace existing secret?"),
                                 conflictIds = listOf(sec.id),
                                 showSkip = false,
                                 onResult = { result ->
@@ -184,7 +185,7 @@ class MySecretsScreen : Screen {
                 }
                 built.onFailure { t ->
                     log.warn("Create secret failed", t)
-                    error = t.message ?: "Create failed"
+                    error = t.message ?: tr("Create failed")
                     busy = false
                 }
             }
@@ -215,7 +216,7 @@ class MySecretsScreen : Screen {
                 built.onSuccess { persistSecret(it) }
                 built.onFailure { t ->
                     log.warn("Update secret failed", t)
-                    error = t.message ?: "Update failed"
+                    error = t.message ?: tr("Update failed")
                     busy = false
                 }
             }
@@ -224,7 +225,7 @@ class MySecretsScreen : Screen {
         fun revealSecret(sec: DesktopSecret) {
             val cipher = sec.contentCipher
             if (cipher.isNullOrBlank()) {
-                error = "This secret has no content cipher."
+                error = tr("This secret has no content cipher.")
                 return
             }
             busy = true
@@ -241,14 +242,14 @@ class MySecretsScreen : Screen {
                 outcome.onSuccess { reveal = sec to it }
                 outcome.onFailure {
                     log.warn("Reveal secret failed", it)
-                    error = "Decrypt failed: ${it.message}"
+                    error = tr("Decrypt failed: %s", it.message)
                 }
             }
         }
 
         fun startUpdate(sec: DesktopSecret) {
             val cipher = sec.contentCipher ?: run {
-                error = "This secret has no content cipher."
+                error = tr("This secret has no content cipher.")
                 return
             }
             busy = true
@@ -272,7 +273,7 @@ class MySecretsScreen : Screen {
                 }
                 outcome.onFailure {
                     log.warn("Decrypt for update failed", it)
-                    error = "Decrypt failed: ${it.message}"
+                    error = tr("Decrypt failed: %s", it.message)
                 }
             }
         }
@@ -294,7 +295,7 @@ class MySecretsScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Delete secrets failed", t)
-                    error = "Delete failed: ${t.message}"
+                    error = tr("Delete failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -313,7 +314,7 @@ class MySecretsScreen : Screen {
                 outcome.onSuccess { exportResult = it }
                 outcome.onFailure { t ->
                     log.warn("Export secrets failed", t)
-                    error = "Export failed: ${t.message}"
+                    error = tr("Export failed: %s", t.message)
                 }
                 if (mode == ExportMode.CURRENT_PASSWORD) pwdChars?.fill(Char.MIN_VALUE)
             }
@@ -335,7 +336,7 @@ class MySecretsScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Persist imported secrets failed", t)
-                    error = "Save failed: ${t.message}"
+                    error = tr("Save failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -352,7 +353,7 @@ class MySecretsScreen : Screen {
                 busy = false
                 outcome.onSuccess { imported ->
                     if (imported.isEmpty()) {
-                        error = "No secrets imported — check the JSON"
+                        error = tr("No secrets imported — check the JSON")
                         return@onSuccess
                     }
                     scope.launch {
@@ -365,7 +366,7 @@ class MySecretsScreen : Screen {
                             persistImportedSecrets(imported)
                         } else {
                             pendingReplace = PendingReplaceSecrets(
-                                title = "Replace existing secret(s)?",
+                                title = tr("Replace existing secret(s)?"),
                                 conflictIds = existingIds,
                                 showSkip = imported.size > existingIds.size,
                                 onResult = { result ->
@@ -391,7 +392,7 @@ class MySecretsScreen : Screen {
                         }
                         else -> {
                             log.warn("Import secrets failed", t)
-                            error = "Import failed: ${t.message}"
+                            error = tr("Import failed: %s", t.message)
                         }
                     }
                 }
@@ -399,11 +400,11 @@ class MySecretsScreen : Screen {
         }
 
         AppShell(
-            title = "My Secrets",
+            title = tr("My Secrets"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -415,7 +416,7 @@ class MySecretsScreen : Screen {
                 ) {
                     if (selectedIds.isEmpty()) {
                         Text(
-                            if (loading) "Loading…" else "${secrets.size} secret(s)",
+                            if (loading) tr("Loading…") else tr("%s secret(s)", secrets.size),
                             style = MaterialTheme.typography.subtitle1,
                         )
                         Box {
@@ -423,7 +424,7 @@ class MySecretsScreen : Screen {
                                 enabled = !busy,
                                 onClick = { showCreateMenu = true },
                             ) {
-                                Text("Add secret")
+                                Text(tr("Add secret"))
                                 Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                             }
                             DropdownMenu(
@@ -433,11 +434,11 @@ class MySecretsScreen : Screen {
                                 DropdownMenuItem(onClick = {
                                     showCreateMenu = false
                                     creating = true
-                                }) { Text("Create new…") }
+                                }) { Text(tr("Create new…")) }
                                 DropdownMenuItem(onClick = {
                                     showCreateMenu = false
                                     showImport = true
-                                }) { Text("Import from backup…") }
+                                }) { Text(tr("Import from backup…")) }
                             }
                         }
                     } else {
@@ -445,10 +446,10 @@ class MySecretsScreen : Screen {
                             TextButton(
                                 enabled = !busy,
                                 onClick = { selectedIds = emptySet() },
-                            ) { Text("Cancel") }
+                            ) { Text(tr("Cancel")) }
                             Spacer(Modifier.width(4.dp))
                             Text(
-                                "${selectedIds.size} selected",
+                                tr("%s selected", selectedIds.size),
                                 style = MaterialTheme.typography.subtitle1,
                             )
                         }
@@ -456,7 +457,7 @@ class MySecretsScreen : Screen {
                             SafeButton(
                                 enabled = !busy,
                                 onClick = { exportResult = null; showExport = true },
-                            ) { Text("Export") }
+                            ) { Text(tr("Export")) }
                             Spacer(Modifier.width(8.dp))
                             LongPressSecretDeleteButton(
                                 enabled = !busy,
@@ -483,10 +484,10 @@ class MySecretsScreen : Screen {
                     }
                     secrets.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("No secrets yet.", style = MaterialTheme.typography.subtitle1)
+                            Text(tr("No secrets yet."), style = MaterialTheme.typography.subtitle1)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Use \"Add secret\" → Create new, or Import from backup.",
+                                tr("Use \"Add secret\" → Create new, or Import from backup."),
                                 style = MaterialTheme.typography.caption,
                             )
                         }
@@ -527,7 +528,7 @@ class MySecretsScreen : Screen {
 
         reveal?.let { (sec, content) ->
             SecretRevealDialog(
-                title = sec.title ?: "(no title)",
+                title = sec.title ?: tr("(no title)"),
                 type = sec.type,
                 content = content,
                 onDismiss = { reveal = null },
@@ -536,7 +537,7 @@ class MySecretsScreen : Screen {
 
         if (creating) {
             SecretEditorDialog(
-                title = "Create secret",
+                title = tr("Create secret"),
                 existing = null,
                 busy = busy,
                 onSubmit = ::submitNew,
@@ -546,7 +547,7 @@ class MySecretsScreen : Screen {
 
         updating?.let { (target, inputs) ->
             SecretEditorDialog(
-                title = "Update secret",
+                title = tr("Update secret"),
                 existing = inputs,
                 busy = busy,
                 onSubmit = { submitUpdate(target, it) },
@@ -637,7 +638,7 @@ private fun SecretCard(
             Spacer(Modifier.width(4.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = secret.title?.ifBlank { null } ?: "(no title)",
+                    text = secret.title?.ifBlank { null } ?: tr("(no title)"),
                     style = MaterialTheme.typography.subtitle1,
                     color = if (secret.title.isNullOrBlank())
                         MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
@@ -668,7 +669,7 @@ private fun SecretCard(
                     )
                 }
             }
-            TextButton(onClick = onEdit) { Text("Edit") }
+            TextButton(onClick = onEdit) { Text(tr("Edit")) }
         }
     }
 }
@@ -708,7 +709,7 @@ private fun LongPressSecretDeleteButton(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp),
             ) {
-                Text("Delete ($selectedCount)")
+                Text(tr("Delete (%s)", selectedCount))
             }
         }
         androidx.compose.material.DropdownMenu(
@@ -716,7 +717,7 @@ private fun LongPressSecretDeleteButton(
             onDismissRequest = { showTip = false },
         ) {
             androidx.compose.material.DropdownMenuItem(onClick = { showTip = false }) {
-                Text("Long-press to confirm delete")
+                Text(tr("Long-press to confirm delete"))
             }
         }
     }

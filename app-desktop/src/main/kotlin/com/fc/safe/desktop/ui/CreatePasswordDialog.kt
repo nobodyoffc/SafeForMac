@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Dialog for creating a new wallet password. Offered via an explicit
@@ -39,8 +40,8 @@ fun CreatePasswordDialog(
 
     fun attempt() {
         when {
-            pwd.length < minLength -> error = "Password must be at least $minLength characters"
-            pwd != confirm -> error = "Passwords don't match"
+            pwd.length < minLength -> error = tr("Password must be at least %s characters", minLength)
+            pwd != confirm -> error = tr("Passwords don't match")
             else -> {
                 val chars = pwd.toCharArray()
                 pwd = ""; confirm = ""
@@ -51,18 +52,18 @@ fun CreatePasswordDialog(
 
     AlertDialog(
         onDismissRequest = { if (!busy) onDismiss() },
-        title = { Text("Create new wallet") },
+        title = { Text(tr("Create new wallet")) },
         text = {
             Column(modifier = Modifier.widthIn(min = 320.dp)) {
                 Text(
-                    "Choose a strong password. You'll use it every time you unlock this wallet.",
+                    tr("Choose a strong password. You'll use it every time you unlock this wallet."),
                     style = MaterialTheme.typography.body2,
                 )
                 Spacer(Modifier.height(16.dp))
                 PasswordField(
                     value = pwd,
                     onValueChange = { pwd = it; error = null },
-                    label = "New password",
+                    label = tr("New password"),
                     enabled = !busy,
                     imeAction = ImeAction.Next,
                     modifier = Modifier.fillMaxWidth(),
@@ -71,7 +72,7 @@ fun CreatePasswordDialog(
                 PasswordField(
                     value = confirm,
                     onValueChange = { confirm = it; error = null },
-                    label = "Confirm password",
+                    label = tr("Confirm password"),
                     enabled = !busy,
                     imeAction = ImeAction.Done,
                     onSubmit = ::attempt,
@@ -84,10 +85,10 @@ fun CreatePasswordDialog(
             }
         },
         confirmButton = {
-            SafeButton(onClick = ::attempt, enabled = !busy) { Text("Create") }
+            SafeButton(onClick = ::attempt, enabled = !busy) { Text(tr("Create")) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !busy) { Text("Cancel") }
+            TextButton(onClick = onDismiss, enabled = !busy) { Text(tr("Cancel")) }
         },
     )
 }

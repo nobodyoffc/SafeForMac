@@ -42,6 +42,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopPendingTx
 import com.fc.safe.desktop.PENDING_TXS_DB_NAME
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.platform.macos.WalletSession
 import db.LocalDB
@@ -88,11 +89,11 @@ class PendingTxsScreen : Screen {
         }
 
         AppShell(
-            title = "Pending Broadcasts",
+            title = tr("Pending Broadcasts"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -102,13 +103,12 @@ class PendingTxsScreen : Screen {
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        if (loading) "Loading…" else "${records.size} pending tx(s)",
+                        if (loading) tr("Loading…") else tr("%s pending tx(s)", records.size),
                         style = MaterialTheme.typography.subtitle1,
                     )
                 }
                 Text(
-                    "Signed but not yet reconciled. Tap a record to Apply " +
-                        "(update cash list) or Discard.",
+                    tr("Signed but not yet reconciled. Tap a record to Apply (update cash list) or Discard."),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                     style = MaterialTheme.typography.caption,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
@@ -122,10 +122,10 @@ class PendingTxsScreen : Screen {
                     }
                     records.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("No pending transactions.", style = MaterialTheme.typography.subtitle1)
+                            Text(tr("No pending transactions."), style = MaterialTheme.typography.subtitle1)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "After signing a TX, use \"Save to Pending Broadcasts\" to track it here.",
+                                tr("After signing a TX, use \"Save to Pending Broadcasts\" to track it here."),
                                 style = MaterialTheme.typography.caption,
                                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                             )
@@ -205,7 +205,7 @@ private fun PendingTxCard(
             Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = rec.senderFid ?: "(sender unknown)",
+                    text = rec.senderFid ?: tr("(sender unknown)"),
                     style = MaterialTheme.typography.caption,
                     color = if (rec.senderFid.isNullOrBlank())
                         MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
@@ -225,12 +225,12 @@ private fun PendingTxCard(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
-                    text = "${rec.inputCount} in · ${rec.outputCount} out",
+                    text = tr("%s in · %s out", rec.inputCount, rec.outputCount),
                     style = MaterialTheme.typography.caption,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                 )
                 Text(
-                    text = "${FchUtils.satoshiToCoin(rec.totalOut)} FCH out",
+                    text = tr("%s FCH out", FchUtils.satoshiToCoin(rec.totalOut)),
                     style = MaterialTheme.typography.body2,
                 )
             }

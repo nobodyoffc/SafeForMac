@@ -25,6 +25,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Shared I/O field used by the crypto-utility screens (Hash, Encrypt,
@@ -135,7 +136,7 @@ fun CryptoIoBlock(
         ) {
             if (pickKey != null) {
                 IconButton(onClick = pickKey) {
-                    Icon(Icons.Filled.Person, contentDescription = "Pick a key from wallet")
+                    Icon(Icons.Filled.Person, contentDescription = tr("Pick a key from wallet"))
                 }
             }
             // Text-label buttons instead of icon buttons. material-icons-core
@@ -143,13 +144,13 @@ fun CryptoIoBlock(
             // glyphs; pulling in material-icons-extended just for three
             // icons is overkill. Labels are also clearer on desktop.
             if (onClear != null && value.isNotEmpty()) {
-                TextButton(onClick = onClear) { Text("Clear") }
+                TextButton(onClick = onClear) { Text(tr("Clear")) }
             }
             if (effectivePaste != null) {
-                TextButton(onClick = { effectivePaste() }) { Text("Paste") }
+                TextButton(onClick = { effectivePaste() }) { Text(tr("Paste")) }
             }
             if (effectiveCopy != null) {
-                TextButton(onClick = { effectiveCopy() }) { Text("Copy") }
+                TextButton(onClick = { effectiveCopy() }) { Text(tr("Copy")) }
             }
         }
         Spacer(Modifier.height(4.dp))

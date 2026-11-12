@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 import core.fch.RawTxInfo
 import data.fchData.Cash
 import utils.FchUtils
@@ -44,13 +45,13 @@ fun TxPreview(rawTx: RawTxInfo, modifier: Modifier = Modifier) {
 
     Column(modifier = modifier.fillMaxWidth()) {
         if (!sender.isNullOrBlank()) {
-            SectionLabel("Sender")
+            SectionLabel(tr("Sender"))
             FidLine(sender)
             Spacer(Modifier.height(8.dp))
         }
 
         if (outputs.isNotEmpty()) {
-            SectionLabel("Send to")
+            SectionLabel(tr("Send to"))
             outputs.forEach { out ->
                 val owner = out.owner
                 val amount = FchUtils.satoshiToCoin(out.value ?: 0L)
@@ -63,7 +64,7 @@ fun TxPreview(rawTx: RawTxInfo, modifier: Modifier = Modifier) {
                         Spacer(Modifier.width(8.dp))
                     }
                     Text(
-                        text = owner ?: "(no owner)",
+                        text = owner ?: tr("(no owner)"),
                         style = MaterialTheme.typography.body2.copy(
                             fontFamily = FontFamily.Monospace,
                         ),
@@ -80,7 +81,7 @@ fun TxPreview(rawTx: RawTxInfo, modifier: Modifier = Modifier) {
                 val lock = out.lockTime
                 if (lock != null && lock > 0L) {
                     Text(
-                        "  ↳ locked until " + formatLockTime(lock),
+                        tr("  ↳ locked until ") + formatLockTime(lock),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.primary,
                         modifier = Modifier.padding(start = 36.dp, bottom = 4.dp),
@@ -91,7 +92,7 @@ fun TxPreview(rawTx: RawTxInfo, modifier: Modifier = Modifier) {
         }
 
         if (!rawTx.opReturn.isNullOrBlank()) {
-            SectionLabel("Carving (OP_RETURN)")
+            SectionLabel(tr("Carving (OP_RETURN)"))
             Text(
                 rawTx.opReturn,
                 style = MaterialTheme.typography.body2,
@@ -103,7 +104,7 @@ fun TxPreview(rawTx: RawTxInfo, modifier: Modifier = Modifier) {
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
         if (inputs.isNotEmpty()) {
-            SectionLabel("Spending inputs")
+            SectionLabel(tr("Spending inputs"))
             inputs.forEach { inp ->
                 // Cash.makeId requires (txId, index) — Android's no-arg
                 // convenience isn't in FC-JDK. Fall through to the
@@ -113,21 +114,21 @@ fun TxPreview(rawTx: RawTxInfo, modifier: Modifier = Modifier) {
                     ?: runCatching {
                         inp.makeId(inp.birthTxId, inp.birthIndex)
                     }.getOrNull()
-                    ?: "(unknown)"
+                    ?: tr("(unknown)")
                 val amount = FchUtils.satoshiToCoin(inp.value ?: 0L)
                 KeyValueLine(cashId, "$amount FCH")
             }
             Spacer(Modifier.height(8.dp))
         }
 
-        KeyValueLine("Spending sum", "${FchUtils.satoshiToCoin(spendingSum)} FCH")
-        KeyValueLine("Paying sum", "${FchUtils.satoshiToCoin(payingSum)} FCH")
+        KeyValueLine(tr("Spending sum"), "${FchUtils.satoshiToCoin(spendingSum)} FCH")
+        KeyValueLine(tr("Paying sum"), "${FchUtils.satoshiToCoin(payingSum)} FCH")
         KeyValueLine(
-            "Fee",
+            tr("Fee"),
             "${FchUtils.satoshiToCash(fee)} cash (= ${FchUtils.satoshiToCoin(fee)} FCH)",
         )
         rawTx.feeRate?.let {
-            KeyValueLine("Fee rate", "$it FCH/KB")
+            KeyValueLine(tr("Fee rate"), "$it FCH/KB")
         }
     }
 }
@@ -195,6 +196,6 @@ private val lockDateFmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefa
  * uses on the other side of the wire.
  */
 private fun formatLockTime(lockTime: Long): String {
-    return if (lockTime < 500_000_000L) "block $lockTime"
+    return if (lockTime < 500_000_000L) tr("block %s", lockTime)
     else lockDateFmt.format(Date(lockTime * 1000)) + " (ts $lockTime)"
 }

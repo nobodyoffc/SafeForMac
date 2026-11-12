@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.VaultUnlocker
 import com.fc.safe.platform.macos.WalletSession
 import kotlinx.coroutines.Dispatchers
@@ -49,8 +50,8 @@ fun ChangePasswordDialog(
     fun attempt() {
         when {
             busy -> return
-            pwd.length < minLength -> error = "Password must be at least $minLength characters"
-            pwd != confirm -> error = "Passwords don't match"
+            pwd.length < minLength -> error = tr("Password must be at least %s characters", minLength)
+            pwd != confirm -> error = tr("Passwords don't match")
             else -> {
                 val oldChars = old.toCharArray()
                 val newChars = pwd.toCharArray()
@@ -72,13 +73,13 @@ fun ChangePasswordDialog(
                                 old = ""; pwd = ""; confirm = ""
                                 onChanged()
                             }
-                            VaultUnlocker.ChangeResult.WrongOldPassword -> error = "The current password is wrong"
+                            VaultUnlocker.ChangeResult.WrongOldPassword -> error = tr("The current password is wrong")
                             VaultUnlocker.ChangeResult.NewPasswordInUse ->
-                                error = "That password already opens a wallet on this Mac. Choose another."
+                                error = tr("That password already opens a wallet on this Mac. Choose another.")
                             VaultUnlocker.ChangeResult.LegacyWallet ->
-                                error = "This wallet has not moved to its new key yet; its password can't be changed."
+                                error = tr("This wallet has not moved to its new key yet; its password can't be changed.")
                         }
-                    }.onFailure { error = "Change failed: ${it.message}" }
+                    }.onFailure { error = tr("Change failed: %s", it.message) }
                 }
             }
         }
@@ -86,20 +87,19 @@ fun ChangePasswordDialog(
 
     AlertDialog(
         onDismissRequest = { if (!busy) onDismiss() },
-        title = { Text("Change password") },
+        title = { Text(tr("Change password")) },
         text = {
             Column(modifier = Modifier.widthIn(min = 320.dp)) {
                 Text(
-                    if (legacy) "This wallet still uses its old key layout (its last move to the new key stopped), " +
-                        "so its password can't be changed until the move succeeds."
-                    else "Your keys and secrets stay as they are; only the password that opens them changes.",
+                    if (legacy) tr("This wallet still uses its old key layout (its last move to the new key stopped), so its password can't be changed until the move succeeds.")
+                    else tr("Your keys and secrets stay as they are; only the password that opens them changes."),
                     style = MaterialTheme.typography.body2,
                 )
                 Spacer(Modifier.height(16.dp))
                 PasswordField(
                     value = old,
                     onValueChange = { old = it; error = null },
-                    label = "Current password",
+                    label = tr("Current password"),
                     enabled = !busy && !legacy,
                     imeAction = ImeAction.Next,
                     modifier = Modifier.fillMaxWidth(),
@@ -108,7 +108,7 @@ fun ChangePasswordDialog(
                 PasswordField(
                     value = pwd,
                     onValueChange = { pwd = it; error = null },
-                    label = "New password",
+                    label = tr("New password"),
                     enabled = !busy && !legacy,
                     imeAction = ImeAction.Next,
                     modifier = Modifier.fillMaxWidth(),
@@ -117,7 +117,7 @@ fun ChangePasswordDialog(
                 PasswordField(
                     value = confirm,
                     onValueChange = { confirm = it; error = null },
-                    label = "Confirm new password",
+                    label = tr("Confirm new password"),
                     enabled = !busy && !legacy,
                     imeAction = ImeAction.Done,
                     onSubmit = ::attempt,
@@ -125,7 +125,7 @@ fun ChangePasswordDialog(
                 )
                 if (busy) {
                     Spacer(Modifier.height(8.dp))
-                    Text("Checking the passwords…", style = MaterialTheme.typography.caption)
+                    Text(tr("Checking the passwords…"), style = MaterialTheme.typography.caption)
                 }
                 error?.let {
                     Spacer(Modifier.height(8.dp))
@@ -134,10 +134,10 @@ fun ChangePasswordDialog(
             }
         },
         confirmButton = {
-            SafeButton(onClick = ::attempt, enabled = !busy && !legacy) { Text("Change") }
+            SafeButton(onClick = ::attempt, enabled = !busy && !legacy) { Text(tr("Change")) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss, enabled = !busy) { Text("Cancel") }
+            TextButton(onClick = onDismiss, enabled = !busy) { Text(tr("Cancel")) }
         },
     )
 }

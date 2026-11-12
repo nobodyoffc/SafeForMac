@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Paste-and-import dialog for multisig groups. No password flow —
@@ -55,11 +56,10 @@ fun ImportMultisigsDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Import multisig groups", style = MaterialTheme.typography.h6)
+                Text(tr("Import multisig groups"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Paste the concatenated JSON produced by \"Export multisig\" on " +
-                        "this or another device.",
+                    tr("Paste the concatenated JSON produced by \"Export multisig\" on this or another device."),
                     style = MaterialTheme.typography.body2,
                 )
                 Spacer(Modifier.height(12.dp))
@@ -72,13 +72,13 @@ fun ImportMultisigsDialog(
                     textStyle = MaterialTheme.typography.body2.copy(
                         fontFamily = FontFamily.Monospace,
                     ),
-                    label = { Text("Backup JSON") },
+                    label = { Text(tr("Backup JSON")) },
                     trailingIcon = {
                         QrScanTrailingIcon(
                             onDecoded = { text = it.trim(); scanError = null },
                             onError = { scanError = it },
                             enabled = !busy,
-                            tooltip = "Scan a multisigs backup QR code",
+                            tooltip = tr("Scan a multisigs backup QR code"),
                         )
                     },
                 )
@@ -91,12 +91,12 @@ fun ImportMultisigsDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") }
+                    TextButton(enabled = !busy, onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
                     TextButton(
                         enabled = !busy && text.isNotBlank(),
                         onClick = { onSubmit(text) },
-                    ) { Text("Import") }
+                    ) { Text(tr("Import")) }
                 }
             }
         }

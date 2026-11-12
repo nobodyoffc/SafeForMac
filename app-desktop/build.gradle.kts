@@ -102,6 +102,16 @@ compose.desktop {
                 // Android Safe's launcher icon on the macOS icon grid;
                 // regenerate with icons/MakeIcon.java (see its header).
                 iconFile.set(project.file("icons/Safe.icns"))
+                // The app's own text follows the system language (i18n/L10n.kt).
+                // Naming the languages here makes what macOS draws for us — the
+                // open/save panels — follow it too, and lists the app under
+                // System Settings › Language & Region › Applications.
+                infoPlist {
+                    extraKeysRawXml = """
+                        <key>CFBundleLocalizations</key>
+                        <array><string>en</string><string>zh_CN</string></array>
+                    """.trimIndent()
+                }
                 signing {
                     sign.set(true)
                     identity.set("CHANGYONG LIU (5768V787GP)")
@@ -211,6 +221,18 @@ tasks.register<JavaExec>("importKeyRenderSmoke") {
     description = "Render the add-key dialogs to PNGs"
     mainClass.set("com.fc.safe.desktop.ImportKeyRenderSmokeKt")
     classpath = sourceSets["main"].runtimeClasspath
+    // -Plang=zh renders the Chinese text.
+    (findProperty("lang") as String?)?.let { systemProperty("safe.lang", it) }
+}
+
+// Every tr("…") in the sources has a Chinese line in i18n/zh.txt, and
+// the table holds nothing the code no longer says.
+tasks.register<JavaExec>("l10nSmoke") {
+    group = "verification"
+    description = "Check the Chinese string table against the tr() calls in the code"
+    mainClass.set("com.fc.safe.desktop.L10nSmokeKt")
+    classpath = sourceSets["main"].runtimeClasspath
+    args(file("src/main/kotlin").path)
 }
 
 // Make-QR round trip: split a payload, encode + rasterise every chunk,

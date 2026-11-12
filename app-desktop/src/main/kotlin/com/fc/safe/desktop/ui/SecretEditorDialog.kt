@@ -33,6 +33,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fc.safe.desktop.DesktopSecretType
 import com.fc.safe.desktop.backup.Base32Shim
+import com.fc.safe.desktop.i18n.tr
 import utils.Hex
 import java.security.SecureRandom
 
@@ -97,7 +98,7 @@ fun SecretEditorDialog(
                 OutlinedTextField(
                     value = titleText,
                     onValueChange = { titleText = it },
-                    label = { Text("Title") },
+                    label = { Text(tr("Title")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -109,13 +110,13 @@ fun SecretEditorDialog(
                     OutlinedTextField(
                         value = type,
                         onValueChange = { type = it },
-                        label = { Text("Type") },
+                        label = { Text(tr("Type")) },
                         singleLine = true,
                         trailingIcon = {
                             androidx.compose.material.IconButton(
                                 onClick = { typeMenuOpen = true },
                             ) {
-                                Icon(Icons.Filled.ArrowDropDown, contentDescription = "Pick type")
+                                Icon(Icons.Filled.ArrowDropDown, contentDescription = tr("Pick type"))
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -145,11 +146,11 @@ fun SecretEditorDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("Content", style = MaterialTheme.typography.caption)
+                    Text(tr("Content"), style = MaterialTheme.typography.caption)
                     Spacer(Modifier.weight(1f))
                     Box {
                         TextButton(onClick = { randomMenuOpen = true }) {
-                            Text("Create random")
+                            Text(tr("Create random"))
                             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(
@@ -159,25 +160,25 @@ fun SecretEditorDialog(
                             DropdownMenuItem(onClick = {
                                 randomMenuOpen = false
                                 content = randomHex32()
-                            }) { Text("Hex (32 bytes)") }
+                            }) { Text(tr("Hex (32 bytes)")) }
                             DropdownMenuItem(onClick = {
                                 randomMenuOpen = false
                                 content = randomBase32Of(16)
-                            }) { Text("Base32 (16 bytes)") }
+                            }) { Text(tr("Base32 (16 bytes)")) }
                         }
                     }
                 }
                 OutlinedTextField(
                     value = content,
                     onValueChange = { content = it },
-                    label = { Text("Content") },
+                    label = { Text(tr("Content")) },
                     textStyle = MaterialTheme.typography.body2.copy(
                         fontFamily = FontFamily.Monospace,
                     ),
                     trailingIcon = {
                         QrScanTrailingIcon(
                             onDecoded = { content = it.trim() },
-                            tooltip = "Scan the secret's content",
+                            tooltip = tr("Scan the secret's content"),
                         )
                     },
                     modifier = Modifier.fillMaxWidth().weight(1f),
@@ -187,7 +188,7 @@ fun SecretEditorDialog(
                 OutlinedTextField(
                     value = memo,
                     onValueChange = { memo = it },
-                    label = { Text("Memo (optional)") },
+                    label = { Text(tr("Memo (optional)")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -198,7 +199,7 @@ fun SecretEditorDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") }
+                    TextButton(enabled = !busy, onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
                     TextButton(
                         enabled = canSubmit,
@@ -212,7 +213,7 @@ fun SecretEditorDialog(
                                 )
                             )
                         },
-                    ) { Text("Save") }
+                    ) { Text(tr("Save")) }
                 }
             }
         }

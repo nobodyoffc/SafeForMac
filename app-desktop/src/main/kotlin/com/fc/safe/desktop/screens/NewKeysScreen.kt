@@ -44,6 +44,7 @@ import com.fc.safe.desktop.DesktopKeyInfo
 import com.fc.safe.desktop.NewKeyCandidate
 import com.fc.safe.desktop.NiceFidFinder
 import com.fc.safe.desktop.buildKeyFromPrikey32
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.FidAvatar
 import com.fc.safe.desktop.ui.SafeButton
@@ -133,7 +134,7 @@ class NewKeysScreen(private val findNice: Boolean) : Screen {
                     navigator.pop()
                 } catch (t: Throwable) {
                     log.warn("Save new keys failed", t)
-                    error = "Save failed: ${t.message}"
+                    error = tr("Save failed: %s", t.message)
                     saving = false
                 }
             }
@@ -149,10 +150,10 @@ class NewKeysScreen(private val findNice: Boolean) : Screen {
         }
 
         AppShell(
-            title = if (findNice) "Find a nice FID" else "Random keys",
+            title = if (findNice) tr("Find a nice FID") else tr("Random keys"),
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -163,7 +164,7 @@ class NewKeysScreen(private val findNice: Boolean) : Screen {
                             OutlinedTextField(
                                 value = match,
                                 onValueChange = { match = it.trim() },
-                                label = { Text("FID ends with") },
+                                label = { Text(tr("FID ends with")) },
                                 enabled = !finding,
                                 singleLine = true,
                                 isError = matchProblem != null,
@@ -174,9 +175,7 @@ class NewKeysScreen(private val findNice: Boolean) : Screen {
                             Text(formatElapsed(elapsedSeconds), style = MaterialTheme.typography.h6)
                         }
                         Text(
-                            matchProblem ?: ("Upper and lower case count as the same. Each added character " +
-                                "takes about 58 times longer. The wallet still auto-locks when idle, and a " +
-                                "lock ends the search and drops the keys found but not saved."),
+                            matchProblem ?: (tr("Upper and lower case count as the same. Each added character takes about 58 times longer. The wallet still auto-locks when idle, and a lock ends the search and drops the keys found but not saved.")),
                             color = if (matchProblem != null) MaterialTheme.colors.error else MaterialTheme.colors.onSurface,
                             style = MaterialTheme.typography.caption,
                         )
@@ -188,7 +187,7 @@ class NewKeysScreen(private val findNice: Boolean) : Screen {
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            if (selected.isEmpty()) "Tick the keys to keep" else "${selected.size} selected",
+                            if (selected.isEmpty()) tr("Tick the keys to keep") else tr("%s selected", selected.size),
                             style = MaterialTheme.typography.subtitle1,
                         )
                         Row {
@@ -196,17 +195,17 @@ class NewKeysScreen(private val findNice: Boolean) : Screen {
                                 SafeButton(
                                     enabled = !saving && !finding && match.isNotEmpty() && matchProblem == null,
                                     onClick = ::startFinding,
-                                ) { Text("Start") }
+                                ) { Text(tr("Start")) }
                                 Spacer(Modifier.width(8.dp))
-                                SafeButton(enabled = finding, onClick = { search?.cancel() }) { Text("Stop") }
+                                SafeButton(enabled = finding, onClick = { search?.cancel() }) { Text(tr("Stop")) }
                             } else {
-                                SafeButton(enabled = !saving, onClick = ::addRandom) { Text("More") }
+                                SafeButton(enabled = !saving, onClick = ::addRandom) { Text(tr("More")) }
                             }
                             Spacer(Modifier.width(8.dp))
                             SafeButton(
                                 enabled = !saving && !finding && selected.isNotEmpty(),
                                 onClick = ::save,
-                            ) { Text(if (saving) "Saving…" else "Save") }
+                            ) { Text(if (saving) tr("Saving…") else tr("Save")) }
                         }
                     }
                     error?.let { Text(it, color = MaterialTheme.colors.error) }

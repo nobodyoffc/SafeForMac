@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fc.safe.desktop.backup.ExportResult
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Single-phase export dialog — multisig groups are public, so there
@@ -69,8 +70,8 @@ fun ExportMultisigsDialog(
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
                 Text(
-                    text = if (result == null) "Exporting $selectedCount group(s)…"
-                    else "Export complete",
+                    text = if (result == null) tr("Exporting %s group(s)…", selectedCount)
+                    else tr("Export complete"),
                     style = MaterialTheme.typography.h6,
                 )
                 Spacer(Modifier.height(16.dp))
@@ -82,8 +83,7 @@ fun ExportMultisigsDialog(
                     ) { CircularProgressIndicator() }
                 } else {
                     Text(
-                        "Multisig groups are public data. Paste the JSON into another " +
-                            "wallet's \"Import multisig\" box to share them.",
+                        tr("Multisig groups are public data. Paste the JSON into another wallet's \"Import multisig\" box to share them."),
                         style = MaterialTheme.typography.body2,
                     )
                     Spacer(Modifier.height(8.dp))
@@ -133,16 +133,16 @@ fun ExportMultisigsDialog(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text(if (result == null) "Cancel" else "Done")
+                        Text(if (result == null) tr("Cancel") else tr("Done"))
                     }
                     Spacer(Modifier.width(8.dp))
                     if (result != null) {
                         TextButton(
                             onClick = { clipboard.setText(AnnotatedString(result.text)) },
-                        ) { Text("Copy JSON") }
+                        ) { Text(tr("Copy JSON")) }
                         ShowQrTextButton(
                             text = result.text,
-                            title = "Exported multisigs",
+                            title = tr("Exported multisigs"),
                         )
                     }
                 }

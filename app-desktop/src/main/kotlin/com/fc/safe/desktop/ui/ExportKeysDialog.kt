@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.fc.safe.desktop.backup.ExportMode
 import com.fc.safe.desktop.backup.ExportResult
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 
 /**
@@ -104,7 +105,7 @@ fun ExportKeysDialog(
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
                 Text(
-                    text = if (result == null) "Export $selectedCount key(s)" else "Export complete",
+                    text = if (result == null) tr("Export %s key(s)", selectedCount) else tr("Export complete"),
                     style = MaterialTheme.typography.h6,
                 )
                 Spacer(Modifier.height(16.dp))
@@ -113,7 +114,7 @@ fun ExportKeysDialog(
                     // Phase 1 body — picker only. Tight content, no need to scroll.
                     Column(modifier = Modifier.fillMaxWidth().weight(1f)) {
                         Text(
-                            "Choose how to protect the exported private keys.",
+                            tr("Choose how to protect the exported private keys."),
                             style = MaterialTheme.typography.body2,
                         )
                         Spacer(Modifier.height(12.dp))
@@ -129,11 +130,11 @@ fun ExportKeysDialog(
                                     Text(
                                         when (m) {
                                             ExportMode.CURRENT_PASSWORD ->
-                                                "Encrypted under this wallet's password. The recipient needs the same password."
+                                                tr("Encrypted under this wallet's password. The recipient needs the same password.")
                                             ExportMode.RANDOM_PASSWORD ->
-                                                "Encrypted with a fresh password generated just for this export."
+                                                tr("Encrypted with a fresh password generated just for this export.")
                                             ExportMode.NONE ->
-                                                "No encryption. Raw private keys in hex. Use only for trusted transfer."
+                                                tr("No encryption. Raw private keys in hex. Use only for trusted transfer.")
                                         },
                                         style = MaterialTheme.typography.caption,
                                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
@@ -156,7 +157,7 @@ fun ExportKeysDialog(
                         Spacer(Modifier.height(12.dp))
                     }
                     Text(
-                        "Exported JSON (paste into the Android app's Import Keys screen):",
+                        tr("Exported JSON (paste into the Android app's Import Keys screen):"),
                         style = MaterialTheme.typography.body2,
                     )
                     Spacer(Modifier.height(4.dp))
@@ -206,7 +207,7 @@ fun ExportKeysDialog(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(enabled = !busy && canClose, onClick = onDismiss) {
-                        Text(if (result == null) "Cancel" else "Done")
+                        Text(if (result == null) tr("Cancel") else tr("Done"))
                     }
                     Spacer(Modifier.width(8.dp))
                     if (result == null) {
@@ -218,14 +219,14 @@ fun ExportKeysDialog(
                                 } else null
                                 onSubmit(mode, pwdChars)
                             },
-                        ) { Text("Export") }
+                        ) { Text(tr("Export")) }
                     } else {
                         TextButton(
                             onClick = { clipboard.setText(AnnotatedString(result.text)) },
-                        ) { Text("Copy JSON") }
+                        ) { Text(tr("Copy JSON")) }
                         ShowQrTextButton(
                             text = result.text,
-                            title = "Exported keys",
+                            title = tr("Exported keys"),
                         )
                     }
                 }

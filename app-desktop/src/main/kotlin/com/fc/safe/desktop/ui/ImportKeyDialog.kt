@@ -28,6 +28,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fc.safe.desktop.KeyInputDetector
 import com.fc.safe.desktop.KeyInputDetector.Kind
+import com.fc.safe.desktop.i18n.tr
 import core.crypto.KeyTools
 import java.awt.FileDialog
 import java.io.File
@@ -81,7 +82,7 @@ internal fun ImportKeyDialog(
         if (file != null) Kind.BACKUP else KeyInputDetector.detect(text)
     }
     val verdict = remember(text, kind, awaitingPassword) {
-        if (kind == Kind.BACKUP && awaitingPassword) "This backup is encrypted. Input its password." to Tone.GOOD
+        if (kind == Kind.BACKUP && awaitingPassword) tr("This backup is encrypted. Input its password.") to Tone.GOOD
         else verdictOf(kind, text.trim())
     }
     val importable = kind in setOf(Kind.PRIKEY, Kind.PUBKEY, Kind.FID, Kind.CIPHER, Kind.BACKUP)
@@ -107,13 +108,13 @@ internal fun ImportKeyDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Import keys", style = MaterialTheme.typography.h6)
+                Text(tr("Import keys"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
 
                 OutlinedTextField(
-                    value = file?.let { "File loaded: ${it.name}" } ?: text,
+                    value = file?.let { tr("File loaded: %s", it.name) } ?: text,
                     onValueChange = { text = it; inputChanged() },
-                    label = { Text("Prikey, pubkey, FID, cipher or key JSON") },
+                    label = { Text(tr("Prikey, pubkey, FID, cipher or key JSON")) },
                     readOnly = file != null,
                     textStyle = MaterialTheme.typography.body2.copy(fontFamily = FontFamily.Monospace),
                     modifier = Modifier.fillMaxWidth().weight(1f),
@@ -122,7 +123,7 @@ internal fun ImportKeyDialog(
                             onDecoded = { file = null; text = it.trim(); inputChanged() },
                             onError = { localError = it },
                             enabled = !busy,
-                            tooltip = "Scan a key QR code",
+                            tooltip = tr("Scan a key QR code"),
                         )
                     },
                 )
@@ -133,14 +134,14 @@ internal fun ImportKeyDialog(
                             pickBackupFile()?.let { picked ->
                                 runCatching { LoadedFile(picked.name, readBackupFile(picked)) }
                                     .onSuccess { file = it; password = ""; inputChanged() }
-                                    .onFailure { localError = it.message ?: "Cannot read the file" }
+                                    .onFailure { localError = it.message ?: tr("Cannot read the file") }
                             }
                         },
-                    ) { Text("Open file…") }
+                    ) { Text(tr("Open file…")) }
                     TextButton(
                         enabled = !busy && (text.isNotEmpty() || file != null),
                         onClick = { file = null; text = ""; password = ""; label = ""; inputChanged() },
-                    ) { Text("Clear") }
+                    ) { Text(tr("Clear")) }
                 }
 
                 verdict?.let { (message, tone) ->
@@ -160,8 +161,8 @@ internal fun ImportKeyDialog(
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
-                        label = { Text("Password") },
-                        placeholder = { Text("The password it was encrypted with") },
+                        label = { Text(tr("Password")) },
+                        placeholder = { Text(tr("The password it was encrypted with")) },
                         visualTransformation = PasswordVisualTransformation(),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
@@ -173,7 +174,7 @@ internal fun ImportKeyDialog(
                     OutlinedTextField(
                         value = label,
                         onValueChange = { label = it },
-                        label = { Text("Label (optional)") },
+                        label = { Text(tr("Label (optional)")) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                     )
@@ -186,7 +187,7 @@ internal fun ImportKeyDialog(
 
                 Spacer(Modifier.height(12.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") }
+                    TextButton(enabled = !busy, onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
                     TextButton(
                         enabled = canSubmit,
@@ -200,7 +201,7 @@ internal fun ImportKeyDialog(
                                 )
                             )
                         },
-                    ) { Text(if (busy) "Working…" else if (kind == Kind.BACKUP) "Import" else "Save") }
+                    ) { Text(if (busy) tr("Working…") else if (kind == Kind.BACKUP) tr("Import") else tr("Save")) }
                 }
             }
         }
@@ -215,17 +216,17 @@ private enum class Tone { GOOD, WATCH_ONLY, BAD }
 private fun verdictOf(kind: Kind, text: String): Pair<String, Tone>? {
     return when (kind) {
         Kind.EMPTY -> null
-        Kind.PRIKEY -> "Private key → ${fidOfPrikey(text)}" to Tone.GOOD
-        Kind.PUBKEY -> "Public key → ${fidOfPubkey(text)}. Watch-only: it can't sign." to Tone.WATCH_ONLY
-        Kind.FID -> "FID. Watch-only: it can't sign." to Tone.WATCH_ONLY
-        Kind.CIPHER -> "Encrypted. Input its password." to Tone.GOOD
-        Kind.BACKUP -> "Key backup. Click Import to add its keys." to Tone.GOOD
-        Kind.NON_PASSWORD_CIPHER -> "Encrypted, but not with a password. It can't be imported here." to Tone.BAD
-        Kind.BAD_PRIKEY -> "Looks like a prikey, but it isn't valid. Check for a typo." to Tone.BAD
-        Kind.BAD_PUBKEY -> "Looks like a public key, but it isn't valid. Check for a typo." to Tone.BAD
-        Kind.BAD_FID -> "Looks like an FID, but the checksum is wrong. Check for a typo." to Tone.BAD
-        Kind.MULTIPLE -> "One key at a time. Use a key backup JSON for several." to Tone.BAD
-        Kind.UNKNOWN -> "Not a recognized key. For a phrase, use Input phrase." to Tone.BAD
+        Kind.PRIKEY -> tr("Private key → %s", fidOfPrikey(text)) to Tone.GOOD
+        Kind.PUBKEY -> tr("Public key → %s. Watch-only: it can't sign.", fidOfPubkey(text)) to Tone.WATCH_ONLY
+        Kind.FID -> tr("FID. Watch-only: it can't sign.") to Tone.WATCH_ONLY
+        Kind.CIPHER -> tr("Encrypted. Input its password.") to Tone.GOOD
+        Kind.BACKUP -> tr("Key backup. Click Import to add its keys.") to Tone.GOOD
+        Kind.NON_PASSWORD_CIPHER -> tr("Encrypted, but not with a password. It can't be imported here.") to Tone.BAD
+        Kind.BAD_PRIKEY -> tr("Looks like a prikey, but it isn't valid. Check for a typo.") to Tone.BAD
+        Kind.BAD_PUBKEY -> tr("Looks like a public key, but it isn't valid. Check for a typo.") to Tone.BAD
+        Kind.BAD_FID -> tr("Looks like an FID, but the checksum is wrong. Check for a typo.") to Tone.BAD
+        Kind.MULTIPLE -> tr("One key at a time. Use a key backup JSON for several.") to Tone.BAD
+        Kind.UNKNOWN -> tr("Not a recognized key. For a phrase, use Input phrase.") to Tone.BAD
     }
 }
 
@@ -244,13 +245,13 @@ private fun fidOfPubkey(text: String): String =
     runCatching { KeyTools.pubkeyToFchAddr(text) }.getOrNull() ?: "?"
 
 private fun pickBackupFile(): File? {
-    val dlg = FileDialog(findAwtFrame(), "Pick a key backup", FileDialog.LOAD)
+    val dlg = FileDialog(findAwtFrame(), tr("Pick a key backup"), FileDialog.LOAD)
     dlg.isVisible = true
     val name = dlg.file ?: return null
     return File(dlg.directory, name)
 }
 
 private fun readBackupFile(file: File): String {
-    require(file.length() <= MAX_BACKUP_FILE_BYTES) { "The file is too large to be a key backup" }
+    require(file.length() <= MAX_BACKUP_FILE_BYTES) { tr("The file is too large to be a key backup") }
     return file.readText(Charsets.UTF_8)
 }

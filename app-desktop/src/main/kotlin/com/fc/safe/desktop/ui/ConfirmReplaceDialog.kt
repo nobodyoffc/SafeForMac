@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 
 enum class ConfirmReplaceResult { REPLACE, SKIP, CANCEL }
 
@@ -45,8 +46,7 @@ fun ConfirmReplaceDialog(
         text = {
             Column(modifier = Modifier.widthIn(min = 360.dp)) {
                 Text(
-                    message ?: "The following ID(s) already exist. Replacing will " +
-                        "overwrite the stored record — this cannot be undone.",
+                    message ?: tr("The following ID(s) already exist. Replacing will overwrite the stored record — this cannot be undone."),
                     style = MaterialTheme.typography.body2,
                 )
                 Spacer(Modifier.height(12.dp))
@@ -69,20 +69,20 @@ fun ConfirmReplaceDialog(
         },
         confirmButton = {
             SafeButton(onClick = { onResult(ConfirmReplaceResult.REPLACE) }) {
-                Text(if (conflictIds.size > 1) "Replace all" else "Replace")
+                Text(if (conflictIds.size > 1) tr("Replace all") else tr("Replace"))
             }
         },
         dismissButton = {
             if (showSkip) {
                 TextButton(onClick = { onResult(ConfirmReplaceResult.SKIP) }) {
-                    Text("Skip existing")
+                    Text(tr("Skip existing"))
                 }
                 TextButton(onClick = { onResult(ConfirmReplaceResult.CANCEL) }) {
-                    Text("Cancel")
+                    Text(tr("Cancel"))
                 }
             } else {
                 TextButton(onClick = { onResult(ConfirmReplaceResult.CANCEL) }) {
-                    Text("Cancel")
+                    Text(tr("Cancel"))
                 }
             }
         },

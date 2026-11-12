@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 import org.slf4j.LoggerFactory
 import java.awt.FileDialog
 import java.io.File
@@ -118,8 +119,8 @@ object QrChunks {
 fun MakeQrIconButton(
     text: String,
     modifier: Modifier = Modifier,
-    title: String = "QR code",
-    tooltip: String = "Show as QR code",
+    title: String = tr("QR code"),
+    tooltip: String = tr("Show as QR code"),
     enabled: Boolean = true,
     /**
      * Shrinks the button from Material's 48dp touch target to something
@@ -158,8 +159,8 @@ fun MakeQrIconButton(
 @Composable
 fun ShowQrTextButton(
     text: String,
-    title: String = "QR code",
-    label: String = "Show QR",
+    title: String = tr("QR code"),
+    label: String = tr("Show QR"),
     enabled: Boolean = true,
 ) {
     var showing by remember { mutableStateOf(false) }
@@ -184,8 +185,8 @@ fun ShowQrTextButton(
 @Composable
 fun MakeQrTrailingIcon(
     text: String,
-    title: String = "QR code",
-    tooltip: String = "Show as QR code",
+    title: String = tr("QR code"),
+    tooltip: String = tr("Show as QR code"),
     enabled: Boolean = true,
 ) {
     Column(
@@ -207,7 +208,7 @@ fun MakeQrTrailingIcon(
 @Composable
 fun QrShowDialog(
     text: String,
-    title: String = "QR code",
+    title: String = tr("QR code"),
     onDismiss: () -> Unit,
 ) {
     // Nothing to show and nothing to dismiss — a blank field shouldn't
@@ -259,7 +260,7 @@ internal fun QrShowPanel(
             if (chunks.size > 1) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "Split into ${chunks.size} codes — scan them in order.",
+                    tr("Split into %s codes — scan them in order.", chunks.size),
                     style = MaterialTheme.typography.caption,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                 )
@@ -279,16 +280,16 @@ internal fun QrShowPanel(
                     TextButton(
                         enabled = page > 0,
                         onClick = { page-- },
-                    ) { Text("‹ Prev") }
+                    ) { Text(tr("‹ Prev")) }
                     Text(
-                        "Part ${page + 1} of ${chunks.size}",
+                        tr("Part %s of %s", page + 1, chunks.size),
                         style = MaterialTheme.typography.body2,
                         modifier = Modifier.padding(horizontal = 8.dp),
                     )
                     TextButton(
                         enabled = page < chunks.lastIndex,
                         onClick = { page++ },
-                    ) { Text("Next ›") }
+                    ) { Text(tr("Next ›")) }
                 }
             }
 
@@ -309,12 +310,12 @@ internal fun QrShowPanel(
             ) {
                 TextButton(onClick = {
                     clipboard.setText(AnnotatedString(text))
-                    status = "Text copied"
-                }) { Text("Copy text") }
+                    status = tr("Text copied")
+                }) { Text(tr("Copy text")) }
                 TextButton(onClick = {
                     status = saveQrImages(chunks)
-                }) { Text("Save PNG…") }
-                TextButton(onClick = onDismiss) { Text("Close") }
+                }) { Text(tr("Save PNG…")) }
+                TextButton(onClick = onDismiss) { Text(tr("Close")) }
             }
 
             // The payload itself, so the value on screen can be
@@ -340,7 +341,7 @@ internal fun QrShowPanel(
  * dialog, or null when the user cancels the save panel.
  */
 private fun saveQrImages(chunks: List<String>): String? {
-    val dlg = FileDialog(findAwtFrame(), "Save QR code", FileDialog.SAVE).apply {
+    val dlg = FileDialog(findAwtFrame(), tr("Save QR code"), FileDialog.SAVE).apply {
         file = "qr.png"
     }
     dlg.isVisible = true
@@ -360,8 +361,8 @@ private fun saveQrImages(chunks: List<String>): String? {
         }
     }
     return when {
-        saved == 0 -> "Save failed"
-        chunks.size == 1 -> "Saved $base.png"
-        else -> "Saved $saved of ${chunks.size} codes"
+        saved == 0 -> tr("Save failed")
+        chunks.size == 1 -> tr("Saved %s.png", base)
+        else -> tr("Saved %s of %s codes", saved, chunks.size)
     }
 }

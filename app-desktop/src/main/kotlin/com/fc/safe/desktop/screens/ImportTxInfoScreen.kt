@@ -30,6 +30,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.fch.parseRawTxInfo
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.SafeButton
@@ -61,16 +62,16 @@ class ImportTxInfoScreen : Screen {
             error = null
             parsed = parseRawTxInfo(jsonText)
             if (parsed == null && jsonText.isNotBlank()) {
-                error = "Failed to parse tx JSON (not RawTxInfo or RawTxForCs shape)"
+                error = tr("Failed to parse tx JSON (not RawTxInfo or RawTxForCs shape)")
             }
         }
 
         AppShell(
-            title = "Import TX info",
+            title = tr("Import TX info"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -88,8 +89,8 @@ class ImportTxInfoScreen : Screen {
                         parsed = null
                         error = null
                     },
-                    label = "Tx JSON",
-                    placeholder = "Paste a RawTxInfo or RawTxForCs JSON (or use QR…)",
+                    label = tr("Tx JSON"),
+                    placeholder = tr("Paste a RawTxInfo or RawTxForCs JSON (or use QR…)"),
                     heightDp = 180,
                     onClear = {
                         jsonText = ""
@@ -104,14 +105,14 @@ class ImportTxInfoScreen : Screen {
                     SafeButton(
                         enabled = jsonText.isNotBlank(),
                         onClick = ::tryParse,
-                    ) { Text("Parse") }
+                    ) { Text(tr("Parse")) }
                     parsed?.let {
                         SafeButton(onClick = {
                             // Copy the canonical form — if the input was
                             // RawTxForCs, this normalises it to RawTxInfo
                             // with sender info embedded.
                             clipboard.setText(AnnotatedString(it.toJsonWithSenderInfo()))
-                        }) { Text("Copy JSON") }
+                        }) { Text(tr("Copy JSON")) }
                     }
                 }
 

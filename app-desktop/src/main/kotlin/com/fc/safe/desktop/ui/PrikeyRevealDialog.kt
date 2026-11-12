@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Modal showing a just-decrypted private key.
@@ -36,14 +37,14 @@ fun PrikeyRevealDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Private key") },
+        title = { Text(tr("Private key")) },
         text = {
             Column(
                 modifier = Modifier.widthIn(min = 360.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    "Anyone who sees this controls the wallet. Don't screenshot. Don't share.",
+                    tr("Anyone who sees this controls the wallet. Don't screenshot. Don't share."),
                     style = MaterialTheme.typography.caption,
                     color = MaterialTheme.colors.error,
                 )
@@ -67,7 +68,7 @@ fun PrikeyRevealDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
+            TextButton(onClick = onDismiss) { Text(tr("Close")) }
         },
     )
 }

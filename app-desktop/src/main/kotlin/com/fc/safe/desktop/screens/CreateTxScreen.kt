@@ -38,6 +38,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.fch.TxHandler
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AddTxInputDialog
 import com.fc.safe.desktop.ui.AddTxOutputDialog
 import com.fc.safe.desktop.ui.AppShell
@@ -115,12 +116,12 @@ class CreateTxScreen : Screen {
         }
 
         fun validate(): String? {
-            if (inputs.isEmpty()) return "Add at least one input"
+            if (inputs.isEmpty()) return tr("Add at least one input")
             inputs.forEach {
-                if ((it.value ?: 0L) <= 0L) return "Input value must be > 0"
+                if ((it.value ?: 0L) <= 0L) return tr("Input value must be > 0")
             }
             if (sender.isNotBlank() && !KeyTools.isGoodFid(sender)) {
-                return "Sender is not a valid FID"
+                return tr("Sender is not a valid FID")
             }
             // No outputs is allowed: the tx becomes a consolidation — the
             // single (change) output carries all the input value minus fee,
@@ -130,21 +131,21 @@ class CreateTxScreen : Screen {
                 val changeTo = sender.takeIf { it.isNotBlank() }
                     ?: inputs.firstOrNull()?.owner
                 if (changeTo.isNullOrBlank()) {
-                    return "No outputs: set a Sender FID to receive the change"
+                    return tr("No outputs: set a Sender FID to receive the change")
                 }
             }
             if (totals.totalInput < totals.totalOutput + totals.fee) {
-                return "Inputs don't cover outputs + fee"
+                return tr("Inputs don't cover outputs + fee")
             }
             return null
         }
 
         AppShell(
-            title = "Create TX",
+            title = tr("Create TX"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -158,7 +159,7 @@ class CreateTxScreen : Screen {
                 CryptoIoBlock(
                     value = sender,
                     onValueChange = { sender = it; error = null },
-                    label = "Sender FID (auto-filled from first input's owner)",
+                    label = tr("Sender FID (auto-filled from first input's owner)"),
                     singleLine = true,
                     heightDp = 64,
                     onClear = { sender = "" },
@@ -167,7 +168,7 @@ class CreateTxScreen : Screen {
                 )
 
                 Spacer(Modifier.height(4.dp))
-                Text("Inputs", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Inputs"), style = MaterialTheme.typography.subtitle2)
                 Spacer(Modifier.height(4.dp))
                 inputs.forEachIndexed { idx, inp ->
                     InputCard(
@@ -180,7 +181,7 @@ class CreateTxScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box {
                         SafeButton(onClick = { inputMenuOpen = true }) {
-                            Text("+ Add input")
+                            Text(tr("+ Add input"))
                             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(
@@ -190,16 +191,16 @@ class CreateTxScreen : Screen {
                             DropdownMenuItem(onClick = {
                                 inputMenuOpen = false
                                 showCashPicker = true
-                            }) { Text("From My Cash…") }
+                            }) { Text(tr("From My Cash…")) }
                             DropdownMenuItem(onClick = {
                                 inputMenuOpen = false
                                 showAddInput = true
-                            }) { Text("Type manually") }
+                            }) { Text(tr("Type manually")) }
                         }
                     }
                     if (inputs.isNotEmpty()) {
                         Text(
-                            "Spending ${FchUtils.satoshiToCoin(totals.totalInput)} FCH",
+                            tr("Spending %s FCH", FchUtils.satoshiToCoin(totals.totalInput)),
                             style = MaterialTheme.typography.body2,
                             modifier = Modifier.align(Alignment.CenterVertically),
                         )
@@ -209,7 +210,7 @@ class CreateTxScreen : Screen {
                 Spacer(Modifier.height(16.dp))
                 Divider()
                 Spacer(Modifier.height(8.dp))
-                Text("Outputs", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Outputs"), style = MaterialTheme.typography.subtitle2)
                 Spacer(Modifier.height(4.dp))
                 outputs.forEachIndexed { idx, out ->
                     OutputCard(
@@ -222,7 +223,7 @@ class CreateTxScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box {
                         SafeButton(onClick = { outputMenuOpen = true }) {
-                            Text("+ Add output")
+                            Text(tr("+ Add output"))
                             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(
@@ -232,26 +233,24 @@ class CreateTxScreen : Screen {
                             DropdownMenuItem(onClick = {
                                 outputMenuOpen = false
                                 showFidPicker = true
-                            }) { Text("Pick FID from address book…") }
+                            }) { Text(tr("Pick FID from address book…")) }
                             DropdownMenuItem(onClick = {
                                 outputMenuOpen = false
                                 showKeyPicker = true
-                            }) { Text("Pick from My Keys…") }
+                            }) { Text(tr("Pick from My Keys…")) }
                             DropdownMenuItem(onClick = {
                                 outputMenuOpen = false
                                 showMultisigPicker = true
-                            }) { Text("Pick from My Multisigs…") }
+                            }) { Text(tr("Pick from My Multisigs…")) }
                             DropdownMenuItem(onClick = {
                                 outputMenuOpen = false
                                 showAddOutput = true
-                            }) { Text("Type manually") }
+                            }) { Text(tr("Type manually")) }
                         }
                     }
                     if (outputs.isNotEmpty()) {
                         Text(
-                            "Paying ${FchUtils.satoshiToCoin(totals.totalOutput)} FCH  ·  " +
-                                "Fee ${FchUtils.satoshiToCash(totals.fee)} c  ·  " +
-                                "Change ${FchUtils.satoshiToCoin(totals.change)} FCH",
+                            tr("Paying %s FCH  ·  Fee %s c  ·  Change %s FCH", FchUtils.satoshiToCoin(totals.totalOutput), FchUtils.satoshiToCash(totals.fee), FchUtils.satoshiToCoin(totals.change)),
                             style = MaterialTheme.typography.body2,
                             modifier = Modifier.align(Alignment.CenterVertically),
                         )
@@ -261,10 +260,9 @@ class CreateTxScreen : Screen {
                         val changeTo = sender.takeIf { it.isNotBlank() }
                             ?: inputs.firstOrNull()?.owner
                         Text(
-                            "No outputs — consolidating " +
-                                "${FchUtils.satoshiToCoin(totals.change)} FCH to " +
+                            tr("No outputs — consolidating %s FCH to ", FchUtils.satoshiToCoin(totals.change)) +
                                 (changeTo ?: "?") +
-                                "  ·  Fee ${FchUtils.satoshiToCash(totals.fee)} c",
+                                tr("  ·  Fee %s c", FchUtils.satoshiToCash(totals.fee)),
                             style = MaterialTheme.typography.body2,
                             modifier = Modifier.align(Alignment.CenterVertically),
                         )
@@ -276,7 +274,7 @@ class CreateTxScreen : Screen {
                     androidx.compose.material.OutlinedTextField(
                         value = feeRateStr,
                         onValueChange = { feeRateStr = it; error = null },
-                        label = { Text("Fee rate (FCH/KB)") },
+                        label = { Text(tr("Fee rate (FCH/KB)")) },
                         singleLine = true,
                         isError = parsedFeeRate == null,
                         modifier = Modifier.width(220.dp),
@@ -284,11 +282,11 @@ class CreateTxScreen : Screen {
                     Spacer(Modifier.width(8.dp))
                     androidx.compose.material.TextButton(onClick = {
                         feeRateStr = TxHandler.DEFAULT_FEE_RATE.toString()
-                    }) { Text("Default") }
+                    }) { Text(tr("Default")) }
                     if (parsedFeeRate == null) {
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            "Invalid — must be > 0",
+                            tr("Invalid — must be > 0"),
                             style = MaterialTheme.typography.caption,
                             color = MaterialTheme.colors.error,
                         )
@@ -312,8 +310,8 @@ class CreateTxScreen : Screen {
                 CryptoIoBlock(
                     value = opReturn,
                     onValueChange = { opReturn = it },
-                    label = "OP_RETURN / carving (optional)",
-                    placeholder = "Arbitrary text to embed on-chain",
+                    label = tr("OP_RETURN / carving (optional)"),
+                    placeholder = tr("Arbitrary text to embed on-chain"),
                     heightDp = 100,
                     onClear = { opReturn = "" },
                     enabled = !hasP2shOutput,
@@ -322,9 +320,7 @@ class CreateTxScreen : Screen {
                 )
                 if (hasP2shOutput) {
                     Text(
-                        "Custom carving is disabled — this tx has a P2SH output " +
-                            "(CLTV or multisig) whose redeem script auto-fills the " +
-                            "OP_RETURN slot. Remove the P2SH output to carve.",
+                        tr("Custom carving is disabled — this tx has a P2SH output (CLTV or multisig) whose redeem script auto-fills the OP_RETURN slot. Remove the P2SH output to carve."),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                         modifier = Modifier.padding(top = 4.dp),
@@ -345,7 +341,7 @@ class CreateTxScreen : Screen {
                         opReturn = ""
                         feeRateStr = TxHandler.DEFAULT_FEE_RATE.toString()
                         error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = inputs.isNotEmpty(),
                         onClick = {
@@ -360,7 +356,7 @@ class CreateTxScreen : Screen {
                             raw.senderInfo = null
                             clipboard.setText(AnnotatedString(raw.toNiceJson() ?: ""))
                         },
-                    ) { Text("Copy unsigned JSON") }
+                    ) { Text(tr("Copy unsigned JSON")) }
                     SafeButton(
                         enabled = inputs.isNotEmpty(),
                         onClick = {
@@ -373,7 +369,7 @@ class CreateTxScreen : Screen {
                                 SignTxScreen(raw.toJsonWithSenderInfo() ?: "")
                             )
                         },
-                    ) { Text("Sign…") }
+                    ) { Text(tr("Sign…")) }
                 }
             }
         }
@@ -556,12 +552,12 @@ private fun InputCard(cash: Cash, onDelete: () -> Unit) {
                 )
                 Text(
                     "${FchUtils.satoshiToCoin(cash.value ?: 0L)} FCH" +
-                        (cash.owner?.let { "  ·  owner $it" } ?: ""),
+                        (cash.owner?.let { tr("  ·  owner %s", it) } ?: ""),
                     style = MaterialTheme.typography.caption,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                 )
             }
-            TextButton(onClick = onDelete) { Text("Remove") }
+            TextButton(onClick = onDelete) { Text(tr("Remove")) }
         }
     }
 }
@@ -582,7 +578,7 @@ private fun OutputCard(output: Cash, onDelete: () -> Unit) {
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    output.owner ?: "(no recipient)",
+                    output.owner ?: tr("(no recipient)"),
                     style = MaterialTheme.typography.body2.copy(
                         fontFamily = FontFamily.Monospace,
                     ),
@@ -593,7 +589,7 @@ private fun OutputCard(output: Cash, onDelete: () -> Unit) {
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                 )
             }
-            TextButton(onClick = onDelete) { Text("Remove") }
+            TextButton(onClick = onDelete) { Text(tr("Remove")) }
         }
     }
 }

@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.SafeButton
@@ -61,11 +62,11 @@ class VerifyScreen : Screen {
         var error by remember { mutableStateOf<String?>(null) }
 
         AppShell(
-            title = "Verify signature",
+            title = tr("Verify signature"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -76,7 +77,7 @@ class VerifyScreen : Screen {
                 CryptoIoBlock(
                     value = sigJson,
                     onValueChange = { sigJson = it; error = null; state = VerifyState.Idle },
-                    label = "Signature JSON",
+                    label = tr("Signature JSON"),
                     heightDp = 200,
                     onClear = { sigJson = "" },
                     enableQr = true,
@@ -86,8 +87,8 @@ class VerifyScreen : Screen {
                 CryptoIoBlock(
                     value = key,
                     onValueChange = { key = it; error = null; state = VerifyState.Idle },
-                    label = "Key (symkey hex — only for HMAC-SHA256) or FID fallback",
-                    placeholder = "Leave empty for ECDSA/Schnorr when the signature carries an FID",
+                    label = tr("Key (symkey hex — only for HMAC-SHA256) or FID fallback"),
+                    placeholder = tr("Leave empty for ECDSA/Schnorr when the signature carries an FID"),
                     singleLine = true,
                     heightDp = 64,
                     onClear = { key = "" },
@@ -99,7 +100,7 @@ class VerifyScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         sigJson = ""; key = ""; error = null; state = VerifyState.Idle
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = sigJson.isNotBlank(),
                         onClick = {
@@ -113,7 +114,7 @@ class VerifyScreen : Screen {
                                 VerifyState.Invalid
                             }
                         },
-                    ) { Text("Verify") }
+                    ) { Text(tr("Verify")) }
                 }
 
                 error?.let {
@@ -134,18 +135,18 @@ class VerifyScreen : Screen {
                                 tint = MaterialTheme.colors.onSurface.copy(alpha = 0.4f),
                             )
                             Spacer(Modifier.width(12.dp))
-                            Text("Not yet verified", style = MaterialTheme.typography.subtitle1)
+                            Text(tr("Not yet verified"), style = MaterialTheme.typography.subtitle1)
                         }
                         VerifyState.Valid -> {
                             Icon(
                                 Icons.Filled.Check,
-                                contentDescription = "Valid",
+                                contentDescription = tr("Valid"),
                                 modifier = Modifier.iconSize(48.dp),
                                 tint = Color(0xFF2E7D32),
                             )
                             Spacer(Modifier.width(12.dp))
                             Text(
-                                "Signature is VALID",
+                                tr("Signature is VALID"),
                                 style = MaterialTheme.typography.subtitle1,
                                 color = Color(0xFF2E7D32),
                             )
@@ -153,13 +154,13 @@ class VerifyScreen : Screen {
                         VerifyState.Invalid -> {
                             Icon(
                                 Icons.Filled.Close,
-                                contentDescription = "Invalid",
+                                contentDescription = tr("Invalid"),
                                 modifier = Modifier.iconSize(48.dp),
                                 tint = MaterialTheme.colors.error,
                             )
                             Spacer(Modifier.width(12.dp))
                             Text(
-                                "Signature is INVALID",
+                                tr("Signature is INVALID"),
                                 style = MaterialTheme.typography.subtitle1,
                                 color = MaterialTheme.colors.error,
                             )
@@ -192,15 +193,15 @@ private fun Modifier.iconSize(size: androidx.compose.ui.unit.Dp): Modifier =
  */
 private fun verifyOne(sigJson: String, key: String): Boolean {
     val sig = Signature.fromJson(sigJson)
-        ?: throw IllegalArgumentException("Not a valid signature JSON")
-    val alg = sig.alg ?: throw IllegalArgumentException("Signature missing algorithm")
+        ?: throw IllegalArgumentException(tr("Not a valid signature JSON"))
+    val alg = sig.alg ?: throw IllegalArgumentException(tr("Signature missing algorithm"))
 
     if (alg == AlgorithmId.FC_Sha256SymSignMsg_No1_NrC7) {
-        if (key.isBlank()) throw IllegalArgumentException("Symkey required for HMAC-SHA256 signature")
-        if (!Hex.isHex32(key)) throw IllegalArgumentException("Symkey must be 64 hex chars")
+        if (key.isBlank()) throw IllegalArgumentException(tr("Symkey required for HMAC-SHA256 signature"))
+        if (!Hex.isHex32(key)) throw IllegalArgumentException(tr("Symkey must be 64 hex chars"))
         val symkey = Hex.fromHex(key)
-        val msg = sig.msg ?: throw IllegalArgumentException("Signature missing msg")
-        val signHex = sig.sign ?: throw IllegalArgumentException("Signature missing sign")
+        val msg = sig.msg ?: throw IllegalArgumentException(tr("Signature missing msg"))
+        val signHex = sig.sign ?: throw IllegalArgumentException(tr("Signature missing sign"))
         return verifySymSignDual(msg, symkey, signHex)
     }
 

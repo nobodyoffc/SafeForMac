@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Makes a key from a phrase. As on Android Safe, the phrase is stretched with
@@ -42,39 +43,36 @@ fun PhraseKeyDialog(
 
     AlertDialog(
         onDismissRequest = { if (!busy) onDismiss() },
-        title = { Text("Input phrase") },
+        title = { Text(tr("Input phrase")) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
                 ScanTextField(
                     value = phrase,
                     onValueChange = { phrase = it },
-                    label = "Phrase",
-                    placeholder = "The same phrase always makes the same key",
+                    label = tr("Phrase"),
+                    placeholder = tr("The same phrase always makes the same key"),
                     singleLine = false,
                     maxLines = 6,
-                    scanTooltip = "Scan phrase",
+                    scanTooltip = tr("Scan phrase"),
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = label,
                     onValueChange = { label = it },
-                    label = { Text("Label (optional)") },
+                    label = { Text(tr("Label (optional)")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(Modifier.height(12.dp))
-                Text("Key derivation", style = MaterialTheme.typography.subtitle2)
-                KdfChoice("Argon2id (recommended)", selected = useArgon2id, enabled = !busy) { useArgon2id = true }
+                Text(tr("Key derivation"), style = MaterialTheme.typography.subtitle2)
+                KdfChoice(tr("Argon2id (recommended)"), selected = useArgon2id, enabled = !busy) { useArgon2id = true }
                 KdfChoice("SHA256", selected = !useArgon2id, enabled = !busy) { useArgon2id = false }
                 Text(
                     if (useArgon2id)
-                        "Argon2id is slow and memory-hard, making it much harder to brute-force the phrase. " +
-                            "Keys made from a phrase by Safe for macOS 1.1.1 or earlier used SHA256."
+                        tr("Argon2id is slow and memory-hard, making it much harder to brute-force the phrase. Keys made from a phrase by Safe for macOS 1.1.1 or earlier used SHA256.")
                     else
-                        "Plain SHA256 gives no protection against brute-force or dictionary attacks: a " +
-                            "low-entropy phrase can be recovered easily. Use it only to recreate a key " +
-                            "that was made with SHA256.",
+                        tr("Plain SHA256 gives no protection against brute-force or dictionary attacks: a low-entropy phrase can be recovered easily. Use it only to recreate a key that was made with SHA256."),
                     color = if (useArgon2id) MaterialTheme.colors.onSurface else MaterialTheme.colors.error,
                     style = MaterialTheme.typography.caption,
                 )
@@ -88,10 +86,10 @@ fun PhraseKeyDialog(
             TextButton(
                 enabled = !busy && phrase.isNotBlank(),
                 onClick = { onSubmit(phrase.trim(), useArgon2id, label.trim().ifEmpty { null }) },
-            ) { Text(if (busy) "Working…" else "Save") }
+            ) { Text(if (busy) tr("Working…") else tr("Save")) }
         },
         dismissButton = {
-            TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") }
+            TextButton(enabled = !busy, onClick = onDismiss) { Text(tr("Cancel")) }
         },
         modifier = Modifier.padding(8.dp),
     )

@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.SafeButton
@@ -58,26 +59,26 @@ class PubkeyConverterScreen : Screen {
             val raw = input.trim()
             if (raw.isEmpty()) return
             val pubkey33 = KeyTools.getPubkey33(raw) ?: run {
-                error = "Not a valid public key"
+                error = tr("Not a valid public key")
                 return
             }
             result = buildString {
                 append("FID: ").append(KeyTools.pubkeyToFchAddr(pubkey33)).append("\n\n")
-                append("Uncompressed hex: ").append(KeyTools.recoverPK33ToPK65(pubkey33)).append("\n\n")
-                append("WIF uncompressed: ").append(KeyTools.getPubkeyWifUncompressed(pubkey33)).append("\n\n")
-                append("WIF compressed (ver 0): ")
+                append(tr("Uncompressed hex: ")).append(KeyTools.recoverPK33ToPK65(pubkey33)).append("\n\n")
+                append(tr("WIF uncompressed: ")).append(KeyTools.getPubkeyWifUncompressed(pubkey33)).append("\n\n")
+                append(tr("WIF compressed (ver 0): "))
                     .append(KeyTools.getPubkeyWifCompressedWithVer0(pubkey33)).append("\n\n")
-                append("WIF compressed (no ver): ")
+                append(tr("WIF compressed (no ver): "))
                     .append(KeyTools.getPubkeyWifCompressedWithoutVer(pubkey33))
             }
         }
 
         AppShell(
-            title = "Public key converter",
+            title = tr("Public key converter"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -88,8 +89,8 @@ class PubkeyConverterScreen : Screen {
                 CryptoIoBlock(
                     value = input,
                     onValueChange = { input = it; error = null },
-                    label = "Public key input",
-                    placeholder = "66-char compressed hex, 130-char uncompressed hex, or WIF",
+                    label = tr("Public key input"),
+                    placeholder = tr("66-char compressed hex, 130-char uncompressed hex, or WIF"),
                     heightDp = 120,
                     onClear = { input = ""; result = ""; error = null },
                     enableQr = true,
@@ -100,11 +101,11 @@ class PubkeyConverterScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         input = ""; result = ""; error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = input.isNotBlank(),
                         onClick = ::convert,
-                    ) { Text("Convert") }
+                    ) { Text(tr("Convert")) }
                 }
 
                 error?.let {
@@ -118,7 +119,7 @@ class PubkeyConverterScreen : Screen {
                 CryptoIoBlock(
                     value = result,
                     onValueChange = {},
-                    label = "Derived forms",
+                    label = tr("Derived forms"),
                     readOnly = true,
                     enableMakeQr = true,
                     heightDp = 240,

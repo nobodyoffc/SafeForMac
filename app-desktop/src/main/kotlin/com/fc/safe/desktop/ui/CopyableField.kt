@@ -24,6 +24,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 import kotlinx.coroutines.delay
 
 /** How long the "copied" marker stays on screen after a click. */
@@ -110,7 +111,7 @@ fun CopyableText(
     /** Appends a compact make-QR icon; off by default, since these rows
      * appear in dense lists where an icon per line is noise. */
     showQr: Boolean = false,
-    qrTitle: String = "QR code",
+    qrTitle: String = tr("QR code"),
 ) {
     val clipboard = LocalClipboardManager.current
     var copied by remember(value) { mutableStateOf(false) }
@@ -146,7 +147,7 @@ private fun CopiedMarker(copied: Boolean) {
     if (copied) {
         Spacer(Modifier.width(6.dp))
         Text(
-            "copied",
+            tr("copied"),
             style = MaterialTheme.typography.caption,
             color = MaterialTheme.colors.primary,
         )

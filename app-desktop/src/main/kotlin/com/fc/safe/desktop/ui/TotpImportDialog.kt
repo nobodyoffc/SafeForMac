@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 import com.google.gson.JsonParser
 import java.net.URLDecoder
 
@@ -73,10 +74,10 @@ fun TotpImportDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Import TOTP", style = MaterialTheme.typography.h6)
+                Text(tr("Import TOTP"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    "Paste an otpauth:// URI, a {secret, label} JSON, or a bare Base32 seed.",
+                    tr("Paste an otpauth:// URI, a {secret, label} JSON, or a bare Base32 seed."),
                     style = MaterialTheme.typography.body2,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                 )
@@ -85,7 +86,7 @@ fun TotpImportDialog(
                 OutlinedTextField(
                     value = source,
                     onValueChange = { source = it; parseError = null },
-                    label = { Text("TOTP source") },
+                    label = { Text(tr("TOTP source")) },
                     textStyle = MaterialTheme.typography.body2.copy(
                         fontFamily = FontFamily.Monospace,
                     ),
@@ -94,7 +95,7 @@ fun TotpImportDialog(
                         QrScanTrailingIcon(
                             onDecoded = { source = it.trim(); parseError = null },
                             onError = { parseError = it },
-                            tooltip = "Scan the authenticator QR code",
+                            tooltip = tr("Scan the authenticator QR code"),
                         )
                     },
                 )
@@ -103,7 +104,7 @@ fun TotpImportDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Title (overrides parsed label)") },
+                    label = { Text(tr("Title (overrides parsed label)")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -128,14 +129,14 @@ fun TotpImportDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") }
+                    TextButton(enabled = !busy, onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
                     TextButton(
                         enabled = canSubmit,
                         onClick = {
                             (parsed as? Parsed.Ok)?.let { onSubmit(it.title, it.seed) }
                         },
-                    ) { Text("Save") }
+                    ) { Text(tr("Save")) }
                 }
             }
         }
@@ -174,7 +175,7 @@ private fun parseSource(source: String, titleOverride: String): Parsed {
                         .getOrDefault(it.substring(eq + 1))
             }
             .toMap()
-        val seed = params["secret"] ?: return Parsed.Err("otpauth URI missing `secret`")
+        val seed = params["secret"] ?: return Parsed.Err(tr("otpauth URI missing `secret`"))
         val issuer = params["issuer"]
         val parsedTitle = when {
             !issuer.isNullOrBlank() && !decodedLabel.contains(':') ->
@@ -189,10 +190,10 @@ private fun parseSource(source: String, titleOverride: String): Parsed {
         return runCatching {
             val obj = JsonParser.parseString(source).asJsonObject
             val seed = obj.get("secret")?.asString
-                ?: return@runCatching Parsed.Err("JSON missing `secret`")
+                ?: return@runCatching Parsed.Err(tr("JSON missing `secret`"))
             val label = obj.get("label")?.asString ?: obj.get("title")?.asString ?: "TOTP"
             Parsed.Ok(titleOverride.ifBlank { label }, seed) as Parsed
-        }.getOrElse { Parsed.Err("Not valid JSON") }
+        }.getOrElse { Parsed.Err(tr("Not valid JSON")) }
     }
 
     // 3. Bare Base32 — any non-whitespace non-URI input that looks
@@ -203,5 +204,5 @@ private fun parseSource(source: String, titleOverride: String): Parsed {
         return Parsed.Ok(fallbackTitle, source.replace(" ", ""))
     }
 
-    return Parsed.Err("Unrecognized format")
+    return Parsed.Err(tr("Unrecognized format"))
 }

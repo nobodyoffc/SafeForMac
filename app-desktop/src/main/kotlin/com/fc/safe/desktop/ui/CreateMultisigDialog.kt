@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 import core.crypto.KeyTools
 import data.fchData.P2SH
 import utils.Hex
@@ -97,11 +98,11 @@ fun CreateMultisigDialog(
             pk.isBlank() || !KeyTools.isPubkey(pk)
         }
         if (bad != null) {
-            error = "Member ${bad.index + 1} is not a valid public key"
+            error = tr("Member %s is not a valid public key", bad.index + 1)
             return
         }
         if (trimmed.toSet().size != trimmed.size) {
-            error = "Duplicate pubkey — each member must be unique"
+            error = tr("Duplicate pubkey — each member must be unique")
             return
         }
         onSubmit(CreateMultisigInputs(
@@ -141,7 +142,7 @@ fun CreateMultisigDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-                Text("Create multisig group", style = MaterialTheme.typography.h6)
+                Text(tr("Create multisig group"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
 
                 Column(
@@ -149,13 +150,13 @@ fun CreateMultisigDialog(
                         .verticalScroll(rememberScrollState()),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        NumberStepper(label = "Required (M)", value = m, onInc = { setM(m + 1) }, onDec = { setM(m - 1) })
+                        NumberStepper(label = tr("Required (M)"), value = m, onInc = { setM(m + 1) }, onDec = { setM(m - 1) })
                         Spacer(Modifier.width(24.dp))
-                        NumberStepper(label = "Members (N)", value = n, onInc = { setN(n + 1) }, onDec = { setN(n - 1) })
+                        NumberStepper(label = tr("Members (N)"), value = n, onInc = { setN(n + 1) }, onDec = { setN(n - 1) })
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Any $m of $n members must sign to spend.",
+                        tr("Any %s of %s members must sign to spend.", m, n),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                     )
@@ -164,17 +165,17 @@ fun CreateMultisigDialog(
                     OutlinedTextField(
                         value = label,
                         onValueChange = { label = it },
-                        label = { Text("Label (optional)") },
+                        label = { Text(tr("Label (optional)")) },
                         singleLine = true,
                         enabled = !busy,
                         modifier = Modifier.fillMaxWidth(),
                     )
 
                     Spacer(Modifier.height(12.dp))
-                    Text("Member public keys", style = MaterialTheme.typography.subtitle2)
+                    Text(tr("Member public keys"), style = MaterialTheme.typography.subtitle2)
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Order affects the derived FID — keep the same order when re-creating a group.",
+                        tr("Order affects the derived FID — keep the same order when re-creating a group."),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                     )
@@ -202,13 +203,13 @@ fun CreateMultisigDialog(
                                 },
                                 onError = { error = it },
                                 enabled = !busy,
-                                tooltip = "Scan member #${i + 1}'s public key",
+                                tooltip = tr("Scan member #%s's public key", i + 1),
                             )
                             IconButton(
                                 onClick = { showPickerFor = i },
                                 enabled = !busy,
                             ) {
-                                Icon(Icons.Filled.Person, contentDescription = "Pick from keys")
+                                Icon(Icons.Filled.Person, contentDescription = tr("Pick from keys"))
                             }
                             IconButton(
                                 onClick = {
@@ -217,7 +218,7 @@ fun CreateMultisigDialog(
                                 },
                                 enabled = !busy,
                             ) {
-                                Icon(Icons.Filled.Close, contentDescription = "Clear")
+                                Icon(Icons.Filled.Close, contentDescription = tr("Clear"))
                             }
                         }
                         Spacer(Modifier.height(6.dp))
@@ -226,7 +227,7 @@ fun CreateMultisigDialog(
                     Spacer(Modifier.height(8.dp))
                     Divider()
                     Spacer(Modifier.height(8.dp))
-                    Text("Preview", style = MaterialTheme.typography.subtitle2)
+                    Text(tr("Preview"), style = MaterialTheme.typography.subtitle2)
                     Spacer(Modifier.height(4.dp))
                     if (preview != null) {
                         val (hex, fid) = preview
@@ -241,7 +242,7 @@ fun CreateMultisigDialog(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Redeem script",
+                            tr("Redeem script"),
                             style = MaterialTheme.typography.caption,
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                         )
@@ -251,7 +252,7 @@ fun CreateMultisigDialog(
                         )
                     } else {
                         Text(
-                            "Fill in all $n valid pubkeys to see the derived FID.",
+                            tr("Fill in all %s valid pubkeys to see the derived FID.", n),
                             style = MaterialTheme.typography.caption,
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
                         )
@@ -268,12 +269,12 @@ fun CreateMultisigDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = onDismiss, enabled = !busy) { Text("Cancel") }
+                    TextButton(onClick = onDismiss, enabled = !busy) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
                     SafeButton(
                         onClick = ::attempt,
                         enabled = !busy && preview != null,
-                    ) { Text("Create") }
+                    ) { Text(tr("Create")) }
                 }
             }
         }

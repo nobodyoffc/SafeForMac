@@ -1,5 +1,6 @@
 package com.fc.safe.desktop
 
+import com.fc.safe.desktop.i18n.tr
 import core.crypto.KeyTools
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -36,8 +37,8 @@ internal object NiceFidFinder {
     fun problemWith(suffix: String): String? {
         val bad = suffix.lowercase().filterNot { it in MATCHABLE }.toSet()
         return when {
-            bad.isNotEmpty() -> "An FID never has ${bad.joinToString(" ") { "\"$it\"" }} in it."
-            suffix.length > MAX_LENGTH -> "Too long for an FID."
+            bad.isNotEmpty() -> tr("An FID never has %s in it.", bad.joinToString(" ") { "\"$it\"" })
+            suffix.length > MAX_LENGTH -> tr("Too long for an FID.")
             else -> null
         }
     }

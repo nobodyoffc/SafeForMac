@@ -29,6 +29,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopKeyInfo
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.KeyPickerDialog
@@ -85,11 +86,11 @@ class DecryptScreen : Screen {
         }
 
         AppShell(
-            title = "Decrypt",
+            title = tr("Decrypt"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -100,7 +101,7 @@ class DecryptScreen : Screen {
                 CryptoIoBlock(
                     value = cipher,
                     onValueChange = { cipher = it; error = null },
-                    label = "Cipher (CryptoDataStr JSON or base64 bundle)",
+                    label = tr("Cipher (CryptoDataStr JSON or base64 bundle)"),
                     heightDp = 160,
                     onClear = { cipher = "" },
                     enableQr = true,
@@ -108,10 +109,10 @@ class DecryptScreen : Screen {
                 )
 
                 CryptoIoBlock(
-                    value = if (pickedKey != null) "[wallet key: ${pickedKey!!.id}]" else key,
+                    value = if (pickedKey != null) tr("[wallet key: %s]", pickedKey!!.id) else key,
                     onValueChange = { key = it; error = null },
-                    label = "Key (password / symkey hex / prikey hex)",
-                    placeholder = "Or click the person icon to pick a wallet key",
+                    label = tr("Key (password / symkey hex / prikey hex)"),
+                    placeholder = tr("Or click the person icon to pick a wallet key"),
                     singleLine = true,
                     enabled = pickedKey == null,
                     heightDp = 64,
@@ -125,12 +126,12 @@ class DecryptScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         cipher = ""; key = ""; pickedKey = null; result = ""; error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = !busy && cipher.isNotBlank() &&
                             (pickedKey != null || key.isNotBlank()),
                         onClick = ::run,
-                    ) { Text("Decrypt") }
+                    ) { Text(tr("Decrypt")) }
                 }
 
                 error?.let {
@@ -144,7 +145,7 @@ class DecryptScreen : Screen {
                 CryptoIoBlock(
                     value = result,
                     onValueChange = {},
-                    label = "Plaintext",
+                    label = tr("Plaintext"),
                     readOnly = true,
                     enableMakeQr = true,
                     heightDp = 200,
@@ -180,7 +181,7 @@ private fun decryptOne(
     pickedKey: DesktopKeyInfo?,
 ): String {
     val cdb = parseCipher(cipher)
-        ?: throw IllegalArgumentException("Not a valid cipher (not JSON or base64 bundle)")
+        ?: throw IllegalArgumentException(tr("Not a valid cipher (not JSON or base64 bundle)"))
     val decryptor = Decryptor()
 
     when (cdb.type) {
@@ -193,7 +194,7 @@ private fun decryptOne(
         }
         EncryptType.Symkey -> {
             if (!Hex.isHex32(typedKey)) {
-                throw IllegalArgumentException("Symkey must be 64 hex chars (32 bytes)")
+                throw IllegalArgumentException(tr("Symkey must be 64 hex chars (32 bytes)"))
             }
             val r = decryptor.decryptJsonBySymkey(cdb.toJson(), Hex.fromHex(typedKey))
             return completeDecrypt(r)
@@ -201,7 +202,7 @@ private fun decryptOne(
         EncryptType.AsyOneWay, EncryptType.AsyTwoWay -> {
             val prikey = resolvePrikey(typedKey, pickedKey)
                 ?: throw IllegalArgumentException(
-                    "Asymmetric cipher requires a private key (64 hex chars or a picked wallet key)"
+                    tr("Asymmetric cipher requires a private key (64 hex chars or a picked wallet key)")
                 )
             try {
                 cdb.prikeyB = prikey
@@ -209,7 +210,7 @@ private fun decryptOne(
                 return completeDecrypt(cdb)
             } finally { prikey.fill(0) }
         }
-        else -> throw IllegalStateException("Unsupported cipher type: ${cdb.type}")
+        else -> throw IllegalStateException(tr("Unsupported cipher type: %s", cdb.type))
     }
 }
 
@@ -226,7 +227,7 @@ private fun parseCipher(cipher: String): CryptoDataByte? {
 
 private fun completeDecrypt(cdb: CryptoDataByte): String {
     if (cdb.code != 0) throw IllegalStateException("Decrypt code=${cdb.code} msg=${cdb.message}")
-    val data = cdb.data ?: throw IllegalStateException("Decrypt produced no bytes")
+    val data = cdb.data ?: throw IllegalStateException(tr("Decrypt produced no bytes"))
     return String(data, Charsets.UTF_8)
 }
 

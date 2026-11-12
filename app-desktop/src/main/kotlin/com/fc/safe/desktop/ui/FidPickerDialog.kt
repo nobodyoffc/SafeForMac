@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fc.safe.desktop.DesktopFid
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 import db.LocalDB
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +71,7 @@ fun FidPickerDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-                Text("Pick FID from address book", style = MaterialTheme.typography.h6)
+                Text(tr("Pick FID from address book"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
 
                 val list = fids
@@ -78,13 +79,13 @@ fun FidPickerDialog(
                     list == null -> Box(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = Alignment.Center,
-                    ) { Text("Loading…") }
+                    ) { Text(tr("Loading…")) }
                     list.isEmpty() -> Box(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            "Address book is empty. Open \"Address book (FIDs)\" from the home menu first.",
+                            tr("Address book is empty. Open \"Address book (FIDs)\" from the home menu first."),
                             style = MaterialTheme.typography.body2,
                         )
                     }
@@ -101,7 +102,7 @@ fun FidPickerDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(tr("Cancel")) }
                 }
             }
         }
@@ -121,7 +122,7 @@ private fun FidPickerRow(fid: DesktopFid, onPick: () -> Unit) {
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                fid.label?.ifBlank { null } ?: "(no label)",
+                fid.label?.ifBlank { null } ?: tr("(no label)"),
                 style = MaterialTheme.typography.body1,
                 color = if (fid.label.isNullOrBlank())
                     MaterialTheme.colors.onSurface.copy(alpha = 0.5f)

@@ -32,6 +32,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.PendingFlavor
 import com.fc.safe.desktop.fch.TxHandler
 import com.fc.safe.desktop.fch.parseRawTxInfo
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.savePendingTx
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
@@ -92,7 +93,7 @@ class BuildMultisigTxScreen : Screen {
             pendingSaved = false
             val filled = slots.map { it.trim() }.filter { it.isNotBlank() }
             if (filled.isEmpty()) {
-                error = "Paste at least one signed JSON"
+                error = tr("Paste at least one signed JSON")
                 return
             }
             busy = true
@@ -102,9 +103,7 @@ class BuildMultisigTxScreen : Screen {
                         val handler = TxHandler()
                         val hex = handler.buildSignedMultisignTx(filled.toTypedArray())
                             ?: throw IllegalStateException(
-                                "buildSignedMultisignTx returned null — " +
-                                    "check that all JSONs are for the same tx, sigs verify, " +
-                                    "and you have at least M distinct signers."
+                                tr("buildSignedMultisignTx returned null — check that all JSONs are for the same tx, sigs verify, and you have at least M distinct signers.")
                             )
                         // Decode for the preview pane. Non-fatal: a
                         // parse failure here just hides the preview;
@@ -120,7 +119,7 @@ class BuildMultisigTxScreen : Screen {
                 }
                 outcome.onFailure {
                     log.warn("Build multisig tx failed", it)
-                    error = "Build failed: ${it.message}"
+                    error = tr("Build failed: %s", it.message)
                 }
             }
         }
@@ -128,7 +127,7 @@ class BuildMultisigTxScreen : Screen {
         fun savePending() {
             val hex = signedHex ?: return
             val raw = decoded ?: run {
-                error = "Cannot save: tx hex could not be decoded"
+                error = tr("Cannot save: tx hex could not be decoded")
                 return
             }
             // Enrich the decoded envelope with senderMultisig from the
@@ -151,21 +150,21 @@ class BuildMultisigTxScreen : Screen {
                 busy = false
                 outcome.onSuccess { txid ->
                     pendingSaved = true
-                    status = "Saved to Pending Broadcasts (txid ${txid.take(8)}…)"
+                    status = tr("Saved to Pending Broadcasts (txid %s…)", txid.take(8))
                 }
                 outcome.onFailure {
                     log.warn("Save pending tx failed", it)
-                    error = "Save failed: ${it.message}"
+                    error = tr("Save failed: %s", it.message)
                 }
             }
         }
 
         AppShell(
-            title = "Build multisig TX",
+            title = tr("Build multisig TX"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -177,8 +176,7 @@ class BuildMultisigTxScreen : Screen {
                     .verticalScroll(rememberScrollState()),
             ) {
                 Text(
-                    "Paste each signer's signed JSON below, then press Build. " +
-                        "Each envelope must reference the same tx and multisig group.",
+                    tr("Paste each signer's signed JSON below, then press Build. Each envelope must reference the same tx and multisig group."),
                     style = MaterialTheme.typography.body2,
                 )
                 Spacer(Modifier.height(12.dp))
@@ -191,8 +189,8 @@ class BuildMultisigTxScreen : Screen {
                             error = null
                             signedHex = null
                         },
-                        label = "Signed JSON #${idx + 1}",
-                        placeholder = "Paste the RawTxInfo JSON with this signer's fidSigMap entry",
+                        label = tr("Signed JSON #%s", idx + 1),
+                        placeholder = tr("Paste the RawTxInfo JSON with this signer's fidSigMap entry"),
                         heightDp = 140,
                         onClear = {
                             slots = slots.mapIndexed { i, old -> if (i == idx) "" else old }
@@ -208,7 +206,7 @@ class BuildMultisigTxScreen : Screen {
                                 slots = slots.filterIndexed { i, _ -> i != idx }
                                 error = null
                                 signedHex = null
-                            }) { Text("Remove #${idx + 1}") }
+                            }) { Text(tr("Remove #%s", idx + 1)) }
                         }
                     }
                     Spacer(Modifier.height(8.dp))
@@ -220,11 +218,11 @@ class BuildMultisigTxScreen : Screen {
                         onClick = {
                             slots = slots + ""
                         },
-                    ) { Text("+ Add signer") }
+                    ) { Text(tr("+ Add signer")) }
                     SafeButton(
                         enabled = !busy && slots.any { it.isNotBlank() },
                         onClick = ::build,
-                    ) { Text("Build") }
+                    ) { Text(tr("Build")) }
                     SafeButton(
                         enabled = !busy,
                         onClick = {
@@ -235,7 +233,7 @@ class BuildMultisigTxScreen : Screen {
                             status = null
                             pendingSaved = false
                         },
-                    ) { Text("Clear") }
+                    ) { Text(tr("Clear")) }
                 }
 
                 error?.let {
@@ -254,7 +252,7 @@ class BuildMultisigTxScreen : Screen {
                     CryptoIoBlock(
                         value = hex,
                         onValueChange = {},
-                        label = "Signed tx (hex — broadcast this)",
+                        label = tr("Signed tx (hex — broadcast this)"),
                         readOnly = true,
                         enableMakeQr = true,
                         heightDp = 200,
@@ -263,14 +261,12 @@ class BuildMultisigTxScreen : Screen {
                     decoded?.let { raw ->
                         Spacer(Modifier.height(12.dp))
                         Text(
-                            "Decoded from hex",
+                            tr("Decoded from hex"),
                             style = MaterialTheme.typography.subtitle2,
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Verify the recipients and amounts match what you expect " +
-                                "before broadcasting. Input values are blank because " +
-                                "they aren't embedded in the tx.",
+                            tr("Verify the recipients and amounts match what you expect before broadcasting. Input values are blank because they aren't embedded in the tx."),
                             style = MaterialTheme.typography.caption,
                             color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                         )
@@ -282,12 +278,12 @@ class BuildMultisigTxScreen : Screen {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         SafeButton(
                             onClick = { showImport = true },
-                        ) { Text("Import my UTXOs…") }
+                        ) { Text(tr("Import my UTXOs…")) }
                         SafeButton(
                             enabled = !busy && decoded != null && !pendingSaved,
                             onClick = ::savePending,
                         ) {
-                            Text(if (pendingSaved) "Saved ✓" else "Save to Pending Broadcasts")
+                            Text(if (pendingSaved) tr("Saved ✓") else tr("Save to Pending Broadcasts"))
                         }
                     }
                 }
@@ -313,10 +309,10 @@ class BuildMultisigTxScreen : Screen {
                                 }
                                 db.commit()
                             }
-                            status = "Saved ${list.size} UTXO(s) to My Cash"
+                            status = tr("Saved %s UTXO(s) to My Cash", list.size)
                         } catch (t: Throwable) {
                             log.warn("Persist imported UTXOs failed", t)
-                            error = "Save failed: ${t.message}"
+                            error = tr("Save failed: %s", t.message)
                         }
                     }
                 },

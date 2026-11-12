@@ -29,6 +29,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import cafe.adriel.voyager.navigator.Navigator
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.screens.HomeScreen
 import com.fc.safe.platform.macos.BootstrapLogging
 import com.fc.safe.platform.macos.DesktopApp
@@ -64,7 +65,7 @@ fun main() {
                 DesktopApp.shutdown()
                 exitApplication()
             },
-            title = "Safe",
+            title = tr("Safe"),
             state = rememberWindowState(width = 720.dp, height = 840.dp),
         ) {
             // The lock screen carries the version too, but that's gone
@@ -81,13 +82,13 @@ fun main() {
             // address-bar focus, but no other app on a wallet
             // workflow contests it).
             MenuBar {
-                Menu("File") {
+                Menu(tr("File")) {
                     Item(
-                        text = "About Safe",
+                        text = tr("About Safe"),
                         onClick = { showAbout = true },
                     )
                     Item(
-                        text = "Quit Safe",
+                        text = tr("Quit Safe"),
                         shortcut = KeyShortcut(Key.Q, meta = true),
                         onClick = {
                             DesktopApp.shutdown()
@@ -95,9 +96,9 @@ fun main() {
                         },
                     )
                 }
-                Menu("Wallet") {
+                Menu(tr("Wallet")) {
                     Item(
-                        text = "Lock now",
+                        text = tr("Lock now"),
                         shortcut = KeyShortcut(Key.L, meta = true),
                         // Disabled when already locked so the
                         // shortcut doesn't no-op silently.
@@ -171,25 +172,23 @@ fun main() {
 private fun AboutDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Safe") },
+        title = { Text(tr("Safe")) },
         text = {
             Column {
                 Text(
-                    "Version ${BuildInfo.VERSION}",
+                    tr("Version %s", BuildInfo.VERSION),
                     style = MaterialTheme.typography.body1,
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "An offline wallet for keys, multisigs and secrets. " +
-                        "Values move in and out by QR code — nothing here " +
-                        "needs a network.",
+                    tr("An offline wallet for keys, multisigs and secrets. Values move in and out by QR code — nothing here needs a network."),
                     style = MaterialTheme.typography.caption,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Close") }
+            TextButton(onClick = onDismiss) { Text(tr("Close")) }
         },
     )
 }

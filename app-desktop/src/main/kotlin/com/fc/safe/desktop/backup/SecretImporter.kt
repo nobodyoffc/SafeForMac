@@ -1,6 +1,7 @@
 package com.fc.safe.desktop.backup
 
 import com.fc.safe.desktop.DesktopSecret
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
@@ -89,7 +90,7 @@ internal object SecretImporter {
         }
 
         if (plainExported.isEmpty()) {
-            throw IllegalArgumentException("No secret records found in input")
+            throw IllegalArgumentException(tr("No secret records found in input"))
         }
 
         // Re-encrypt each secret's plaintext content under the
@@ -100,7 +101,7 @@ internal object SecretImporter {
         for (es in plainExported) {
             val content = es.content ?: continue
             if (content.isEmpty()) continue
-            val title = es.title ?: "(no title)"
+            val title = es.title ?: tr("(no title)")
             val cipher = WalletSession.encryptToJson(content.toByteArray(Charsets.UTF_8))
             out += DesktopSecret().apply {
                 // Prefer the exporter's id so the same secret

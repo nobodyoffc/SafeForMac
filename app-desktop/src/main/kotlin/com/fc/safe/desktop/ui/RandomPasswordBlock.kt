@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Hands over the random password of an export (FTSP31). The export never
@@ -29,8 +30,7 @@ fun RandomPasswordBlock(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            "Random password — keep this password apart from the exported data. Anyone who has both can read it. " +
-                "The export does not contain this password, and it will not be shown again.",
+            tr("Random password — keep this password apart from the exported data. Anyone who has both can read it. The export does not contain this password, and it will not be shown again."),
             style = MaterialTheme.typography.body2,
         )
         Spacer(Modifier.height(4.dp))
@@ -47,7 +47,7 @@ fun RandomPasswordBlock(
             trailingIcon = {
                 MakeQrIconButton(
                     text = password,
-                    title = "Export password",
+                    title = tr("Export password"),
                 )
             },
             modifier = Modifier.fillMaxWidth(),
@@ -55,7 +55,7 @@ fun RandomPasswordBlock(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = saved, onCheckedChange = onSavedChange)
             Spacer(Modifier.width(4.dp))
-            Text("I've saved the password", style = MaterialTheme.typography.body2)
+            Text(tr("I've saved the password"), style = MaterialTheme.typography.body2)
         }
     }
 }

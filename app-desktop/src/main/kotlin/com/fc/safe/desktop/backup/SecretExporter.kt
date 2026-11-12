@@ -1,6 +1,7 @@
 package com.fc.safe.desktop.backup
 
 import com.fc.safe.desktop.DesktopSecret
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 import com.google.gson.GsonBuilder
 import core.crypto.CryptoDataStr
@@ -74,8 +75,8 @@ internal object SecretExporter {
         var randomPassword: String? = null
         when (mode) {
             ExportMode.CURRENT_PASSWORD -> {
-                requireNotNull(enteredPassword) { "Password required for current-password export" }
-                require(enteredPassword.isNotEmpty()) { "Password is empty" }
+                requireNotNull(enteredPassword) { tr("Password required for current-password export") }
+                require(enteredPassword.isNotEmpty()) { tr("Password is empty") }
                 pwdForKeys = enteredPassword
             }
             ExportMode.RANDOM_PASSWORD -> {

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.SafeButton
@@ -74,11 +75,11 @@ class HashScreen : Screen {
         var error by remember { mutableStateOf<String?>(null) }
 
         AppShell(
-            title = "Hash",
+            title = tr("Hash"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -92,8 +93,8 @@ class HashScreen : Screen {
                 CryptoIoBlock(
                     value = input,
                     onValueChange = { input = it; error = null },
-                    label = "Text to hash",
-                    placeholder = "Type or paste; toggle \"as hex\" to hash the hex-decoded bytes",
+                    label = tr("Text to hash"),
+                    placeholder = tr("Type or paste; toggle \"as hex\" to hash the hex-decoded bytes"),
                     heightDp = 140,
                     onClear = { input = ""; result = "" },
                     enableQr = true,
@@ -102,11 +103,11 @@ class HashScreen : Screen {
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(checked = asHex, onCheckedChange = { asHex = it })
-                    Text("Treat input as hex bytes", style = MaterialTheme.typography.body2)
+                    Text(tr("Treat input as hex bytes"), style = MaterialTheme.typography.body2)
                 }
 
                 Spacer(Modifier.height(8.dp))
-                Text("Algorithm", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Algorithm"), style = MaterialTheme.typography.subtitle2)
                 Spacer(Modifier.height(4.dp))
                 // Two-column grid, same layout as Android's two-row arrangement.
                 HashAlgo.entries.chunked(3).forEach { row ->
@@ -131,7 +132,7 @@ class HashScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         input = ""; result = ""; error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = input.isNotBlank(),
                         onClick = {
@@ -140,7 +141,7 @@ class HashScreen : Screen {
                                 val bytes = if (asHex) {
                                     runCatching { Hex.fromHex(input.trim()) }.getOrNull()
                                         ?: run {
-                                            error = "Input is not valid hex"
+                                            error = tr("Input is not valid hex")
                                             return@SafeButton
                                         }
                                 } else {
@@ -148,11 +149,11 @@ class HashScreen : Screen {
                                 }
                                 algo.compute(bytes)
                             } catch (t: Throwable) {
-                                error = "Hash failed: ${t.message}"
+                                error = tr("Hash failed: %s", t.message)
                                 ""
                             }
                         },
-                    ) { Text("Hash") }
+                    ) { Text(tr("Hash")) }
                 }
 
                 error?.let {
@@ -166,7 +167,7 @@ class HashScreen : Screen {
                 CryptoIoBlock(
                     value = result,
                     onValueChange = {},
-                    label = "Hash (hex)",
+                    label = tr("Hash (hex)"),
                     readOnly = true,
                     enableMakeQr = true,
                     heightDp = 80,

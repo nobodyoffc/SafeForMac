@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.platform.macos.DesktopApp
 import com.fc.safe.platform.macos.LockManager
@@ -93,7 +94,7 @@ class UnlockedHomeScreen(
             }
         }
 
-        AppShell(title = "Safe — $name", scaffoldState = scaffoldState) { padding ->
+        AppShell(title = tr("Safe — %s", name), scaffoldState = scaffoldState) { padding ->
             Box(modifier = Modifier.fillMaxSize().padding(padding)) {
                 Column(
                     modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -111,7 +112,7 @@ class UnlockedHomeScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Text(
-                                "Protect your passwords, keys, secrets and privacy with cryptography",
+                                tr("Protect your passwords, keys, secrets and privacy with cryptography"),
                                 style = MaterialTheme.typography.h6,
                                 textAlign = TextAlign.Center,
                             )
@@ -127,7 +128,7 @@ class UnlockedHomeScreen(
                             if (secondsLeft in 0..60) {
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    "Auto-lock in ${secondsLeft}s — move the mouse to extend.",
+                                    tr("Auto-lock in %ss — move the mouse to extend.", secondsLeft),
                                     style = MaterialTheme.typography.caption,
                                     color = MaterialTheme.colors.error,
                                 )
@@ -142,51 +143,51 @@ class UnlockedHomeScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         IconRow(
-                            IconTile("My Keys", Icons.Filled.Key) { navigator.push(MyKeysScreen()) },
-                            IconTile("Secrets", Icons.Filled.Lock) { navigator.push(MySecretsScreen()) },
+                            IconTile(tr("My Keys"), Icons.Filled.Key) { navigator.push(MyKeysScreen()) },
+                            IconTile(tr("Secrets"), Icons.Filled.Lock) { navigator.push(MySecretsScreen()) },
                             IconTile("TOTP", Icons.Filled.Schedule) { navigator.push(TotpScreen()) },
                         )
                         IconRow(
-                            IconTile("Cash", Icons.Filled.AccountBalance) { navigator.push(MyCashScreen()) },
-                            IconTile("Freers", Icons.Filled.Contacts) { navigator.push(MyFidsScreen()) },
-                            IconTile("Multisig", Icons.Filled.Group) { navigator.push(MyMultisigsScreen()) },
+                            IconTile(tr("Cash"), Icons.Filled.AccountBalance) { navigator.push(MyCashScreen()) },
+                            IconTile(tr("Freers"), Icons.Filled.Contacts) { navigator.push(MyFidsScreen()) },
+                            IconTile(tr("Multisig"), Icons.Filled.Group) { navigator.push(MyMultisigsScreen()) },
                         )
                         IconRow(
                             DropdownTile(
-                                label = "TX",
+                                label = tr("TX"),
                                 icon = Icons.AutoMirrored.Filled.Send,
                                 items = listOf(
-                                    "Create TX" to { navigator.push(CreateTxScreen()) },
-                                    "Import TX info" to { navigator.push(ImportTxInfoScreen()) },
-                                    "Sign TX" to { navigator.push(SignTxScreen()) },
-                                    "Create multisig TX" to { navigator.push(CreateMultisigTxScreen()) },
-                                    "Sign multisig TX" to { navigator.push(SignMultisigTxScreen()) },
-                                    "Build multisig TX" to { navigator.push(BuildMultisigTxScreen()) },
-                                    "Pending TX" to { navigator.push(PendingTxsScreen()) },
+                                    tr("Create TX") to { navigator.push(CreateTxScreen()) },
+                                    tr("Import TX info") to { navigator.push(ImportTxInfoScreen()) },
+                                    tr("Sign TX") to { navigator.push(SignTxScreen()) },
+                                    tr("Create multisig TX") to { navigator.push(CreateMultisigTxScreen()) },
+                                    tr("Sign multisig TX") to { navigator.push(SignMultisigTxScreen()) },
+                                    tr("Build multisig TX") to { navigator.push(BuildMultisigTxScreen()) },
+                                    tr("Pending TX") to { navigator.push(PendingTxsScreen()) },
                                 ),
                             ),
                             DropdownTile(
-                                label = "Tools",
+                                label = tr("Tools"),
                                 icon = Icons.Filled.Build,
                                 items = listOf(
-                                    "Encrypt" to { navigator.push(EncryptScreen()) },
-                                    "Decrypt" to { navigator.push(DecryptScreen()) },
-                                    "Hash" to { navigator.push(HashScreen()) },
-                                    "Sign message" to { navigator.push(SignMsgScreen()) },
-                                    "Verify message" to { navigator.push(VerifyScreen()) },
-                                    "Change password" to { showChangePassword = true },
-                                    "Security guidelines" to { navigator.push(SecurityGuidelinesScreen()) },
+                                    tr("Encrypt") to { navigator.push(EncryptScreen()) },
+                                    tr("Decrypt") to { navigator.push(DecryptScreen()) },
+                                    tr("Hash") to { navigator.push(HashScreen()) },
+                                    tr("Sign message") to { navigator.push(SignMsgScreen()) },
+                                    tr("Verify message") to { navigator.push(VerifyScreen()) },
+                                    tr("Change password") to { showChangePassword = true },
+                                    tr("Security guidelines") to { navigator.push(SecurityGuidelinesScreen()) },
                                 ),
                             ),
                             DropdownTile(
-                                label = "Convert",
+                                label = tr("Convert"),
                                 icon = Icons.Filled.SwapHoriz,
                                 items = listOf(
-                                    "Private key" to { navigator.push(PrikeyConverterScreen()) },
-                                    "Public key" to { navigator.push(PubkeyConverterScreen()) },
-                                    "Address" to { navigator.push(AddressConverterScreen()) },
+                                    tr("Private key") to { navigator.push(PrikeyConverterScreen()) },
+                                    tr("Public key") to { navigator.push(PubkeyConverterScreen()) },
+                                    tr("Address") to { navigator.push(AddressConverterScreen()) },
                                     "JSON" to { navigator.push(JsonConvertScreen()) },
-                                    "Decode string" to { navigator.push(DecodeScreen()) },
+                                    tr("Decode string") to { navigator.push(DecodeScreen()) },
                                 ),
                             ),
                         )
@@ -209,7 +210,7 @@ class UnlockedHomeScreen(
                         },
                         backgroundColor = MaterialTheme.colors.primary,
                     ) {
-                        Icon(Icons.Filled.Lock, contentDescription = "Lock wallet")
+                        Icon(Icons.Filled.Lock, contentDescription = tr("Lock wallet"))
                     }
                     FloatingActionButton(
                         onClick = {
@@ -225,7 +226,7 @@ class UnlockedHomeScreen(
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = "Quit Safe",
+                            contentDescription = tr("Quit Safe"),
                         )
                     }
                 }
@@ -237,7 +238,7 @@ class UnlockedHomeScreen(
                 onDismiss = { showChangePassword = false },
                 onChanged = {
                     showChangePassword = false
-                    changedMessage = "Password changed."
+                    changedMessage = tr("Password changed.")
                 },
             )
         }

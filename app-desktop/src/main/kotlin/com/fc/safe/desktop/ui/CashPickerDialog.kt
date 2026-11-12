@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 import data.fchData.Cash
 import db.LocalDB
@@ -80,11 +81,11 @@ fun CashPickerDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-                Text("Pick UTXOs", style = MaterialTheme.typography.h6)
+                Text(tr("Pick UTXOs"), style = MaterialTheme.typography.h6)
                 if (ownerFilter != null) {
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        "Filtered to owner: $ownerFilter",
+                        tr("Filtered to owner: %s", ownerFilter),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                     )
@@ -96,17 +97,16 @@ fun CashPickerDialog(
                     list == null -> Box(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = Alignment.Center,
-                    ) { Text("Loading…") }
+                    ) { Text(tr("Loading…")) }
                     list.isEmpty() -> Box(
                         modifier = Modifier.fillMaxWidth().weight(1f),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
                             if (ownerFilter == null)
-                                "No UTXOs in the wallet. Use \"My Cash → Add cash\" first."
+                                tr("No UTXOs in the wallet. Use \"My Cash → Add cash\" first.")
                             else
-                                "No UTXOs with owner \"$ownerFilter\". " +
-                                "Either pick a different sender or import matching cash.",
+                                tr("No UTXOs with owner \"%s\". Either pick a different sender or import matching cash.", ownerFilter),
                             style = MaterialTheme.typography.body2,
                         )
                     }
@@ -133,19 +133,18 @@ fun CashPickerDialog(
                 ) {
                     Text(
                         if (selectedIds.isEmpty()) " "
-                        else "${selectedIds.size} selected · " +
-                            "${FchUtils.satoshiToCoin(selectedTotal)} FCH",
+                        else tr("%s selected · %s FCH", selectedIds.size, FchUtils.satoshiToCoin(selectedTotal)),
                         style = MaterialTheme.typography.body2,
                     )
                     Row {
-                        TextButton(onClick = onDismiss) { Text("Cancel") }
+                        TextButton(onClick = onDismiss) { Text(tr("Cancel")) }
                         Spacer(Modifier.width(8.dp))
                         TextButton(
                             enabled = selectedIds.isNotEmpty(),
                             onClick = {
                                 onPicked(list.orEmpty().filter { it.id in selectedIds })
                             },
-                        ) { Text("Add to inputs") }
+                        ) { Text(tr("Add to inputs")) }
                     }
                 }
             }
@@ -181,7 +180,7 @@ private fun CashPickerRow(cash: Cash, selected: Boolean, onToggle: () -> Unit) {
                 ),
             )
             Text(
-                cash.owner ?: "(no owner)",
+                cash.owner ?: tr("(no owner)"),
                 style = MaterialTheme.typography.caption,
                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
             )

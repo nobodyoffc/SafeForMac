@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 
 /**
  * Paste-and-import dialog for secrets. Matches [ImportKeyDialog]
@@ -66,17 +67,17 @@ fun ImportSecretsDialog(
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
                 Text(
-                    text = if (awaitingPassword) "Password required"
-                    else "Import secrets from backup",
+                    text = if (awaitingPassword) tr("Password required")
+                    else tr("Import secrets from backup"),
                     style = MaterialTheme.typography.h6,
                 )
                 Spacer(Modifier.height(16.dp))
 
                 Text(
                     text = if (awaitingPassword)
-                        "This backup is encrypted. Enter the password that was used to export it."
+                        tr("This backup is encrypted. Enter the password that was used to export it.")
                     else
-                        "Paste the JSON produced by Android \"Export Secrets\" (or this app).",
+                        tr("Paste the JSON produced by Android \"Export Secrets\" (or this app)."),
                     style = MaterialTheme.typography.body2,
                 )
                 Spacer(Modifier.height(8.dp))
@@ -84,7 +85,7 @@ fun ImportSecretsDialog(
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it },
-                    label = { Text("Backup JSON") },
+                    label = { Text(tr("Backup JSON")) },
                     readOnly = awaitingPassword,
                     textStyle = MaterialTheme.typography.body2.copy(
                         fontFamily = FontFamily.Monospace,
@@ -95,7 +96,7 @@ fun ImportSecretsDialog(
                             onDecoded = { text = it.trim(); scanError = null },
                             onError = { scanError = it },
                             enabled = !busy && !awaitingPassword,
-                            tooltip = "Scan a secrets backup QR code",
+                            tooltip = tr("Scan a secrets backup QR code"),
                         )
                     },
                 )
@@ -108,7 +109,7 @@ fun ImportSecretsDialog(
                     value = password,
                     onValueChange = { password = it },
                     label = {
-                        Text(if (awaitingPassword) "Password" else "Password (if encrypted)")
+                        Text(if (awaitingPassword) tr("Password") else tr("Password (if encrypted)"))
                     },
                     visualTransformation = PasswordVisualTransformation(),
                     singleLine = true,
@@ -120,13 +121,13 @@ fun ImportSecretsDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") }
+                    TextButton(enabled = !busy, onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
                     TextButton(
                         enabled = canSubmit,
                         onClick = { onSubmit(text, password.ifBlank { null }) },
                     ) {
-                        Text(if (awaitingPassword) "Decrypt" else "Import")
+                        Text(if (awaitingPassword) tr("Decrypt") else tr("Import"))
                     }
                 }
             }

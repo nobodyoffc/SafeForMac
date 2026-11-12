@@ -58,6 +58,7 @@ import com.fc.safe.desktop.DesktopMultisig
 import com.fc.safe.desktop.backup.ExportResult
 import com.fc.safe.desktop.backup.MultisigExporter
 import com.fc.safe.desktop.backup.MultisigImporter
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.ConfirmReplaceDialog
 import com.fc.safe.desktop.ui.ConfirmReplaceResult
@@ -140,7 +141,7 @@ class MyMultisigsScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Save multisig failed", t)
-                    error = "Save failed: ${t.message}"
+                    error = tr("Save failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -179,7 +180,7 @@ class MyMultisigsScreen : Screen {
                 }
                 built.onFailure { t ->
                     log.warn("Build multisig failed", t)
-                    error = t.message ?: "Invalid input"
+                    error = t.message ?: tr("Invalid input")
                 }
             }
         }
@@ -197,7 +198,7 @@ class MyMultisigsScreen : Screen {
                     }
                     refresh()
                 } catch (t: Throwable) {
-                    error = "Label save failed: ${t.message}"
+                    error = tr("Label save failed: %s", t.message)
                 }
             }
         }
@@ -219,7 +220,7 @@ class MyMultisigsScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Delete multisigs failed", t)
-                    error = "Delete failed: ${t.message}"
+                    error = tr("Delete failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -239,7 +240,7 @@ class MyMultisigsScreen : Screen {
                 outcome.onSuccess { exportResult = it }
                 outcome.onFailure {
                     log.warn("Export multisigs failed", it)
-                    error = "Export failed: ${it.message}"
+                    error = tr("Export failed: %s", it.message)
                     showExport = false
                 }
             }
@@ -259,7 +260,7 @@ class MyMultisigsScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Persist imported multisigs failed", t)
-                    error = "Save failed: ${t.message}"
+                    error = tr("Save failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -276,7 +277,7 @@ class MyMultisigsScreen : Screen {
                 busy = false
                 outcome.onSuccess { imported ->
                     if (imported.isEmpty()) {
-                        error = "No multisigs found — check the JSON"
+                        error = tr("No multisigs found — check the JSON")
                         return@onSuccess
                     }
                     scope.launch {
@@ -303,17 +304,17 @@ class MyMultisigsScreen : Screen {
                 }
                 outcome.onFailure {
                     log.warn("Import multisigs failed", it)
-                    error = "Import failed: ${it.message}"
+                    error = tr("Import failed: %s", it.message)
                 }
             }
         }
 
         AppShell(
-            title = "My Multisigs",
+            title = tr("My Multisigs"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -325,7 +326,7 @@ class MyMultisigsScreen : Screen {
                 ) {
                     if (selectedIds.isEmpty()) {
                         Text(
-                            if (loading) "Loading…" else "${groups.size} group(s)",
+                            if (loading) tr("Loading…") else tr("%s group(s)", groups.size),
                             style = MaterialTheme.typography.subtitle1,
                         )
                         Box {
@@ -333,7 +334,7 @@ class MyMultisigsScreen : Screen {
                                 enabled = !busy,
                                 onClick = { showAddMenu = true },
                             ) {
-                                Text("New multisig")
+                                Text(tr("New multisig"))
                                 Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                             }
                             DropdownMenu(
@@ -343,11 +344,11 @@ class MyMultisigsScreen : Screen {
                                 DropdownMenuItem(onClick = {
                                     showAddMenu = false
                                     showCreate = true
-                                }) { Text("Create…") }
+                                }) { Text(tr("Create…")) }
                                 DropdownMenuItem(onClick = {
                                     showAddMenu = false
                                     showImport = true
-                                }) { Text("Import from backup…") }
+                                }) { Text(tr("Import from backup…")) }
                             }
                         }
                     } else {
@@ -355,10 +356,10 @@ class MyMultisigsScreen : Screen {
                             TextButton(
                                 enabled = !busy,
                                 onClick = { selectedIds = emptySet() },
-                            ) { Text("Cancel") }
+                            ) { Text(tr("Cancel")) }
                             Spacer(Modifier.width(4.dp))
                             Text(
-                                "${selectedIds.size} selected",
+                                tr("%s selected", selectedIds.size),
                                 style = MaterialTheme.typography.subtitle1,
                             )
                         }
@@ -369,7 +370,7 @@ class MyMultisigsScreen : Screen {
                                     showExport = true
                                     runExport()
                                 },
-                            ) { Text("Export") }
+                            ) { Text(tr("Export")) }
                             Spacer(Modifier.width(8.dp))
                             LongPressMultisigDeleteButton(
                                 enabled = !busy,
@@ -396,10 +397,10 @@ class MyMultisigsScreen : Screen {
                     }
                     groups.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("No multisig groups yet.", style = MaterialTheme.typography.subtitle1)
+                            Text(tr("No multisig groups yet."), style = MaterialTheme.typography.subtitle1)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Use \"New multisig\" to create one.",
+                                tr("Use \"New multisig\" to create one."),
                                 style = MaterialTheme.typography.caption,
                             )
                         }
@@ -469,8 +470,8 @@ class MyMultisigsScreen : Screen {
         pendingReplace?.let { p ->
             ConfirmReplaceDialog(
                 title = if (p.conflictIds.size > 1)
-                    "Replace existing multisig(s)?"
-                else "Replace existing multisig?",
+                    tr("Replace existing multisig(s)?")
+                else tr("Replace existing multisig?"),
                 conflictIds = p.conflictIds,
                 onResult = { result ->
                     pendingReplace = null
@@ -528,7 +529,7 @@ private fun MultisigCard(
                 }
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    contentDescription = if (expanded) tr("Collapse") else tr("Expand"),
                 )
             }
 
@@ -539,20 +540,20 @@ private fun MultisigCard(
 
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Created ${formatTs(group.savedAt)}",
+                        tr("Created %s", formatTs(group.savedAt)),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                     )
 
                     Divider(modifier = Modifier.padding(vertical = 12.dp))
 
-                    CopyableField(label = "Multisig FID", value = group.id)
-                    CopyableField(label = "Threshold", value = "${group.m}-of-${group.n}", showQr = false)
+                    CopyableField(label = tr("Multisig FID"), value = group.id)
+                    CopyableField(label = tr("Threshold"), value = "${group.m}-of-${group.n}", showQr = false)
 
                     Divider(modifier = Modifier.padding(vertical = 12.dp))
 
                     Text(
-                        "Members (${group.fids.size})",
+                        tr("Members (%s)", group.fids.size),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                     )
@@ -566,7 +567,7 @@ private fun MultisigCard(
                                 text = "${i + 1}. $fid",
                                 value = fid,
                                 showQr = true,
-                                qrTitle = "Member FID",
+                                qrTitle = tr("Member FID"),
                             )
                         }
                     }
@@ -574,7 +575,7 @@ private fun MultisigCard(
                     Divider(modifier = Modifier.padding(vertical = 12.dp))
 
                     CopyableField(
-                        label = "Redeem script",
+                        label = tr("Redeem script"),
                         value = group.redeemScript,
                         valueStyle = MaterialTheme.typography.caption.copy(
                             fontFamily = FontFamily.Monospace,
@@ -597,14 +598,14 @@ private fun EditableLabelRow(
     if (!editing) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = initialLabel?.ifBlank { null } ?: "(no label)",
+                text = initialLabel?.ifBlank { null } ?: tr("(no label)"),
                 style = MaterialTheme.typography.body1,
                 color = if (initialLabel.isNullOrBlank())
                     MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
                 else MaterialTheme.colors.onSurface,
             )
             IconButton(onClick = { draft = initialLabel.orEmpty(); editing = true }) {
-                Icon(Icons.Filled.Edit, contentDescription = "Edit label", modifier = Modifier.padding(0.dp))
+                Icon(Icons.Filled.Edit, contentDescription = tr("Edit label"), modifier = Modifier.padding(0.dp))
             }
         }
     } else {
@@ -614,10 +615,10 @@ private fun EditableLabelRow(
                 onValueChange = { draft = it },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
-                label = { Text("Label") },
+                label = { Text(tr("Label")) },
             )
             IconButton(onClick = { editing = false; onSave(draft) }) {
-                Icon(Icons.Filled.Check, contentDescription = "Save label")
+                Icon(Icons.Filled.Check, contentDescription = tr("Save label"))
             }
         }
     }
@@ -655,12 +656,12 @@ private fun LongPressMultisigDeleteButton(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp),
             ) {
-                Text("Delete ($selectedCount)")
+                Text(tr("Delete (%s)", selectedCount))
             }
         }
         DropdownMenu(expanded = showTip, onDismissRequest = { showTip = false }) {
             DropdownMenuItem(onClick = { showTip = false }) {
-                Text("Long-press to confirm delete")
+                Text(tr("Long-press to confirm delete"))
             }
         }
     }
@@ -685,10 +686,10 @@ private fun buildMultisig(inputs: CreateMultisigInputs): DesktopMultisig {
     val script = P2SH.makeMultisigRedeemScript(inputs.pubkeys, inputs.m, inputs.n)
     val hex = Hex.toHex(script.program)
     val fid = KeyTools.scriptToMultiAddr(hex)
-        ?: throw IllegalStateException("Could not derive multisig address")
+        ?: throw IllegalStateException(tr("Could not derive multisig address"))
     val memberFids = inputs.pubkeys.map { pk ->
         KeyTools.pubkeyToFchAddr(pk)
-            ?: throw IllegalStateException("Could not derive FID for pubkey $pk")
+            ?: throw IllegalStateException(tr("Could not derive FID for pubkey %s", pk))
     }
     return DesktopMultisig().apply {
         setId(fid)

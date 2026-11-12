@@ -54,6 +54,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopSecret
 import com.fc.safe.desktop.DesktopSecretType
 import com.fc.safe.desktop.backup.Base32Shim
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.totp.TotpExportFormat
 import com.fc.safe.desktop.totp.TotpExporter
 import com.fc.safe.desktop.totp.TotpUtil
@@ -141,7 +142,7 @@ class TotpScreen : Screen {
                 loading = false
             } catch (t: Throwable) {
                 log.warn("Load TOTP failed", t)
-                error = "Load failed: ${t.message}"
+                error = tr("Load failed: %s", t.message)
                 loading = false
             }
         }
@@ -174,7 +175,7 @@ class TotpScreen : Screen {
                     secrets = secrets.filter { it.id != sec.id }
                 } catch (t: Throwable) {
                     log.warn("Delete TOTP failed", t)
-                    error = "Delete failed: ${t.message}"
+                    error = tr("Delete failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -190,7 +191,7 @@ class TotpScreen : Screen {
                     // we'd store a record that renders as "------".
                     val decoded = runCatching { Base32Shim.fromBase32(base32Seed) }.getOrNull()
                     if (decoded == null || decoded.isEmpty()) {
-                        error = "Invalid Base32 seed"
+                        error = tr("Invalid Base32 seed")
                         busy = false
                         return@launch
                     }
@@ -214,7 +215,7 @@ class TotpScreen : Screen {
                     load()
                 } catch (t: Throwable) {
                     log.warn("Save TOTP import failed", t)
-                    error = "Save failed: ${t.message}"
+                    error = tr("Save failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -242,7 +243,7 @@ class TotpScreen : Screen {
                     selectedIds = emptySet()
                 } catch (t: Throwable) {
                     log.warn("Delete selected TOTP failed", t)
-                    error = "Delete failed: ${t.message}"
+                    error = tr("Delete failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -277,7 +278,7 @@ class TotpScreen : Screen {
                 outcome.onSuccess { exportResult = it }
                 outcome.onFailure {
                     log.warn("TOTP export failed", it)
-                    error = "Export failed: ${it.message}"
+                    error = tr("Export failed: %s", it.message)
                 }
             }
         }
@@ -292,7 +293,7 @@ class TotpScreen : Screen {
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -305,11 +306,11 @@ class TotpScreen : Screen {
                     if (selectedIds.isEmpty()) {
                         Column {
                             Text(
-                                if (loading) "Loading…" else "${secrets.size} TOTP code(s)",
+                                if (loading) tr("Loading…") else tr("%s TOTP code(s)", secrets.size),
                                 style = MaterialTheme.typography.subtitle1,
                             )
                             Text(
-                                "$wallClock  ·  ${remaining}s to next",
+                                tr("%s  ·  %ss to next", wallClock, remaining),
                                 style = MaterialTheme.typography.caption,
                                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                             )
@@ -317,16 +318,16 @@ class TotpScreen : Screen {
                         SafeButton(
                             enabled = !busy,
                             onClick = { showImport = true },
-                        ) { Text("Import TOTP") }
+                        ) { Text(tr("Import TOTP")) }
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             TextButton(
                                 enabled = !busy,
                                 onClick = { selectedIds = emptySet() },
-                            ) { Text("Cancel") }
+                            ) { Text(tr("Cancel")) }
                             Spacer(Modifier.width(4.dp))
                             Text(
-                                "${selectedIds.size} selected",
+                                tr("%s selected", selectedIds.size),
                                 style = MaterialTheme.typography.subtitle1,
                             )
                         }
@@ -334,7 +335,7 @@ class TotpScreen : Screen {
                             SafeButton(
                                 enabled = !busy,
                                 onClick = { exportResult = null; showExport = true },
-                            ) { Text("Export") }
+                            ) { Text(tr("Export")) }
                             Spacer(Modifier.width(8.dp))
                             LongPressTotpDeleteButton(
                                 enabled = !busy,
@@ -361,10 +362,10 @@ class TotpScreen : Screen {
                     }
                     secrets.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("No TOTP codes.", style = MaterialTheme.typography.subtitle1)
+                            Text(tr("No TOTP codes."), style = MaterialTheme.typography.subtitle1)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Import an otpauth:// URI or a {secret, label} JSON.",
+                                tr("Import an otpauth:// URI or a {secret, label} JSON."),
                                 style = MaterialTheme.typography.caption,
                             )
                         }
@@ -481,13 +482,13 @@ private fun TotpCard(
                 Spacer(Modifier.width(4.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = secret.title?.ifBlank { null } ?: "(no title)",
+                        text = secret.title?.ifBlank { null } ?: tr("(no title)"),
                         style = MaterialTheme.typography.subtitle1,
                     )
                     Text(
                         text = if (revealed)
-                            "click to hide · long-press to delete"
-                        else "click to reveal · long-press to delete",
+                            tr("click to hide · long-press to delete")
+                        else tr("click to reveal · long-press to delete"),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
                     )
@@ -520,9 +521,9 @@ private fun TotpCard(
                 ) {
                     ShowQrTextButton(
                         text = code,
-                        title = secret.title?.ifBlank { null } ?: "TOTP code",
+                        title = secret.title?.ifBlank { null } ?: tr("TOTP code"),
                     )
-                    TextButton(onClick = { onCopy(code) }) { Text("Copy") }
+                    TextButton(onClick = { onCopy(code) }) { Text(tr("Copy")) }
                 }
             }
         }
@@ -534,16 +535,16 @@ private fun TotpCard(
         // a signing key). A one-step confirm is enough.
         androidx.compose.material.AlertDialog(
             onDismissRequest = { showDeleteTip = false },
-            title = { Text("Delete TOTP?") },
-            text = { Text("Remove \"${secret.title ?: secret.id}\" from this vault?") },
+            title = { Text(tr("Delete TOTP?")) },
+            text = { Text(tr("Remove \"%s\" from this vault?", secret.title ?: secret.id)) },
             confirmButton = {
                 TextButton(onClick = {
                     showDeleteTip = false
                     onDelete()
-                }) { Text("Delete", color = MaterialTheme.colors.error) }
+                }) { Text(tr("Delete"), color = MaterialTheme.colors.error) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteTip = false }) { Text("Cancel") }
+                TextButton(onClick = { showDeleteTip = false }) { Text(tr("Cancel")) }
             },
         )
     }
@@ -587,12 +588,12 @@ private fun LongPressTotpDeleteButton(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp),
             ) {
-                Text("Delete ($selectedCount)")
+                Text(tr("Delete (%s)", selectedCount))
             }
         }
         DropdownMenu(expanded = showTip, onDismissRequest = { showTip = false }) {
             DropdownMenuItem(onClick = { showTip = false }) {
-                Text("Long-press to confirm delete")
+                Text(tr("Long-press to confirm delete"))
             }
         }
     }

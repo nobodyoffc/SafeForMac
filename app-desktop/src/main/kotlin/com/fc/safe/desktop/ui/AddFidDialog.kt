@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 import core.crypto.KeyTools
 
 /**
@@ -42,8 +43,8 @@ fun AddFidDialog(
 
     fun submit() {
         when {
-            fid.isBlank() -> error = "Enter an FID"
-            !KeyTools.isGoodFid(fid.trim()) -> error = "Not a valid FID"
+            fid.isBlank() -> error = tr("Enter an FID")
+            !KeyTools.isGoodFid(fid.trim()) -> error = tr("Not a valid FID")
             else -> {
                 error = null
                 onDone(fid.trim(), label.ifBlank { null })
@@ -65,7 +66,7 @@ fun AddFidDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Add FID to address book", style = MaterialTheme.typography.h6)
+                Text(tr("Add FID to address book"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
 
                 ScanTextField(
@@ -73,7 +74,7 @@ fun AddFidDialog(
                     onValueChange = { fid = it; error = null },
                     label = "FID",
                     monospace = true,
-                    scanTooltip = "Scan an FID QR code",
+                    scanTooltip = tr("Scan an FID QR code"),
                     onScanError = { error = it },
                     onScanned = { fid = it.trim(); error = null },
                     modifier = Modifier.fillMaxWidth(),
@@ -82,7 +83,7 @@ fun AddFidDialog(
                 OutlinedTextField(
                     value = label,
                     onValueChange = { label = it },
-                    label = { Text("Label (optional)") },
+                    label = { Text(tr("Label (optional)")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -98,9 +99,9 @@ fun AddFidDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
-                    TextButton(onClick = ::submit) { Text("Add") }
+                    TextButton(onClick = ::submit) { Text(tr("Add")) }
                 }
             }
         }

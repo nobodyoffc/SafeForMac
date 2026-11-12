@@ -1,6 +1,7 @@
 package com.fc.safe.desktop.backup
 
 import com.fc.safe.desktop.DesktopKeyInfo
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.platform.macos.WalletSession
 import com.google.gson.GsonBuilder
 import core.crypto.Encryptor
@@ -17,9 +18,9 @@ import java.util.Locale
  * between the two apps.
  */
 enum class ExportMode(val displayName: String) {
-    CURRENT_PASSWORD("Current Password"),
-    RANDOM_PASSWORD("Random Password"),
-    NONE("Don't encrypt"),
+    CURRENT_PASSWORD(tr("Current Password")),
+    RANDOM_PASSWORD(tr("Random Password")),
+    NONE(tr("Don't encrypt")),
 }
 
 /** Result of an export operation — the concatenated backup text plus (if any) the random password the user must remember. */
@@ -57,7 +58,7 @@ internal object KeyExporter {
         val signedKeys = keys.filter { !it.prikeyCipher.isNullOrBlank() }
         if (signedKeys.isEmpty()) {
             throw IllegalStateException(
-                "No signed keys to export — watch-only keys have nothing secret to back up"
+                tr("No signed keys to export — watch-only keys have nothing secret to back up")
             )
         }
 
@@ -74,8 +75,8 @@ internal object KeyExporter {
         var randomPassword: String? = null
         when (mode) {
             ExportMode.CURRENT_PASSWORD -> {
-                requireNotNull(enteredPassword) { "Password required for current-password export" }
-                require(enteredPassword.isNotEmpty()) { "Password is empty" }
+                requireNotNull(enteredPassword) { tr("Password required for current-password export") }
+                require(enteredPassword.isNotEmpty()) { tr("Password is empty") }
                 pwdForKeys = enteredPassword
             }
             ExportMode.RANDOM_PASSWORD -> {
@@ -146,7 +147,7 @@ internal object KeyExporter {
                     val cdb = Encryptor(AlgorithmId.FC_AesGcm256_No1_NrC7)
                         .encryptByPassword(rawPrikey, exportPassword)
                     val base64 = cdb.toBase64()
-                        ?: throw IllegalStateException("Failed to encode cipher")
+                        ?: throw IllegalStateException(tr("Failed to encode cipher"))
                     export.prikey = null
                     export.prikeyCipher = base64
                 }

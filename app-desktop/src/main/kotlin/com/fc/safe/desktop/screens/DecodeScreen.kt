@@ -31,6 +31,7 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.backup.Base32Shim
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.SafeButton
@@ -50,7 +51,7 @@ import java.util.Base64
  * wins.
  */
 private enum class DecodeFormat(val display: String) {
-    AUTO("Auto"),
+    AUTO(tr("Auto")),
     HEX("Hex"),
     BASE58("Base58"),
     BASE64("Base64"),
@@ -75,11 +76,11 @@ class DecodeScreen : Screen {
             if (input.isBlank()) return
             val trimmed = input.trim()
             val (bytes, usedFormat) = decodeTrying(trimmed, format) ?: run {
-                error = "Couldn't decode as ${format.display}"
+                error = tr("Couldn't decode as %s", format.display)
                 return
             }
             result = buildString {
-                append("Decoded as ${usedFormat.display}:\n\n")
+                append(tr("Decoded as %s:\n\n", usedFormat.display))
                 append("Hex: ").append(Hex.toHex(bytes)).append("\n\n")
                 append("Base58: ").append(Base58.encode(bytes)).append("\n\n")
                 append("Base64: ").append(Base64.getEncoder().encodeToString(bytes)).append("\n\n")
@@ -89,11 +90,11 @@ class DecodeScreen : Screen {
         }
 
         AppShell(
-            title = "String decoder",
+            title = tr("String decoder"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -104,8 +105,8 @@ class DecodeScreen : Screen {
                 CryptoIoBlock(
                     value = input,
                     onValueChange = { input = it; error = null },
-                    label = "Encoded input",
-                    placeholder = "Paste hex, Base58, Base64, Base32, or plain UTF-8",
+                    label = tr("Encoded input"),
+                    placeholder = tr("Paste hex, Base58, Base64, Base32, or plain UTF-8"),
                     heightDp = 140,
                     onClear = { input = ""; result = ""; error = null },
                     enableQr = true,
@@ -113,7 +114,7 @@ class DecodeScreen : Screen {
                 )
 
                 Spacer(Modifier.height(8.dp))
-                Text("Source format", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Source format"), style = MaterialTheme.typography.subtitle2)
                 Spacer(Modifier.height(4.dp))
                 DecodeFormat.entries.chunked(3).forEach { row ->
                     Row(
@@ -141,11 +142,11 @@ class DecodeScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         input = ""; result = ""; error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = input.isNotBlank(),
                         onClick = ::run,
-                    ) { Text("Decode") }
+                    ) { Text(tr("Decode")) }
                 }
 
                 error?.let {
@@ -159,7 +160,7 @@ class DecodeScreen : Screen {
                 CryptoIoBlock(
                     value = result,
                     onValueChange = {},
-                    label = "Decoded",
+                    label = tr("Decoded"),
                     readOnly = true,
                     enableMakeQr = true,
                     heightDp = 260,

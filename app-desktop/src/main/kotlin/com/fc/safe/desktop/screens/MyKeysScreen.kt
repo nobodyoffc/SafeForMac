@@ -61,6 +61,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopKeyInfo
 import com.fc.safe.desktop.KeyImportOutcome
 import com.fc.safe.desktop.buildKeyFromPrikey32
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.phraseToPrikey32
 import com.fc.safe.desktop.resolveKeyImport
 import com.fc.safe.desktop.ui.AppShell
@@ -139,7 +140,7 @@ class MyKeysScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Save key failed", t)
-                    error = "Save failed: ${t.message}"
+                    error = tr("Save failed: %s", t.message)
                 } finally {
                     busy = false
                     showPhrase = false
@@ -159,7 +160,7 @@ class MyKeysScreen : Screen {
                     persistKey(key)
                 } else {
                     pendingReplace = PendingReplaceKeys(
-                        title = "Replace existing key?",
+                        title = tr("Replace existing key?"),
                         conflictIds = listOf(key.id),
                         showSkip = false,
                         onResult = { result ->
@@ -184,7 +185,7 @@ class MyKeysScreen : Screen {
                 built.onSuccess { saveNewKey(it) }
                 built.onFailure { t ->
                     log.warn("Add key by phrase failed", t)
-                    error = t.message ?: "Invalid input"
+                    error = t.message ?: tr("Invalid input")
                     busy = false
                 }
             }
@@ -203,7 +204,7 @@ class MyKeysScreen : Screen {
                     }
                     refresh()
                 } catch (t: Throwable) {
-                    error = "Label save failed: ${t.message}"
+                    error = tr("Label save failed: %s", t.message)
                 }
             }
         }
@@ -225,7 +226,7 @@ class MyKeysScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Delete keys failed", t)
-                    error = "Delete failed: ${t.message}"
+                    error = tr("Delete failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -246,7 +247,7 @@ class MyKeysScreen : Screen {
                 }
                 outcome.onFailure { t ->
                     log.warn("Export failed", t)
-                    error = "Export failed: ${t.message}"
+                    error = tr("Export failed: %s", t.message)
                 }
             }
         }
@@ -266,7 +267,7 @@ class MyKeysScreen : Screen {
                     refresh()
                 } catch (t: Throwable) {
                     log.warn("Persist imported keys failed", t)
-                    error = "Save failed: ${t.message}"
+                    error = tr("Save failed: %s", t.message)
                 } finally {
                     busy = false
                 }
@@ -283,7 +284,7 @@ class MyKeysScreen : Screen {
                 busy = false
                 outcome.onSuccess { imported ->
                     if (imported.isEmpty()) {
-                        error = "No keys imported — check the JSON"
+                        error = tr("No keys imported — check the JSON")
                         return@onSuccess
                     }
                     scope.launch {
@@ -296,7 +297,7 @@ class MyKeysScreen : Screen {
                             persistImported(imported)
                         } else {
                             pendingReplace = PendingReplaceKeys(
-                                title = "Replace existing key(s)?",
+                                title = tr("Replace existing key(s)?"),
                                 conflictIds = existingIds,
                                 showSkip = imported.size > existingIds.size,
                                 onResult = { result ->
@@ -319,7 +320,7 @@ class MyKeysScreen : Screen {
                         is KeyImporter.PasswordRequired -> pendingImportAwaitingPassword = true
                         else -> {
                             log.warn("Import failed", t)
-                            error = "Import failed: ${t.message}"
+                            error = tr("Import failed: %s", t.message)
                         }
                     }
                 }
@@ -343,7 +344,7 @@ class MyKeysScreen : Screen {
                 }
                 resolved.onFailure { t ->
                     log.warn("Import {} failed: {}", request.kind, t.message)
-                    error = t.message ?: "Invalid input"
+                    error = t.message ?: tr("Invalid input")
                     busy = false
                 }
             }
@@ -351,7 +352,7 @@ class MyKeysScreen : Screen {
 
         fun requestReveal(key: DesktopKeyInfo) {
             if (key.prikeyCipher == null) {
-                error = "This key has no private key (watch-only or legacy record)."
+                error = tr("This key has no private key (watch-only or legacy record).")
                 return
             }
             // Don't decrypt yet — gate behind a fresh password prompt
@@ -371,17 +372,17 @@ class MyKeysScreen : Screen {
                 outcome.onSuccess { revealPrikeyHex = it }
                 outcome.onFailure {
                     log.warn("Prikey reveal failed", it)
-                    error = "Decrypt failed: ${it.message}"
+                    error = tr("Decrypt failed: %s", it.message)
                 }
             }
         }
 
         AppShell(
-            title = "My Keys",
+            title = tr("My Keys"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -394,7 +395,7 @@ class MyKeysScreen : Screen {
                 ) {
                     if (selectedIds.isEmpty()) {
                         Text(
-                            if (loading) "Loading…" else "${keys.size} key(s)",
+                            if (loading) tr("Loading…") else tr("%s key(s)", keys.size),
                             style = MaterialTheme.typography.subtitle1,
                         )
                         AddNewKeyMenu(
@@ -410,10 +411,10 @@ class MyKeysScreen : Screen {
                             TextButton(
                                 enabled = !busy,
                                 onClick = { selectedIds = emptySet() },
-                            ) { Text("Cancel") }
+                            ) { Text(tr("Cancel")) }
                             Spacer(Modifier.width(4.dp))
                             Text(
-                                "${selectedIds.size} selected",
+                                tr("%s selected", selectedIds.size),
                                 style = MaterialTheme.typography.subtitle1,
                             )
                         }
@@ -421,7 +422,7 @@ class MyKeysScreen : Screen {
                             SafeButton(
                                 enabled = !busy,
                                 onClick = { showExport = true },
-                            ) { Text("Export") }
+                            ) { Text(tr("Export")) }
                             Spacer(Modifier.width(8.dp))
                             LongPressDeleteButton(
                                 enabled = !busy,
@@ -448,10 +449,10 @@ class MyKeysScreen : Screen {
                     }
                     keys.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("No keys yet.", style = MaterialTheme.typography.subtitle1)
+                            Text(tr("No keys yet."), style = MaterialTheme.typography.subtitle1)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Use \"Add new key\" to generate one.",
+                                tr("Use \"Add new key\" to generate one."),
                                 style = MaterialTheme.typography.caption,
                             )
                         }
@@ -492,9 +493,9 @@ class MyKeysScreen : Screen {
 
         pendingReveal?.let { key ->
             PasswordPromptDialog(
-                title = "Confirm password",
-                message = "Re-enter your wallet password to reveal the private key for ${key.id}.",
-                confirmLabel = "Reveal",
+                title = tr("Confirm password"),
+                message = tr("Re-enter your wallet password to reveal the private key for %s.", key.id),
+                confirmLabel = tr("Reveal"),
                 onDismiss = { pendingReveal = null },
                 onVerified = { pwd ->
                     pwd.fill(Char.MIN_VALUE)
@@ -620,7 +621,7 @@ private fun LongPressDeleteButton(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp),
             ) {
-                Text("Delete ($selectedCount)")
+                Text(tr("Delete (%s)", selectedCount))
             }
         }
         DropdownMenu(
@@ -628,7 +629,7 @@ private fun LongPressDeleteButton(
             onDismissRequest = { showTip = false },
         ) {
             DropdownMenuItem(onClick = { showTip = false }) {
-                Text("Long-press to confirm delete")
+                Text(tr("Long-press to confirm delete"))
             }
         }
     }
@@ -656,15 +657,15 @@ private fun AddNewKeyMenu(
                     color = MaterialTheme.colors.onPrimary,
                 )
             } else {
-                Text("Add new key")
+                Text(tr("Add new key"))
                 Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
             }
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(onClick = { expanded = false; onImport() }) { Text("Import keys…") }
-            DropdownMenuItem(onClick = { expanded = false; onFindNice() }) { Text("Find a nice FID…") }
-            DropdownMenuItem(onClick = { expanded = false; onPhrase() }) { Text("Input phrase…") }
-            DropdownMenuItem(onClick = { expanded = false; onRandom() }) { Text("Random keys…") }
+            DropdownMenuItem(onClick = { expanded = false; onImport() }) { Text(tr("Import keys…")) }
+            DropdownMenuItem(onClick = { expanded = false; onFindNice() }) { Text(tr("Find a nice FID…")) }
+            DropdownMenuItem(onClick = { expanded = false; onPhrase() }) { Text(tr("Input phrase…")) }
+            DropdownMenuItem(onClick = { expanded = false; onRandom() }) { Text(tr("Random keys…")) }
         }
     }
 }
@@ -707,7 +708,7 @@ private fun KeyCard(
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text = key.label?.ifBlank { null } ?: "(no label)",
+                        text = key.label?.ifBlank { null } ?: tr("(no label)"),
                         style = MaterialTheme.typography.body2,
                         color = if (key.label.isNullOrBlank())
                             MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
@@ -715,7 +716,7 @@ private fun KeyCard(
                     )
                     if (key.watchOnly) {
                         Text(
-                            "watch-only",
+                            tr("watch-only"),
                             style = MaterialTheme.typography.caption,
                             color = MaterialTheme.colors.primary,
                         )
@@ -723,7 +724,7 @@ private fun KeyCard(
                 }
                 Icon(
                     imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    contentDescription = if (expanded) tr("Collapse") else tr("Expand"),
                 )
             }
 
@@ -734,7 +735,7 @@ private fun KeyCard(
 
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Created ${formatTs(key.savedAt)}",
+                        tr("Created %s", formatTs(key.savedAt)),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                     )
@@ -742,14 +743,14 @@ private fun KeyCard(
                     Divider(modifier = Modifier.padding(vertical = 12.dp))
 
                     CopyableField(label = "FID", value = key.id)
-                    CopyableField(label = "Public key", value = key.pubkey)
+                    CopyableField(label = tr("Public key"), value = key.pubkey)
 
                     // prikeyCipher row with reveal action
                     if (!key.prikeyCipher.isNullOrBlank()) {
                         Spacer(Modifier.height(8.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Column(modifier = Modifier.weight(1f)) {
-                                CopyableField(label = "Private key (cipher)", value = key.prikeyCipher)
+                                CopyableField(label = tr("Private key (cipher)"), value = key.prikeyCipher)
                             }
                             IconButton(onClick = onRevealPrikey) {
                                 Text(
@@ -784,7 +785,7 @@ private fun EditableLabelRow(
     if (!editing) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = initialLabel?.ifBlank { null } ?: "(no label)",
+                text = initialLabel?.ifBlank { null } ?: tr("(no label)"),
                 style = MaterialTheme.typography.body1,
                 color = if (initialLabel.isNullOrBlank())
                     MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
@@ -793,7 +794,7 @@ private fun EditableLabelRow(
             IconButton(onClick = { draft = initialLabel.orEmpty(); editing = true }) {
                 Icon(
                     Icons.Filled.Edit,
-                    contentDescription = "Edit label",
+                    contentDescription = tr("Edit label"),
                     modifier = Modifier.size(16.dp),
                 )
             }
@@ -805,10 +806,10 @@ private fun EditableLabelRow(
                 onValueChange = { draft = it },
                 singleLine = true,
                 modifier = Modifier.weight(1f),
-                label = { Text("Label") },
+                label = { Text(tr("Label")) },
             )
             IconButton(onClick = { editing = false; onSave(draft) }) {
-                Icon(Icons.Filled.Check, contentDescription = "Save label")
+                Icon(Icons.Filled.Check, contentDescription = tr("Save label"))
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.fc.safe.desktop.backup
 
+import com.fc.safe.desktop.i18n.tr
 /**
  * Unpadded Base32 using RFC 4648 alphabet (A-Z + 2-7). Ported from
  * `com.fc.fc_ajdk.utils.Base32` (Android) — FC-JDK doesn't have it.
@@ -52,7 +53,7 @@ internal object Base32Shim {
         var count = 0
         for (c in cleaned) {
             val v = if (c.code < REVERSE.size) REVERSE[c.code] else -1
-            require(v >= 0) { "Invalid Base32 character: $c" }
+            require(v >= 0) { tr("Invalid Base32 character: %s", c) }
             buffer = (buffer shl 5) or v
             bitsLeft += 5
             if (bitsLeft >= 8) {

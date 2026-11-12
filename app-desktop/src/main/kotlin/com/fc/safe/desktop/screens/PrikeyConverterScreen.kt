@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.SafeButton
@@ -50,10 +51,10 @@ import utils.Hex
  * extra surface area for v1.
  */
 private enum class PrikeyTarget(val display: String) {
-    HEX("Hex (32 bytes)"),
-    WIF_COMPRESSED("WIF compressed"),
-    WIF_LEGACY("WIF legacy (uncompressed)"),
-    MNEMONIC("Mnemonic (12 words)"),
+    HEX(tr("Hex (32 bytes)")),
+    WIF_COMPRESSED(tr("WIF compressed")),
+    WIF_LEGACY(tr("WIF legacy (uncompressed)")),
+    MNEMONIC(tr("Mnemonic (12 words)")),
 }
 
 class PrikeyConverterScreen : Screen {
@@ -78,10 +79,10 @@ class PrikeyConverterScreen : Screen {
                 val bytes: ByteArray = if (words.size == 12 || words.size == 24) {
                     runCatching { KeyTools.mnemonicToBytes(key) }.getOrNull()
                         ?: KeyTools.getPrikey32(key)
-                        ?: run { error = "Not a valid mnemonic or key"; return }
+                        ?: run { error = tr("Not a valid mnemonic or key"); return }
                 } else {
                     KeyTools.getPrikey32(key)
-                        ?: run { error = "Not a valid hex/WIF private key"; return }
+                        ?: run { error = tr("Not a valid hex/WIF private key"); return }
                 }
                 val hex = Hex.toHex(bytes)
                 result = when (target) {
@@ -91,17 +92,17 @@ class PrikeyConverterScreen : Screen {
                     PrikeyTarget.MNEMONIC -> KeyTools.bytesToMnemonic(bytes)
                 }
             } catch (t: Throwable) {
-                error = "Convert failed: ${t.message}"
+                error = tr("Convert failed: %s", t.message)
                 result = ""
             }
         }
 
         AppShell(
-            title = "Private key converter",
+            title = tr("Private key converter"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -112,8 +113,8 @@ class PrikeyConverterScreen : Screen {
                 CryptoIoBlock(
                     value = input,
                     onValueChange = { input = it; error = null },
-                    label = "Private key input",
-                    placeholder = "Mnemonic (12 / 24 words), 64-char hex, or WIF",
+                    label = tr("Private key input"),
+                    placeholder = tr("Mnemonic (12 / 24 words), 64-char hex, or WIF"),
                     heightDp = 120,
                     onClear = { input = ""; result = ""; error = null },
                     enableQr = true,
@@ -121,7 +122,7 @@ class PrikeyConverterScreen : Screen {
                 )
 
                 Spacer(Modifier.height(8.dp))
-                Text("Output format", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Output format"), style = MaterialTheme.typography.subtitle2)
                 Spacer(Modifier.height(4.dp))
                 PrikeyTarget.entries.forEach { t ->
                     Row(
@@ -137,11 +138,11 @@ class PrikeyConverterScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         input = ""; result = ""; error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = input.isNotBlank(),
                         onClick = ::convert,
-                    ) { Text("Convert") }
+                    ) { Text(tr("Convert")) }
                 }
 
                 error?.let {

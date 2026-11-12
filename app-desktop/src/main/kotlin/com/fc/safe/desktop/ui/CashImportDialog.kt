@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fc.safe.desktop.backup.BackupCodec
+import com.fc.safe.desktop.i18n.tr
 import data.fchData.Cash
 import utils.JsonUtils
 import java.io.ByteArrayInputStream
@@ -51,12 +52,12 @@ fun CashImportDialog(
     fun submit() {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) {
-            error = "Paste a Cash JSON or array first"
+            error = tr("Paste a Cash JSON or array first")
             return
         }
         val parsed = parseCashes(trimmed)
         if (parsed.isEmpty()) {
-            error = "No valid Cash records found"
+            error = tr("No valid Cash records found")
             return
         }
         error = null
@@ -77,10 +78,10 @@ fun CashImportDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Import cash", style = MaterialTheme.typography.h6)
+                Text(tr("Import cash"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Paste a Cash JSON or an array of Cash records.",
+                    tr("Paste a Cash JSON or an array of Cash records."),
                     style = MaterialTheme.typography.body2,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                 )
@@ -89,7 +90,7 @@ fun CashImportDialog(
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it; error = null },
-                    label = { Text("Cash JSON") },
+                    label = { Text(tr("Cash JSON")) },
                     textStyle = MaterialTheme.typography.body2.copy(
                         fontFamily = FontFamily.Monospace,
                     ),
@@ -98,7 +99,7 @@ fun CashImportDialog(
                         QrScanTrailingIcon(
                             onDecoded = { text = it.trim(); error = null },
                             onError = { error = it },
-                            tooltip = "Scan a cash QR code",
+                            tooltip = tr("Scan a cash QR code"),
                         )
                     },
                 )
@@ -113,9 +114,9 @@ fun CashImportDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
-                    TextButton(onClick = ::submit) { Text("Import") }
+                    TextButton(onClick = ::submit) { Text(tr("Import")) }
                 }
             }
         }

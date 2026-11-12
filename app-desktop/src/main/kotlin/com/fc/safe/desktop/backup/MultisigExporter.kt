@@ -1,6 +1,7 @@
 package com.fc.safe.desktop.backup
 
 import com.fc.safe.desktop.DesktopMultisig
+import com.fc.safe.desktop.i18n.tr
 import com.google.gson.GsonBuilder
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -34,7 +35,7 @@ internal object MultisigExporter {
 
     fun export(groups: List<DesktopMultisig>): ExportResult {
         if (groups.isEmpty()) {
-            throw IllegalStateException("No multisig groups to export")
+            throw IllegalStateException(tr("No multisig groups to export"))
         }
 
         val now = System.currentTimeMillis()

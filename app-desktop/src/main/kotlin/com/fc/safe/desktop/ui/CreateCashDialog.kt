@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 import constants.Constants
 import core.crypto.KeyTools
 import data.fchData.Cash
@@ -56,15 +57,15 @@ fun CreateCashDialog(
         val amount = amountStr.toDoubleOrNull()
         when {
             txId.isBlank() || indexStr.isBlank() || amountStr.isBlank() || owner.isBlank() ->
-                error = "Fill all four fields"
+                error = tr("Fill all four fields")
             !Hex.isHex32(txId) ->
-                error = "txId must be 64 hex chars (32 bytes)"
+                error = tr("txId must be 64 hex chars (32 bytes)")
             idx == null || idx < 0 ->
-                error = "Index must be a non-negative integer"
+                error = tr("Index must be a non-negative integer")
             amount == null || amount < Constants.MIN_AMOUNT || amount > Constants.MAX_AMOUNT ->
-                error = "Amount must be between ${Constants.MIN_AMOUNT} and ${Constants.MAX_AMOUNT} FCH"
+                error = tr("Amount must be between %s and %s FCH", Constants.MIN_AMOUNT, Constants.MAX_AMOUNT)
             !KeyTools.isGoodFid(owner.trim()) ->
-                error = "Owner is not a valid FID"
+                error = tr("Owner is not a valid FID")
             else -> {
                 val cash = Cash(txId.trim(), idx, amount).apply {
                     setOwner(owner.trim())
@@ -94,15 +95,15 @@ fun CreateCashDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Add cash (UTXO)", style = MaterialTheme.typography.h6)
+                Text(tr("Add cash (UTXO)"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(12.dp))
 
                 ScanTextField(
                     value = txId,
                     onValueChange = { txId = it; error = null },
-                    label = "Tx ID (64 hex)",
+                    label = tr("Tx ID (64 hex)"),
                     monospace = true,
-                    scanTooltip = "Scan a tx id QR code",
+                    scanTooltip = tr("Scan a tx id QR code"),
                     onScanError = { error = it },
                     onScanned = { txId = it.trim(); error = null },
                     modifier = Modifier.fillMaxWidth(),
@@ -111,7 +112,7 @@ fun CreateCashDialog(
                 OutlinedTextField(
                     value = indexStr,
                     onValueChange = { indexStr = it.filter { c -> c.isDigit() }; error = null },
-                    label = { Text("Output index") },
+                    label = { Text(tr("Output index")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -119,7 +120,7 @@ fun CreateCashDialog(
                 OutlinedTextField(
                     value = amountStr,
                     onValueChange = { amountStr = it; error = null },
-                    label = { Text("Amount (FCH)") },
+                    label = { Text(tr("Amount (FCH)")) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -127,9 +128,9 @@ fun CreateCashDialog(
                 ScanTextField(
                     value = owner,
                     onValueChange = { owner = it; error = null },
-                    label = "Owner FID",
+                    label = tr("Owner FID"),
                     monospace = true,
-                    scanTooltip = "Scan the owner's FID",
+                    scanTooltip = tr("Scan the owner's FID"),
                     onScanError = { error = it },
                     onScanned = { owner = it.trim(); error = null },
                     modifier = Modifier.fillMaxWidth(),
@@ -146,9 +147,9 @@ fun CreateCashDialog(
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TextButton(onClick = onDismiss) { Text("Cancel") }
+                    TextButton(onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
-                    TextButton(onClick = ::submit) { Text("Add") }
+                    TextButton(onClick = ::submit) { Text(tr("Add")) }
                 }
             }
         }

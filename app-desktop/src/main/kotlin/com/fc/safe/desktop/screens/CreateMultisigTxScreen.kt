@@ -42,6 +42,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopMultisig
 import com.fc.safe.desktop.fch.TxHandler
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AddTxInputDialog
 import com.fc.safe.desktop.ui.AddTxOutputDialog
 import com.fc.safe.desktop.ui.AppShell
@@ -119,29 +120,29 @@ class CreateMultisigTxScreen : Screen {
         }
 
         fun validate(): String? {
-            if (picked == null) return "Pick a multisig group first"
-            if (inputs.isEmpty()) return "Add at least one input"
-            if (outputs.isEmpty()) return "Add at least one output"
+            if (picked == null) return tr("Pick a multisig group first")
+            if (inputs.isEmpty()) return tr("Add at least one input")
+            if (outputs.isEmpty()) return tr("Add at least one output")
             inputs.forEach {
-                if ((it.value ?: 0L) <= 0L) return "Input value must be > 0"
+                if ((it.value ?: 0L) <= 0L) return tr("Input value must be > 0")
             }
             val groupFid = picked!!.id
             val badInput = inputs.firstOrNull { it.owner != null && it.owner != groupFid }
             if (badInput != null) {
-                return "Input owner ${badInput.owner} doesn't match the picked multisig FID"
+                return tr("Input owner %s doesn't match the picked multisig FID", badInput.owner)
             }
             if (totals.totalInput < totals.totalOutput + totals.fee) {
-                return "Inputs don't cover outputs + fee"
+                return tr("Inputs don't cover outputs + fee")
             }
             return null
         }
 
         AppShell(
-            title = "Create multisig TX",
+            title = tr("Create multisig TX"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -150,7 +151,7 @@ class CreateMultisigTxScreen : Screen {
                     .verticalScroll(rememberScrollState()),
             ) {
                 // Sender: picked multisig group.
-                Text("Sender multisig", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Sender multisig"), style = MaterialTheme.typography.subtitle2)
                 Spacer(Modifier.height(4.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
@@ -163,7 +164,7 @@ class CreateMultisigTxScreen : Screen {
                         Column(modifier = Modifier.weight(1f)) {
                             picked?.let { g ->
                                 Text(
-                                    g.label?.ifBlank { null } ?: "(no label)",
+                                    g.label?.ifBlank { null } ?: tr("(no label)"),
                                     style = MaterialTheme.typography.body1,
                                 )
                                 Text(
@@ -174,13 +175,13 @@ class CreateMultisigTxScreen : Screen {
                                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                                 )
                             } ?: Text(
-                                "No multisig group picked yet.",
+                                tr("No multisig group picked yet."),
                                 style = MaterialTheme.typography.body2,
                                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
                             )
                         }
                         SafeButton(onClick = { showGroupPicker = true }) {
-                            Text(if (picked == null) "Pick group…" else "Change")
+                            Text(if (picked == null) tr("Pick group…") else tr("Change"))
                         }
                     }
                 }
@@ -188,7 +189,7 @@ class CreateMultisigTxScreen : Screen {
                 Spacer(Modifier.height(12.dp))
                 Divider()
                 Spacer(Modifier.height(8.dp))
-                Text("Inputs", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Inputs"), style = MaterialTheme.typography.subtitle2)
                 Spacer(Modifier.height(4.dp))
                 inputs.forEachIndexed { idx, inp ->
                     InputCardMs(
@@ -204,7 +205,7 @@ class CreateMultisigTxScreen : Screen {
                             enabled = picked != null,
                             onClick = { inputMenuOpen = true },
                         ) {
-                            Text("+ Add input")
+                            Text(tr("+ Add input"))
                             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(
@@ -214,16 +215,16 @@ class CreateMultisigTxScreen : Screen {
                             DropdownMenuItem(onClick = {
                                 inputMenuOpen = false
                                 showCashPicker = true
-                            }) { Text("From My Cash…") }
+                            }) { Text(tr("From My Cash…")) }
                             DropdownMenuItem(onClick = {
                                 inputMenuOpen = false
                                 showAddInput = true
-                            }) { Text("Type manually") }
+                            }) { Text(tr("Type manually")) }
                         }
                     }
                     if (inputs.isNotEmpty()) {
                         Text(
-                            "Spending ${FchUtils.satoshiToCoin(totals.totalInput)} FCH",
+                            tr("Spending %s FCH", FchUtils.satoshiToCoin(totals.totalInput)),
                             style = MaterialTheme.typography.body2,
                             modifier = Modifier.align(Alignment.CenterVertically),
                         )
@@ -233,7 +234,7 @@ class CreateMultisigTxScreen : Screen {
                 Spacer(Modifier.height(16.dp))
                 Divider()
                 Spacer(Modifier.height(8.dp))
-                Text("Outputs", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Outputs"), style = MaterialTheme.typography.subtitle2)
                 Spacer(Modifier.height(4.dp))
                 outputs.forEachIndexed { idx, out ->
                     OutputCardMs(
@@ -246,7 +247,7 @@ class CreateMultisigTxScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box {
                         SafeButton(onClick = { outputMenuOpen = true }) {
-                            Text("+ Add output")
+                            Text(tr("+ Add output"))
                             Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
                         }
                         DropdownMenu(
@@ -256,26 +257,24 @@ class CreateMultisigTxScreen : Screen {
                             DropdownMenuItem(onClick = {
                                 outputMenuOpen = false
                                 showFidPicker = true
-                            }) { Text("Pick FID from address book…") }
+                            }) { Text(tr("Pick FID from address book…")) }
                             DropdownMenuItem(onClick = {
                                 outputMenuOpen = false
                                 showKeyPicker = true
-                            }) { Text("Pick from My Keys…") }
+                            }) { Text(tr("Pick from My Keys…")) }
                             DropdownMenuItem(onClick = {
                                 outputMenuOpen = false
                                 showRecipientMultisigPicker = true
-                            }) { Text("Pick from My Multisigs…") }
+                            }) { Text(tr("Pick from My Multisigs…")) }
                             DropdownMenuItem(onClick = {
                                 outputMenuOpen = false
                                 showAddOutput = true
-                            }) { Text("Type manually") }
+                            }) { Text(tr("Type manually")) }
                         }
                     }
                     if (outputs.isNotEmpty()) {
                         Text(
-                            "Paying ${FchUtils.satoshiToCoin(totals.totalOutput)} FCH  ·  " +
-                                "Fee ${FchUtils.satoshiToCash(totals.fee)} c  ·  " +
-                                "Change ${FchUtils.satoshiToCoin(totals.change)} FCH",
+                            tr("Paying %s FCH  ·  Fee %s c  ·  Change %s FCH", FchUtils.satoshiToCoin(totals.totalOutput), FchUtils.satoshiToCash(totals.fee), FchUtils.satoshiToCoin(totals.change)),
                             style = MaterialTheme.typography.body2,
                             modifier = Modifier.align(Alignment.CenterVertically),
                         )
@@ -287,7 +286,7 @@ class CreateMultisigTxScreen : Screen {
                     androidx.compose.material.OutlinedTextField(
                         value = feeRateStr,
                         onValueChange = { feeRateStr = it; error = null },
-                        label = { Text("Fee rate (FCH/KB)") },
+                        label = { Text(tr("Fee rate (FCH/KB)")) },
                         singleLine = true,
                         isError = parsedFeeRate == null,
                         modifier = Modifier.width(220.dp),
@@ -295,11 +294,11 @@ class CreateMultisigTxScreen : Screen {
                     Spacer(Modifier.width(8.dp))
                     androidx.compose.material.TextButton(onClick = {
                         feeRateStr = TxHandler.DEFAULT_FEE_RATE.toString()
-                    }) { Text("Default") }
+                    }) { Text(tr("Default")) }
                     if (parsedFeeRate == null) {
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            "Invalid — must be > 0",
+                            tr("Invalid — must be > 0"),
                             style = MaterialTheme.typography.caption,
                             color = MaterialTheme.colors.error,
                         )
@@ -324,8 +323,8 @@ class CreateMultisigTxScreen : Screen {
                 CryptoIoBlock(
                     value = opReturn,
                     onValueChange = { opReturn = it },
-                    label = "OP_RETURN / carving (optional)",
-                    placeholder = "Arbitrary text to embed on-chain",
+                    label = tr("OP_RETURN / carving (optional)"),
+                    placeholder = tr("Arbitrary text to embed on-chain"),
                     heightDp = 100,
                     onClear = { opReturn = "" },
                     enabled = !hasP2shOutput,
@@ -334,8 +333,7 @@ class CreateMultisigTxScreen : Screen {
                 )
                 if (hasP2shOutput) {
                     Text(
-                        "Custom carving is disabled — this tx has a P2SH output " +
-                            "whose redeem script auto-fills the OP_RETURN slot.",
+                        tr("Custom carving is disabled — this tx has a P2SH output whose redeem script auto-fills the OP_RETURN slot."),
                         style = MaterialTheme.typography.caption,
                         color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                         modifier = Modifier.padding(top = 4.dp),
@@ -356,7 +354,7 @@ class CreateMultisigTxScreen : Screen {
                         opReturn = ""
                         feeRateStr = TxHandler.DEFAULT_FEE_RATE.toString()
                         error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = picked != null && inputs.isNotEmpty() && outputs.isNotEmpty(),
                         onClick = {
@@ -367,7 +365,7 @@ class CreateMultisigTxScreen : Screen {
                             raw.senderInfo = null
                             clipboard.setText(AnnotatedString(raw.toNiceJson() ?: ""))
                         },
-                    ) { Text("Copy unsigned JSON") }
+                    ) { Text(tr("Copy unsigned JSON")) }
                 }
             }
         }
@@ -543,12 +541,12 @@ private fun InputCardMs(cash: Cash, onDelete: () -> Unit) {
                 )
                 Text(
                     "${FchUtils.satoshiToCoin(cash.value ?: 0L)} FCH" +
-                        (cash.owner?.let { "  ·  owner $it" } ?: ""),
+                        (cash.owner?.let { tr("  ·  owner %s", it) } ?: ""),
                     style = MaterialTheme.typography.caption,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                 )
             }
-            TextButton(onClick = onDelete) { Text("Remove") }
+            TextButton(onClick = onDelete) { Text(tr("Remove")) }
         }
     }
 }
@@ -569,7 +567,7 @@ private fun OutputCardMs(output: Cash, onDelete: () -> Unit) {
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    output.owner ?: "(no recipient)",
+                    output.owner ?: tr("(no recipient)"),
                     style = MaterialTheme.typography.body2.copy(fontFamily = FontFamily.Monospace),
                 )
                 Text(
@@ -578,7 +576,7 @@ private fun OutputCardMs(output: Cash, onDelete: () -> Unit) {
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                 )
             }
-            TextButton(onClick = onDelete) { Text("Remove") }
+            TextButton(onClick = onDelete) { Text(tr("Remove")) }
         }
     }
 }

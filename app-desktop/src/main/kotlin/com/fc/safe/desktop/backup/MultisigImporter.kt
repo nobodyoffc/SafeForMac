@@ -1,6 +1,7 @@
 package com.fc.safe.desktop.backup
 
 import com.fc.safe.desktop.DesktopMultisig
+import com.fc.safe.desktop.i18n.tr
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import core.crypto.KeyTools
@@ -52,7 +53,7 @@ internal object MultisigImporter {
         }
 
         if (entries.isEmpty()) {
-            throw IllegalArgumentException("No multisig entries found in input")
+            throw IllegalArgumentException(tr("No multisig entries found in input"))
         }
 
         return entries.mapNotNull { toDesktopMultisig(it) }

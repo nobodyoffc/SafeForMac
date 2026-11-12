@@ -1,5 +1,6 @@
 package com.fc.safe.desktop.qr
 
+import com.fc.safe.desktop.i18n.tr
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 import org.slf4j.LoggerFactory
@@ -66,7 +67,7 @@ object ScanQrLauncher {
         pollIntervalMs: Long = 250,
     ): Result {
         if (!isInstalled()) {
-            return Result.Failed("ScanQR not installed at $SCANQR_APP_PATH")
+            return Result.Failed(tr("ScanQR not installed at %s", SCANQR_APP_PATH))
         }
 
         // Snapshot pre-launch state so we can tell "ScanQR wrote a
@@ -85,7 +86,7 @@ object ScanQrLauncher {
                 .start()
                 .waitFor()
         }
-        launch.onFailure { return Result.Failed("Failed to launch ScanQR: ${it.message}") }
+        launch.onFailure { return Result.Failed(tr("Failed to launch ScanQR: %s", it.message)) }
 
         log.info("ScanQR launched, polling {}", resultFile)
 
@@ -116,7 +117,7 @@ object ScanQrLauncher {
             runCatching { Files.deleteIfExists(resultFile.toPath()) }
             if (text.isEmpty()) Result.Cancelled else Result.Ok(text)
         } catch (t: Throwable) {
-            Result.Failed("Failed to read ScanQR result: ${t.message}")
+            Result.Failed(tr("Failed to read ScanQR result: %s", t.message))
         }
     }
 }

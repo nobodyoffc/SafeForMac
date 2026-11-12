@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.totp.TotpExportFormat
 
 /**
@@ -69,8 +70,8 @@ fun TotpExportDialog(
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
                 Text(
-                    if (result == null) "Export $selectedCount TOTP code(s)"
-                    else "Export complete",
+                    if (result == null) tr("Export %s TOTP code(s)", selectedCount)
+                    else tr("Export complete"),
                     style = MaterialTheme.typography.h6,
                 )
                 Spacer(Modifier.height(16.dp))
@@ -78,7 +79,7 @@ fun TotpExportDialog(
                 if (result == null) {
                     Column(modifier = Modifier.fillMaxWidth().weight(1f)) {
                         Text(
-                            "Pick a format. TOTP seeds export plaintext so other apps can import them.",
+                            tr("Pick a format. TOTP seeds export plaintext so other apps can import them."),
                             style = MaterialTheme.typography.body2,
                         )
                         Spacer(Modifier.height(8.dp))
@@ -91,7 +92,7 @@ fun TotpExportDialog(
                             Column {
                                 Text("otpauth:// URIs", style = MaterialTheme.typography.body1)
                                 Text(
-                                    "One per line. Google Authenticator / 1Password / Authy all import this.",
+                                    tr("One per line. Google Authenticator / 1Password / Authy all import this."),
                                     style = MaterialTheme.typography.caption,
                                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                                 )
@@ -105,9 +106,9 @@ fun TotpExportDialog(
                             )
                             Spacer(Modifier.width(4.dp))
                             Column {
-                                Text("JSON array", style = MaterialTheme.typography.body1)
+                                Text(tr("JSON array"), style = MaterialTheme.typography.body1)
                                 Text(
-                                    "`[{\"secret\":..., \"label\":...}]` — same shape Safe Android imports.",
+                                    tr("`[{\"secret\":..., \"label\":...}]` — same shape Safe Android imports."),
                                     style = MaterialTheme.typography.caption,
                                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                                 )
@@ -148,15 +149,15 @@ fun TotpExportDialog(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text(if (result == null) "Cancel" else "Done")
+                        Text(if (result == null) tr("Cancel") else tr("Done"))
                     }
                     Spacer(Modifier.width(8.dp))
                     if (result == null) {
-                        TextButton(onClick = { onSubmit(format) }) { Text("Export") }
+                        TextButton(onClick = { onSubmit(format) }) { Text(tr("Export")) }
                     } else {
                         TextButton(
                             onClick = { clipboard.setText(AnnotatedString(result)) },
-                        ) { Text("Copy") }
+                        ) { Text(tr("Copy")) }
                     }
                 }
             }

@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.fc.safe.desktop.fch.TxHandler
+import com.fc.safe.desktop.i18n.tr
 import core.crypto.KeyTools
 import data.fchData.Cash
 import kotlinx.coroutines.Dispatchers
@@ -79,9 +80,9 @@ fun ImportCashFromTxDialog(
     fun submit() {
         error = null
         val hex = txHex.trim()
-        if (hex.isEmpty()) { error = "Paste a signed tx hex first"; return }
-        if (fid.isBlank()) { error = "Pick an owner FID to filter outputs"; return }
-        if (!KeyTools.isGoodFid(fid)) { error = "Owner is not a valid FID"; return }
+        if (hex.isEmpty()) { error = tr("Paste a signed tx hex first"); return }
+        if (fid.isBlank()) { error = tr("Pick an owner FID to filter outputs"); return }
+        if (!KeyTools.isGoodFid(fid)) { error = tr("Owner is not a valid FID"); return }
         busy = true
         scope.launch {
             val outcome = withContext(Dispatchers.Default) {
@@ -90,12 +91,12 @@ fun ImportCashFromTxDialog(
             busy = false
             outcome.onSuccess { list ->
                 if (list.isEmpty()) {
-                    error = "No outputs for $fid in this tx"
+                    error = tr("No outputs for %s in this tx", fid)
                 } else {
                     onDone(list)
                 }
             }
-            outcome.onFailure { error = "Parse failed: ${it.message}" }
+            outcome.onFailure { error = tr("Parse failed: %s", it.message) }
         }
     }
 
@@ -113,11 +114,10 @@ fun ImportCashFromTxDialog(
             elevation = 8.dp,
         ) {
             Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
-                Text("Import UTXOs from signed tx", style = MaterialTheme.typography.h6)
+                Text(tr("Import UTXOs from signed tx"), style = MaterialTheme.typography.h6)
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "Paste the signed tx hex (e.g. the output of Build multisig TX) " +
-                        "and pick the owner FID — only outputs paying that FID are imported.",
+                    tr("Paste the signed tx hex (e.g. the output of Build multisig TX) and pick the owner FID — only outputs paying that FID are imported."),
                     style = MaterialTheme.typography.body2,
                     color = MaterialTheme.colors.onSurface.copy(alpha = 0.7f),
                 )
@@ -126,7 +126,7 @@ fun ImportCashFromTxDialog(
                 OutlinedTextField(
                     value = txHex,
                     onValueChange = { txHex = it; error = null },
-                    label = { Text("Signed tx hex") },
+                    label = { Text(tr("Signed tx hex")) },
                     textStyle = MaterialTheme.typography.body2.copy(
                         fontFamily = FontFamily.Monospace,
                     ),
@@ -137,7 +137,7 @@ fun ImportCashFromTxDialog(
                             onDecoded = { txHex = it.trim(); error = null },
                             onError = { error = it },
                             enabled = !busy,
-                            tooltip = "Scan the signed tx",
+                            tooltip = tr("Scan the signed tx"),
                         )
                     },
                 )
@@ -147,7 +147,7 @@ fun ImportCashFromTxDialog(
                     OutlinedTextField(
                         value = fid,
                         onValueChange = { fid = it; error = null },
-                        label = { Text("Owner FID") },
+                        label = { Text(tr("Owner FID")) },
                         singleLine = true,
                         enabled = !busy,
                         textStyle = MaterialTheme.typography.body2.copy(
@@ -159,14 +159,14 @@ fun ImportCashFromTxDialog(
                         onDecoded = { fid = it.trim(); error = null },
                         onError = { error = it },
                         enabled = !busy,
-                        tooltip = "Scan the owner's FID",
+                        tooltip = tr("Scan the owner's FID"),
                     )
                     Box {
                         IconButton(
                             enabled = !busy,
                             onClick = { showPickerMenu = true },
                         ) {
-                            Icon(Icons.Filled.Person, contentDescription = "Pick FID")
+                            Icon(Icons.Filled.Person, contentDescription = tr("Pick FID"))
                         }
                         DropdownMenu(
                             expanded = showPickerMenu,
@@ -175,15 +175,15 @@ fun ImportCashFromTxDialog(
                             DropdownMenuItem(onClick = {
                                 showPickerMenu = false
                                 showKeyPicker = true
-                            }) { Text("From My Keys") }
+                            }) { Text(tr("From My Keys")) }
                             DropdownMenuItem(onClick = {
                                 showPickerMenu = false
                                 showMultisigPicker = true
-                            }) { Text("From My Multisigs") }
+                            }) { Text(tr("From My Multisigs")) }
                             DropdownMenuItem(onClick = {
                                 showPickerMenu = false
                                 showFidBookPicker = true
-                            }) { Text("From Address Book") }
+                            }) { Text(tr("From Address Book")) }
                         }
                     }
                 }
@@ -205,12 +205,12 @@ fun ImportCashFromTxDialog(
                             strokeWidth = 2.dp,
                         )
                     }
-                    TextButton(enabled = !busy, onClick = onDismiss) { Text("Cancel") }
+                    TextButton(enabled = !busy, onClick = onDismiss) { Text(tr("Cancel")) }
                     Spacer(Modifier.width(8.dp))
                     TextButton(
                         enabled = !busy && txHex.isNotBlank() && fid.isNotBlank(),
                         onClick = ::submit,
-                    ) { Text("Import") }
+                    ) { Text(tr("Import")) }
                 }
             }
         }

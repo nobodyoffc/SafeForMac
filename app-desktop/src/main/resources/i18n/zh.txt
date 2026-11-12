@@ -1,0 +1,1919 @@
+# Chinese for the app's text. An English line exactly as in tr("…"), its
+# Chinese under it, then a blank line. Terms follow Android Safe's values-zh.
+
+Safe
+密库
+
+Cancel
+取消
+
+Save
+保存
+
+Back
+返回
+
+Clear
+清除
+
+Copy
+复制
+
+Paste
+粘贴
+
+Close
+关闭
+
+Done
+完成
+
+Continue
+继续
+
+Add
+添加
+
+Edit
+编辑
+
+Delete
+删除
+
+Remove
+移除
+
+Import
+导入
+
+Export
+导出
+
+Create
+创建
+
+Change
+更改
+
+Replace
+替换
+
+Preview
+预览
+
+Start
+开始
+
+Stop
+中止
+
+More
+更多
+
+Default
+默认
+
+Loading…
+加载中…
+
+Saving…
+保存中…
+
+Working…
+处理中…
+
+Label
+标签
+
+Label (optional)
+标签（可选）
+
+(no label)
+（无标签）
+
+Password
+密码
+
+Title
+标题
+
+Type
+类型
+
+Content
+内容
+
+Result
+结果
+
+Message
+消息
+
+Error: %s
+错误：%s
+
+unknown error
+未知错误
+
+Invalid input
+输入无效
+
+%s selected
+已选 %s 项
+
+Delete (%s)
+删除（%s）
+
+Long-press to confirm delete
+长按确认删除
+
+Save failed: %s
+保存失败：%s
+
+Save failed
+保存失败
+
+Delete failed: %s
+删除失败：%s
+
+Export failed: %s
+导出失败：%s
+
+Import failed: %s
+导入失败：%s
+
+Add failed: %s
+添加失败：%s
+
+Create failed: %s
+创建失败：%s
+
+Create failed
+创建失败
+
+Update failed
+更新失败
+
+Load failed: %s
+加载失败：%s
+
+Change failed: %s
+更改失败：%s
+
+Parse failed: %s
+解析失败：%s
+
+Preview failed: %s
+预览失败：%s
+
+Apply failed: %s
+应用失败：%s
+
+Discard failed: %s
+丢弃失败：%s
+
+Build failed: %s
+组装失败：%s
+
+Sign failed: %s
+签名失败：%s
+
+Convert failed: %s
+转换失败：%s
+
+Hash failed: %s
+哈希失败：%s
+
+Decrypt failed: %s
+解密失败：%s
+
+Label save failed: %s
+标签保存失败：%s
+
+Not a recognisable address
+无法识别的地址
+
+Address converter
+地址转换
+
+Public key or address
+公钥或地址
+
+Compressed pubkey hex, or any chain's legacy address
+压缩公钥Hex，或任一链的传统地址
+
+Convert
+转换
+
+Derived addresses
+派生地址
+
+Paste at least one signed JSON
+请至少粘贴一个已签名的JSON
+
+buildSignedMultisignTx returned null — check that all JSONs are for the same tx, sigs verify, and you have at least M distinct signers.
+组装多签交易失败——请检查所有JSON是否属于同一交易、签名是否有效，且至少有 M 个不同的签名者。
+
+Cannot save: tx hex could not be decoded
+无法保存：交易Hex解码失败
+
+Saved to Pending Broadcasts (txid %s…)
+已存入待处理交易（txid %s…）
+
+Build multisig TX
+完成多签交易
+
+Paste each signer's signed JSON below, then press Build. Each envelope must reference the same tx and multisig group.
+在下方粘贴每位签名者的已签名JSON，然后点击组装。每份都必须对应同一交易和同一多签。
+
+Signed JSON #%s
+已签名JSON #%s
+
+Paste the RawTxInfo JSON with this signer's fidSigMap entry
+粘贴含该签名者 fidSigMap 的 RawTxInfo JSON
+
+Remove #%s
+移除 #%s
+
++ Add signer
++ 添加签名者
+
+Build
+组装
+
+Signed tx (hex — broadcast this)
+已签名交易（Hex，可广播）
+
+Decoded from hex
+由Hex解码
+
+Verify the recipients and amounts match what you expect before broadcasting. Input values are blank because they aren't embedded in the tx.
+广播前请核对收款人和金额。输入金额为空，因为交易中不包含这些数据。
+
+Import my UTXOs…
+导入我的UTXO…
+
+Saved ✓
+已保存 ✓
+
+Save to Pending Broadcasts
+存入待处理交易
+
+Saved %s UTXO(s) to My Cash
+已将 %s 个UTXO存入我的钞票
+
+Pick a multisig group first
+请先选择多签
+
+Add at least one input
+请至少添加一个输入
+
+Add at least one output
+请至少添加一个输出
+
+Input value must be > 0
+输入金额必须大于0
+
+Input owner %s doesn't match the picked multisig FID
+输入的所有者 %s 与所选多签FID不符
+
+Inputs don't cover outputs + fee
+输入金额不足以支付输出和手续费
+
+Create multisig TX
+新建多签交易
+
+Sender multisig
+发送方多签
+
+No multisig group picked yet.
+尚未选择多签。
+
+Pick group…
+选择多签…
+
+Inputs
+输入
+
++ Add input
++ 添加输入
+
+From My Cash…
+从我的钞票…
+
+Type manually
+手工输入
+
+Spending %s FCH
+花费 %s FCH
+
+Outputs
+输出
+
++ Add output
++ 添加输出
+
+Pick FID from address book…
+从名单选择FID…
+
+Pick from My Keys…
+从我的密钥选择…
+
+Pick from My Multisigs…
+从我的多签选择…
+
+Paying %s FCH  ·  Fee %s c  ·  Change %s FCH
+支付 %s FCH  ·  手续费 %s c  ·  找零 %s FCH
+
+Fee rate (FCH/KB)
+费率（FCH/KB）
+
+Invalid — must be > 0
+无效——必须大于0
+
+OP_RETURN / carving (optional)
+OP_RETURN / 刻字（可选）
+
+Arbitrary text to embed on-chain
+要刻在链上的任意文本
+
+Custom carving is disabled — this tx has a P2SH output whose redeem script auto-fills the OP_RETURN slot.
+不能自定义刻字——此交易有P2SH输出，其赎回脚本会自动占用OP_RETURN。
+
+Copy unsigned JSON
+复制未签名JSON
+
+  ·  owner %s
+  ·  所有者 %s
+
+(no recipient)
+（无收款人）
+
+Sender is not a valid FID
+发送者不是有效的FID
+
+No outputs: set a Sender FID to receive the change
+没有输出：请设置发送者FID以接收找零
+
+Create TX
+创建交易
+
+Sender FID (auto-filled from first input's owner)
+发送者FID（自动取第一个输入的所有者）
+
+No outputs — consolidating %s FCH to 
+没有输出——将 %s FCH 归集到 
+
+  ·  Fee %s c
+  ·  手续费 %s c
+
+Custom carving is disabled — this tx has a P2SH output (CLTV or multisig) whose redeem script auto-fills the OP_RETURN slot. Remove the P2SH output to carve.
+不能自定义刻字——此交易有P2SH输出（CLTV或多签），其赎回脚本会自动占用OP_RETURN。如需刻字，请移除P2SH输出。
+
+Sign…
+签名…
+
+Auto
+自动
+
+Couldn't decode as %s
+无法按 %s 解码
+
+Decoded as %s:\n\n
+按 %s 解码：\n\n
+
+String decoder
+字符串解码
+
+Encoded input
+待解码内容
+
+Paste hex, Base58, Base64, Base32, or plain UTF-8
+粘贴Hex、Base58、Base64、Base32或UTF-8文本
+
+Source format
+来源格式
+
+Decode
+解码
+
+Decoded
+解码结果
+
+Decrypt
+解密
+
+Cipher (CryptoDataStr JSON or base64 bundle)
+密文（CryptoDataStr JSON 或 Base64）
+
+[wallet key: %s]
+[密库密钥：%s]
+
+Key (password / symkey hex / prikey hex)
+密钥（密码 / 对称密钥Hex / 私钥Hex）
+
+Or click the person icon to pick a wallet key
+或点击人像图标选择密库中的密钥
+
+Plaintext
+明文
+
+Not a valid cipher (not JSON or base64 bundle)
+不是有效的密文（既非JSON也非Base64）
+
+Symkey must be 64 hex chars (32 bytes)
+对称密钥必须是64位Hex（32字节）
+
+Asymmetric cipher requires a private key (64 hex chars or a picked wallet key)
+非对称密文需要私钥（64位Hex或选择密库中的密钥）
+
+Unsupported cipher type: %s
+不支持的密文类型：%s
+
+Decrypt produced no bytes
+解密未得到任何内容
+
+By password
+用密码
+
+Arbitrary password text
+任意密码文本
+
+By symkey (hex32)
+用对称密钥（32字节Hex）
+
+64 hex chars (32 bytes)
+64位Hex（32字节）
+
+By pubkey (hex)
+用公钥（Hex）
+
+Compressed (66 hex) or uncompressed (130 hex) pubkey
+压缩（66位Hex）或非压缩（130位Hex）公钥
+
+Encrypt
+加密
+
+Text to encrypt
+要加密的文本
+
+Key type
+密钥类型
+
+Symmetric key (hex)
+对称密钥（Hex）
+
+Public key (hex)
+公钥（Hex）
+
+Cipher (CryptoDataStr JSON)
+密文（CryptoDataStr JSON）
+
+Not a valid public key
+不是有效的公钥
+
+Serialisation failed
+序列化失败
+
+Hash
+哈希
+
+Text to hash
+要哈希的文本
+
+Type or paste; toggle "as hex" to hash the hex-decoded bytes
+输入或粘贴；勾选“按Hex”则对Hex解码后的字节做哈希
+
+Treat input as hex bytes
+把输入当作Hex字节
+
+Algorithm
+算法
+
+Input is not valid hex
+输入不是有效的Hex
+
+Hash (hex)
+哈希（Hex）
+
+Enter password
+输入密码
+
+Checking the password… The first unlock after updating also moves the wallet to its new key and can take a minute.
+正在验证密码…升级后的首次解锁还会把密库迁移到新密钥，可能需要一分钟。
+
+Checking the password…
+正在验证密码…
+
+Create password
+创建密码
+
+Unlock
+解锁
+
+This wallet could not move to its new key: record %s does not decrypt. It still works as before, and the move is retried on the next unlock.
+密库未能迁移到新密钥：记录 %s 无法解密。密库仍可照常使用，下次解锁时会重试。
+
+Wrong password
+密码错误
+
+This password already opens a wallet. Unlock it, or choose another password.
+该密码已对应一个密库。请直接解锁，或换一个密码。
+
+Failed to parse tx JSON (not RawTxInfo or RawTxForCs shape)
+解析交易JSON失败（不是 RawTxInfo 或 RawTxForCs 格式）
+
+Import TX info
+导入交易信息
+
+Tx JSON
+交易JSON
+
+Paste a RawTxInfo or RawTxForCs JSON (or use QR…)
+粘贴 RawTxInfo 或 RawTxForCs JSON（或扫描二维码）
+
+Parse
+解析
+
+Copy JSON
+复制JSON
+
+Not valid JSON: %s
+不是有效的JSON：%s
+
+JSON converter
+JSON转换
+
+JSON (object or array)
+JSON（对象或数组）
+
+Paste JSON to prettify or minify
+粘贴JSON以格式化或压缩
+
+Prettify
+格式化
+
+Minify
+压缩
+
+Replace existing UTXO?
+替换已有的UTXO？
+
+Replace existing UTXO(s)?
+替换已有的UTXO？
+
+My Cash (UTXOs)
+我的钞票（UTXO）
+
+%s UTXO(s)
+%s 个UTXO
+
+Total %s FCH
+总计 %s FCH
+
+Add cash
+添加钞票
+
+Create manually
+手工创建
+
+Import JSON
+导入JSON
+
+From signed tx hex…
+从已签名交易Hex…
+
+No UTXOs yet.
+还没有UTXO。
+
+Use "Add cash" → Create manually, or paste a Cash JSON.
+请用“添加钞票”→ 手工创建，或粘贴钞票JSON。
+
+(no owner)
+（无所有者）
+
+Address book (FIDs)
+名单（FID）
+
+%s FID(s)
+%s 个FID
+
+Add FID
+添加FID
+
+Address book is empty.
+名单为空。
+
+Use "Add FID" to add a recipient.
+请用“添加FID”添加收款人。
+
+Replace existing key?
+替换已有的密钥？
+
+No keys imported — check the JSON
+没有导入任何密钥——请检查JSON
+
+Replace existing key(s)?
+替换已有的密钥？
+
+This key has no private key (watch-only or legacy record).
+该密钥没有私钥（仅观察或旧记录）。
+
+My Keys
+我的密钥
+
+%s key(s)
+%s 个密钥
+
+No keys yet.
+还没有密钥。
+
+Use "Add new key" to generate one.
+请用“添加密钥”创建。
+
+Confirm password
+验证密码
+
+Re-enter your wallet password to reveal the private key for %s.
+请再次输入密库密码，以显示 %s 的私钥。
+
+Reveal
+显示
+
+Add new key
+添加密钥
+
+Import keys…
+导入密钥…
+
+Find a nice FID…
+搜索靓名…
+
+Input phrase…
+密语生成…
+
+Random keys…
+随机创建…
+
+watch-only
+仅观察
+
+Collapse
+收起
+
+Expand
+展开
+
+Created %s
+创建于 %s
+
+Public key
+公钥
+
+Private key (cipher)
+私钥（密文）
+
+Edit label
+修改标签
+
+Save label
+保存标签
+
+No multisigs found — check the JSON
+没有发现多签——请检查JSON
+
+My Multisigs
+我的多签
+
+%s group(s)
+%s 个多签
+
+New multisig
+新建多签
+
+Create…
+创建…
+
+Import from backup…
+从备份导入…
+
+No multisig groups yet.
+还没有多签。
+
+Use "New multisig" to create one.
+请用“新建多签”创建。
+
+Replace existing multisig(s)?
+替换已有的多签？
+
+Replace existing multisig?
+替换已有的多签？
+
+Multisig FID
+多签FID
+
+Threshold
+门限
+
+Members (%s)
+成员（%s）
+
+Member FID
+成员FID
+
+Redeem script
+赎回脚本
+
+Could not derive multisig address
+无法推导多签地址
+
+Could not derive FID for pubkey %s
+无法由公钥 %s 推导FID
+
+Replace existing secret?
+替换已有的秘密？
+
+This secret has no content cipher.
+该秘密没有内容密文。
+
+No secrets imported — check the JSON
+没有导入任何秘密——请检查JSON
+
+Replace existing secret(s)?
+替换已有的秘密？
+
+My Secrets
+我的秘密
+
+%s secret(s)
+%s 个秘密
+
+Add secret
+添加秘密
+
+Create new…
+新建…
+
+No secrets yet.
+还没有秘密。
+
+Use "Add secret" → Create new, or Import from backup.
+请用“添加秘密”→ 新建，或从备份导入。
+
+(no title)
+（无标题）
+
+Create secret
+新建秘密
+
+Update secret
+更新秘密
+
+Find a nice FID
+搜索靓名
+
+Random keys
+随机创建
+
+FID ends with
+FID尾部字符
+
+Upper and lower case count as the same. Each added character takes about 58 times longer. The wallet still auto-locks when idle, and a lock ends the search and drops the keys found but not saved.
+不区分大小写。每多一个字符，耗时约增加58倍。闲置时密库仍会自动锁定；一旦锁定，搜索即中止，已找到但未保存的密钥会被丢弃。
+
+Tick the keys to keep
+勾选要保留的密钥
+
+An FID never has %s in it.
+FID中不会出现 %s。
+
+Too long for an FID.
+超过了FID的长度。
+
+Cannot parse stored rawJson — record may be corrupted.
+无法解析保存的 rawJson——记录可能已损坏。
+
+Record has no signed hex.
+记录中没有已签名的Hex。
+
+Applied — removed %s UTXO(s), added %s UTXO(s).
+已应用——移除 %s 个UTXO，新增 %s 个UTXO。
+
+Pending TX
+待处理交易
+
+Record not found — it may have been applied or discarded already.
+未找到记录——可能已被应用或丢弃。
+
+Apply…
+应用…
+
+Discard…
+丢弃…
+
+Apply to cash list?
+应用到钞票列表？
+
+This will update your local UTXO list to reflect the on-chain effect of this transaction.
+这会按该交易的链上结果更新本地UTXO列表。
+
+• Remove %s UTXO(s) (of %s referenced as inputs)
+• 移除 %s 个UTXO（交易共引用 %s 个输入）
+
+• Add %s UTXO(s) paying your FIDs (%s FIDs scanned)
+• 新增 %s 个付给你的FID的UTXO（已检查 %s 个FID）
+
+Only proceed after confirming the transaction was broadcast and included on-chain.
+请在确认交易已广播并上链后再继续。
+
+Apply
+应用
+
+Discard pending tx?
+丢弃待处理交易？
+
+This removes the pending record only — your cash list is not changed. Use this if the tx wasn't broadcast or failed to confirm.
+这只删除待处理记录，不会改动钞票列表。适用于交易未广播或未能确认的情况。
+
+Discard
+丢弃
+
+Pending Broadcasts
+待处理交易
+
+%s pending tx(s)
+%s 笔待处理交易
+
+Signed but not yet reconciled. Tap a record to Apply (update cash list) or Discard.
+已签名但尚未核对。点击记录可应用（更新钞票列表）或丢弃。
+
+No pending transactions.
+没有待处理交易。
+
+After signing a TX, use "Save to Pending Broadcasts" to track it here.
+签署交易后，用“存入待处理交易”在此跟踪。
+
+(sender unknown)
+（发送者未知）
+
+%s in · %s out
+%s 个输入 · %s 个输出
+
+%s FCH out
+输出 %s FCH
+
+%s · sender %s · %s in · %s out · %s FCH out
+%s · 发送者 %s · %s 个输入 · %s 个输出 · 输出 %s FCH
+
+Hex (32 bytes)
+Hex（32字节）
+
+WIF compressed
+WIF压缩
+
+WIF legacy (uncompressed)
+WIF旧格式（非压缩）
+
+Mnemonic (12 words)
+助记词（12个词）
+
+Not a valid mnemonic or key
+不是有效的助记词或密钥
+
+Not a valid hex/WIF private key
+不是有效的Hex/WIF私钥
+
+Private key converter
+私钥转换
+
+Private key input
+输入私钥
+
+Mnemonic (12 / 24 words), 64-char hex, or WIF
+助记词（12 / 24个词）、64位Hex或WIF
+
+Output format
+输出格式
+
+Uncompressed hex: 
+非压缩Hex：
+
+WIF uncompressed: 
+WIF非压缩：
+
+WIF compressed (ver 0): 
+WIF压缩（版本0）：
+
+WIF compressed (no ver): 
+WIF压缩（无版本）：
+
+Public key converter
+公钥转换
+
+Public key input
+输入公钥
+
+66-char compressed hex, 130-char uncompressed hex, or WIF
+66位压缩Hex、130位非压缩Hex或WIF
+
+Derived forms
+派生格式
+
+Keep the device offline at all times, meaning it should not be connected to any other devices via cables, mobile networks, Wi-Fi, Bluetooth, NFC, or any other means.
+请保持设备离线，即不以线缆、移动网络、wifi、蓝牙、NFC等任何方式与其他设备相连。
+
+Ensure that private keys and passphrases are never leaked or lost. A passphrase can always generate a private key, but a private key cannot be used to derive a passphrase.
+务必保证私钥、密语绝不泄露或丢失。密语可随时产生私钥，但私钥不能反推密语。
+
+When displaying private keys or passphrases on the screen, make sure the surroundings are secure, with no one watching or any cameras recording.
+在屏幕显示私钥、密语时，应确保周边安全，没有他人视野、摄像头等。
+
+It is recommended to use an offline QR code scanning device for physical backup of private keys and passphrases, with at least two separate backups stored in different locations and regularly checked.
+建议使用无网的扫描二维码设备，物理备份私钥、密语，至少2个备份并分别放置，定期检查。
+
+If this device is lost or suspected to be compromised, immediately transfer assets to a secure address using a backup private key.
+一旦本设备遗失或可能被刺探破解，请立即使用备份私钥将资产转移到安全的地址上。
+
+When generating a private key from a passphrase, the passphrase should be as long and complex as possible, containing multiple types of characters. Do not use famous quotes or poems. Remember, you are up against hackers worldwide with immense computing power and advanced skills.
+采用密语生成私钥时，密语应尽量长、复杂、包含多种类型字符，切勿使用名言诗句等。记住，您面对的是全世界拥有巨大算力和高超技能的黑客。
+
+When generating a private key from a passphrase, choose Argon2id: it is slow and memory-hard, so every guess costs an attacker time and memory. SHA-256 is fast and offers no protection against brute-force attacks; use it only for compatibility with existing SHA-256-derived keys. Never test an asset-storing passphrase online.
+用密语生成私钥时，请选择 Argon2id：它计算慢且占用内存，黑客每猜一次都要付出时间和内存。SHA256 速度快，无法抵御暴力破解，仅用于兼容已有的 SHA256 派生私钥。切勿用存资产的密语做在线测试。
+
+You can generate a private key on a secure and trusted external device and import it into the system via scanning or manual entry. The security of this step depends on the source of the private key and your operational precautions.
+您可以在安全可信的外部设备中产生私钥，通过扫描或手工输入的方式导入密库。这个环节的安全性将取决于私钥的来源和您的操作。
+
+Mnemonics add complexity to private key security strategies; therefore, this system does not support mnemonic phrases. You can import a private key exported from a third-party device instead.
+助记词使私钥安全策略更加复杂，因此，密库不支持助记词，可将第三方设备上导出的私钥导入密库使用。
+
+Once again: Private keys and passphrases must never be leaked or lost, and the device must remain offline. This is the core purpose of this system.
+再次强调：私钥、密语绝不可泄露或丢失，设备必须离线，这是密库存在的意义。
+
+This application does not connect to the internet or collect any user or application data; therefore, it is not responsible for any data leaks. Users must ensure the security of their devices.
+本应用不联网，不收集任何用户和应用数据，因而不对任何数据泄漏负责，用户务必保证设备安全。
+
+Security guidelines
+安全提示
+
+Symkey (HMAC-SHA256)
+对称密钥（HMAC-SHA256）
+
+Sign message
+签署消息
+
+Text to sign
+要签名的文本
+
+Private key (hex) or wallet key
+私钥（Hex）或密库中的密钥
+
+Symmetric key (64 hex)
+对称密钥（64位Hex）
+
+64 hex chars, or pick from wallet via the person icon
+64位Hex，或点击人像图标从密库选择
+
+64 hex chars
+64位Hex
+
+Sign
+签名
+
+Signature JSON
+签名JSON
+
+No usable private key
+没有可用的私钥
+
+Symkey must be 64 hex chars
+对称密钥必须是64位Hex
+
+Signing failed
+签名失败
+
+Signing produced no JSON
+签名未生成JSON
+
+Failed to parse tx JSON
+解析交易JSON失败
+
+This tx has no senderMultisig — use Sign TX for single-sig.
+此交易没有 senderMultisig——单签请用“签署交易”。
+
+Pick a signing key first
+请先选择签名密钥
+
+Missing multisig metadata
+缺少多签信息
+
+Key %s is not a member of this multisig group
+密钥 %s 不是此多签的成员
+
+Key %s has already signed this tx
+密钥 %s 已签过此交易
+
+Sign multisig TX
+签署多签交易
+
+Unsigned multisig tx JSON
+未签名的多签交易JSON
+
+Paste a RawTxInfo with senderMultisig set
+粘贴带 senderMultisig 的 RawTxInfo
+
+Signing key (member of %s)
+签名密钥（%s 的成员）
+
+Pick a wallet key via the person icon
+点击人像图标选择密库中的密钥
+
+Signed multisig tx (forward to next signer or aggregator)
+已签名的多签交易（转给下一位签名者或组装者）
+
+Multisig %s-of-%s  ·  %s of %s signed
+多签 %s-of-%s  ·  已签 %s/%s
+
+✓ signed
+✓ 已签
+
+pending
+待签
+
+Picked key has no private key (watch-only)
+所选密钥没有私钥（仅观察）
+
+Decrypted value is not a valid 32-byte prikey
+解密结果不是有效的32字节私钥
+
+Signed-tx serialization returned null
+已签名交易序列化失败
+
+Sign TX
+签署交易
+
+Unsigned tx JSON
+未签名的交易JSON
+
+Paste a RawTxInfo JSON (or use QR…)
+粘贴 RawTxInfo JSON（或扫描二维码）
+
+Signing key
+签名密钥
+
+Picked key (%s) doesn't match the tx's sender (%s). Pick the matching wallet key, or remove the sender from the JSON.
+所选密钥（%s）与交易的发送者（%s）不符。请选择对应的密钥，或从JSON中去掉发送者。
+
+TxHandler.signTx returned null — check inputs/outputs
+签名失败——请检查输入和输出
+
+Invalid Base32 seed
+无效的Base32种子
+
+%s TOTP code(s)
+%s 个验证码
+
+%s  ·  %ss to next
+%s  ·  %s秒后更新
+
+Import TOTP
+导入验证码
+
+No TOTP codes.
+没有验证码。
+
+Import an otpauth:// URI or a {secret, label} JSON.
+请导入 otpauth:// URI 或 {secret, label} JSON。
+
+click to hide · long-press to delete
+点击隐藏 · 长按删除
+
+click to reveal · long-press to delete
+点击显示 · 长按删除
+
+TOTP code
+验证码
+
+Delete TOTP?
+删除验证码？
+
+Remove "%s" from this vault?
+从密库中移除“%s”？
+
+Safe — %s
+密库 — %s
+
+Protect your passwords, keys, secrets and privacy with cryptography
+用密码技术保护您的密钥、密码、秘密和隐私
+
+Auto-lock in %ss — move the mouse to extend.
+%s秒后自动锁定——移动鼠标可延长。
+
+Secrets
+秘密
+
+Cash
+钞票
+
+Freers
+名单
+
+Multisig
+多签
+
+TX
+交易
+
+Tools
+工具
+
+Import TX info
+导入交易信息
+
+Pending TX
+待处理交易
+
+Verify message
+验证签名
+
+Change password
+修改密码
+
+Private key
+私钥
+
+Address
+地址
+
+Decode string
+字符串解码
+
+Lock wallet
+锁定密库
+
+Quit Safe
+退出密库
+
+Password changed.
+密码已更新。
+
+Verify signature
+验证签名
+
+Key (symkey hex — only for HMAC-SHA256) or FID fallback
+密钥（对称密钥Hex，仅用于HMAC-SHA256）或备用FID
+
+Leave empty for ECDSA/Schnorr when the signature carries an FID
+签名中带有FID时，ECDSA/Schnorr可留空
+
+Verify
+验证
+
+Not yet verified
+尚未验证
+
+Valid
+有效
+
+Signature is VALID
+签名有效
+
+Invalid
+无效
+
+Signature is INVALID
+签名无效
+
+Not a valid signature JSON
+不是有效的签名JSON
+
+Signature missing algorithm
+签名缺少算法
+
+Symkey required for HMAC-SHA256 signature
+HMAC-SHA256签名需要对称密钥
+
+Signature missing msg
+签名缺少消息
+
+Signature missing sign
+签名缺少签名值
+
+Enter an FID
+请输入FID
+
+Not a valid FID
+不是有效的FID
+
+Add FID to address book
+添加FID到名单
+
+Scan an FID QR code
+扫描FID二维码
+
+Fill all three fields
+请填写全部三项
+
+txId must be 64 hex chars (32 bytes)
+交易ID必须是64位Hex（32字节）
+
+Index must be a non-negative integer
+索引必须是非负整数
+
+Amount must be between %s and %s FCH
+金额必须在 %s 与 %s FCH 之间
+
+Add tx input
+添加交易输入
+
+Tx ID (64 hex)
+交易ID（64位Hex）
+
+Scan a tx id QR code
+扫描交易ID二维码
+
+Output index
+输出索引
+
+Amount (FCH)
+金额（FCH）
+
+Resolved saved multisig (%s-of-%s)
+已识别为保存的多签（%s-of-%s）
+
+Recipient is a P2SH address not saved locally — plain send OK, but CLTV-to-this-multisig needs the group definition.
+收款人是本地未保存的P2SH地址——可以普通发送，但对该多签做CLTV需要其多签定义。
+
+Fill both fields
+请填写两项
+
+Recipient is not a valid FID
+收款人不是有效的FID
+
+Amount exceeds the remaining balance from inputs
+金额超过了输入的剩余金额
+
+Lock value must be a whole number
+锁定值必须是整数
+
+Lock value must be > 0
+锁定值必须大于0
+
+Block height must be < %s
+区块高度必须小于 %s
+
+Unix seconds must be ≥ %s
+Unix秒数必须不小于 %s
+
+CLTV-to-multisig needs the group saved locally. Import the multisig definition first.
+对多签做CLTV需要本地保存该多签。请先导入多签定义。
+
+Add output
+添加输出
+
+Recipient FID
+收款人FID
+
+Scan the recipient's FID
+扫描收款人的FID
+
+Max: %s FCH
+最多：%s FCH
+
+Use max
+全部
+
+Time-lock this output (CLTV)
+为该输出加时间锁（CLTV）
+
+Recipient cannot spend until the lock releases. Uses OP_CHECKLOCKTIMEVERIFY — a new P2SH address is derived from (recipient, lockTime).
+锁定解除前收款人无法花费。使用 OP_CHECKLOCKTIMEVERIFY——由（收款人，锁定时间）推导出新的P2SH地址。
+
+Block height
+区块高度
+
+Unix time (s)
+Unix时间（秒）
+
+Block height (< %s)
+区块高度（< %s）
+
+Unix seconds (≥ %s)
+Unix秒数（≥ %s）
+
+Paste a Cash JSON or array first
+请先粘贴钞票JSON或数组
+
+No valid Cash records found
+没有发现有效的钞票
+
+Import cash
+导入钞票
+
+Paste a Cash JSON or an array of Cash records.
+粘贴一个钞票JSON或钞票数组。
+
+Cash JSON
+钞票JSON
+
+Scan a cash QR code
+扫描钞票二维码
+
+Pick UTXOs
+选择UTXO
+
+Filtered to owner: %s
+仅显示所有者：%s
+
+No UTXOs in the wallet. Use "My Cash → Add cash" first.
+密库中没有UTXO。请先用“我的钞票 → 添加钞票”。
+
+No UTXOs with owner "%s". Either pick a different sender or import matching cash.
+没有所有者为“%s”的UTXO。请换一个发送者，或导入对应的钞票。
+
+%s selected · %s FCH
+已选 %s 项 · %s FCH
+
+Add to inputs
+加入输入
+
+Password must be at least %s characters
+密码长度至少为 %s
+
+Passwords don't match
+密码不一致
+
+The current password is wrong
+当前密码错误
+
+That password already opens a wallet on this Mac. Choose another.
+该密码已对应本机上的一个密库，请换一个。
+
+This wallet has not moved to its new key yet; its password can't be changed.
+密库尚未迁移到新密钥，暂时无法修改密码。
+
+This wallet still uses its old key layout (its last move to the new key stopped), so its password can't be changed until the move succeeds.
+密库仍在使用旧的密钥结构（上次迁移中断），迁移成功前无法修改密码。
+
+Your keys and secrets stay as they are; only the password that opens them changes.
+密钥和秘密保持不变，只更换打开它们的密码。
+
+Current password
+当前密码
+
+New password
+新密码
+
+Confirm new password
+确认新密码
+
+Checking the passwords…
+正在验证密码…
+
+The following ID(s) already exist. Replacing will overwrite the stored record — this cannot be undone.
+以下ID已存在。替换将覆盖已保存的记录，且无法撤销。
+
+Replace all
+全部替换
+
+Skip existing
+跳过已有
+
+QR code
+二维码
+
+copied
+已复制
+
+Fill all four fields
+请填写全部四项
+
+Owner is not a valid FID
+所有者不是有效的FID
+
+Add cash (UTXO)
+添加钞票（UTXO）
+
+Owner FID
+所有者FID
+
+Scan the owner's FID
+扫描所有者的FID
+
+Member %s is not a valid public key
+成员 %s 不是有效的公钥
+
+Duplicate pubkey — each member must be unique
+公钥重复——每个成员必须不同
+
+Create multisig group
+新建多签
+
+Required (M)
+所需签名数（M）
+
+Members (N)
+成员数（N）
+
+Any %s of %s members must sign to spend.
+%2$s 个成员中任意 %1$s 个签名即可花费。
+
+Member public keys
+成员公钥
+
+Order affects the derived FID — keep the same order when re-creating a group.
+顺序会影响推导出的FID——重建多签时请保持相同顺序。
+
+Scan member #%s's public key
+扫描成员 #%s 的公钥
+
+Pick from keys
+从密钥选择
+
+Fill in all %s valid pubkeys to see the derived FID.
+填入全部 %s 个有效公钥后显示推导出的FID。
+
+Create new wallet
+创建新密库
+
+Choose a strong password. You'll use it every time you unlock this wallet.
+请设置一个强密码。每次解锁密库都要用到它。
+
+Pick a key from wallet
+从密库选择密钥
+
+Export %s key(s)
+导出 %s 个密钥
+
+Export complete
+导出完成
+
+Choose how to protect the exported private keys.
+选择如何保护导出的私钥。
+
+Encrypted under this wallet's password. The recipient needs the same password.
+用本密库的密码加密。接收方需要相同的密码。
+
+Encrypted with a fresh password generated just for this export.
+用专为本次导出生成的新密码加密。
+
+No encryption. Raw private keys in hex. Use only for trusted transfer.
+不加密，私钥以Hex明文导出。仅用于可信的传递。
+
+Exported JSON (paste into the Android app's Import Keys screen):
+导出的JSON（粘贴到安卓版的“导入密钥”页面）：
+
+Exported keys
+导出的密钥
+
+Exporting %s group(s)…
+正在导出 %s 个多签…
+
+Multisig groups are public data. Paste the JSON into another wallet's "Import multisig" box to share them.
+多签是公开数据。把JSON粘贴到另一个密库的“导入多签”框中即可共享。
+
+Exported multisigs
+导出的多签
+
+Export %s secret(s)
+导出 %s 个秘密
+
+Choose how to protect the exported secrets.
+选择如何保护导出的秘密。
+
+No encryption. Plaintext contents visible to anyone with the file.
+不加密。任何拿到文件的人都能看到明文内容。
+
+Exported JSON (paste into the Android app's Import Secrets screen):
+导出的JSON（粘贴到安卓版的“导入秘密”页面）：
+
+Exported secrets
+导出的秘密
+
+Current Password
+当前密码
+
+Random Password
+随机密码
+
+Don't encrypt
+不加密
+
+No signed keys to export — watch-only keys have nothing secret to back up
+没有可导出的私钥——仅观察的密钥没有需要备份的秘密
+
+Password required for current-password export
+用当前密码导出需要输入密码
+
+Password is empty
+密码为空
+
+Failed to encode cipher
+密文编码失败
+
+No KeyInfo entries found in input
+输入中没有发现密钥
+
+The entry says %s, but its prikey belongs to %s
+条目标明为 %s，但其私钥属于 %s
+
+The entry's pubkey is not the pubkey of its prikey (%s)
+条目中的公钥不是其私钥（%s）对应的公钥
+
+No multisig groups to export
+没有可导出的多签
+
+No multisig entries found in input
+输入中没有发现多签
+
+No secret records found in input
+输入中没有发现秘密
+
+Invalid private key
+无效的私钥
+
+Wrong password or damaged cipher
+密码错误或密文已损坏
+
+The cipher does not hold a private key
+密文中不是私钥
+
+Not a key that can be imported
+不是可导入的密钥
+
+Avatar
+头像
+
+Pick FID from address book
+从名单选择FID
+
+Address book is empty. Open "Address book (FIDs)" from the home menu first.
+名单为空。请先在主页打开“名单（FID）”。
+
+Paste a signed tx hex first
+请先粘贴已签名的交易Hex
+
+Pick an owner FID to filter outputs
+请选择所有者FID以筛选输出
+
+No outputs for %s in this tx
+此交易中没有付给 %s 的输出
+
+Import UTXOs from signed tx
+从已签名交易导入UTXO
+
+Paste the signed tx hex (e.g. the output of Build multisig TX) and pick the owner FID — only outputs paying that FID are imported.
+粘贴已签名的交易Hex（例如“完成多签交易”的结果）并选择所有者FID——只导入付给该FID的输出。
+
+Signed tx hex
+已签名的交易Hex
+
+Scan the signed tx
+扫描已签名的交易
+
+Pick FID
+选择FID
+
+From My Keys
+从我的密钥
+
+From My Multisigs
+从我的多签
+
+From Address Book
+从名单
+
+This backup is encrypted. Input its password.
+该备份已加密，请输入密码。
+
+Import keys
+导入密钥
+
+File loaded: %s
+文件已加载：%s
+
+Prikey, pubkey, FID, cipher or key JSON
+私钥、公钥、FID、密文或密钥JSON
+
+Scan a key QR code
+扫描密钥二维码
+
+Cannot read the file
+无法读取文件
+
+Open file…
+打开文件…
+
+The password it was encrypted with
+加密时使用的密码
+
+Private key → %s
+私钥 → %s
+
+Public key → %s. Watch-only: it can't sign.
+公钥 → %s。仅观察，无法签名。
+
+FID. Watch-only: it can't sign.
+FID。仅观察，无法签名。
+
+Encrypted. Input its password.
+已加密，请输入密码。
+
+Key backup. Click Import to add its keys.
+密钥备份，点击导入。
+
+Encrypted, but not with a password. It can't be imported here.
+已加密，但不是用密码加密的，无法在此导入。
+
+Looks like a prikey, but it isn't valid. Check for a typo.
+像是私钥，但无效，请检查是否输错。
+
+Looks like a public key, but it isn't valid. Check for a typo.
+像是公钥，但无效，请检查是否输错。
+
+Looks like an FID, but the checksum is wrong. Check for a typo.
+像是FID，但校验和错误，请检查是否输错。
+
+One key at a time. Use a key backup JSON for several.
+一次只能输入一个密钥，多个密钥请使用密钥备份JSON。
+
+Not a recognized key. For a phrase, use Input phrase.
+无法识别的密钥。如为密语，请使用「密语生成」。
+
+Pick a key backup
+选择密钥备份
+
+The file is too large to be a key backup
+文件过大，不是密钥备份
+
+Import multisig groups
+导入多签
+
+Paste the concatenated JSON produced by "Export multisig" on this or another device.
+粘贴本机或其他设备“导出多签”生成的JSON。
+
+Backup JSON
+备份JSON
+
+Scan a multisigs backup QR code
+扫描多签备份二维码
+
+Password required
+需要密码
+
+Import secrets from backup
+从备份导入秘密
+
+This backup is encrypted. Enter the password that was used to export it.
+该备份已加密，请输入导出时使用的密码。
+
+Paste the JSON produced by Android "Export Secrets" (or this app).
+粘贴安卓版“导出秘密”（或本应用）生成的JSON。
+
+Scan a secrets backup QR code
+扫描秘密备份二维码
+
+Password (if encrypted)
+密码（如已加密）
+
+Pick a signing key
+选择签名密钥
+
+Pick a public key
+选择公钥
+
+No keys with a private key. Add one first.
+没有带私钥的密钥，请先添加。
+
+No keys with a public key. Add one first.
+没有带公钥的密钥，请先添加。
+
+Pick multisig group
+选择多签
+
+No multisig groups saved. Create one in "My Multisigs" first.
+还没有保存多签。请先在“我的多签”中创建。
+
+Wallet is locked
+密库已锁定
+
+Incorrect password
+密码错误
+
+Wallet password
+密库密码
+
+Input phrase
+密语生成
+
+Phrase
+密语
+
+The same phrase always makes the same key
+相同的密语总是生成相同的密钥
+
+Scan phrase
+扫描密语
+
+Key derivation
+密钥派生方式
+
+Argon2id (recommended)
+Argon2id（推荐）
+
+Argon2id is slow and memory-hard, making it much harder to brute-force the phrase. Keys made from a phrase by Safe for macOS 1.1.1 or earlier used SHA256.
+Argon2id 计算慢且占用内存，使暴力破解密语困难得多。macOS版密库 1.1.1 及更早版本用密语生成的密钥使用的是 SHA256。
+
+Plain SHA256 gives no protection against brute-force or dictionary attacks: a low-entropy phrase can be recovered easily. Use it only to recreate a key that was made with SHA256.
+SHA256 无法抵御暴力破解或字典攻击：低熵的密语很容易被还原。仅用于重建当初用 SHA256 生成的密钥。
+
+Anyone who sees this controls the wallet. Don't screenshot. Don't share.
+任何看到它的人都能控制这个密钥。不要截图，不要分享。
+
+Show as QR code
+显示为二维码
+
+Show QR
+显示二维码
+
+Split into %s codes — scan them in order.
+已拆分为 %s 个二维码——请按顺序扫描。
+
+‹ Prev
+‹ 上一个
+
+Part %s of %s
+第 %s / %s 个
+
+Next ›
+下一个 ›
+
+Text copied
+文本已复制
+
+Copy text
+复制文本
+
+Save PNG…
+保存PNG…
+
+Save QR code
+保存二维码
+
+Saved %s.png
+已保存 %s.png
+
+Saved %s of %s codes
+已保存 %s / %s 个二维码
+
+Scan a QR code
+扫描二维码
+
+Waiting for ScanQR…
+等待 ScanQR…
+
+No QR code found on clipboard image
+剪贴板图片中没有发现二维码
+
+From clipboard image
+从剪贴板图片
+
+No QR code found in %s
+%s 中没有发现二维码
+
+From file…
+从文件…
+
+From camera (ScanQR)…
+从相机（ScanQR）…
+
+From camera (install ScanQR.app)
+从相机（需安装 ScanQR.app）
+
+Pick a QR image
+选择二维码图片
+
+ScanQR not installed at %s
+%s 处未安装 ScanQR
+
+Failed to launch ScanQR: %s
+启动 ScanQR 失败：%s
+
+Failed to read ScanQR result: %s
+读取 ScanQR 结果失败：%s
+
+Random password — keep this password apart from the exported data. Anyone who has both can read it. The export does not contain this password, and it will not be shown again.
+随机密码——请把密码与导出的数据分开保管，同时拿到两者的人就能读取内容。导出的数据中不含此密码，之后也不会再显示。
+
+Export password
+导出密码
+
+I've saved the password
+我已保存密码
+
+Pick type
+选择类型
+
+Create random
+生成随机数
+
+Base32 (16 bytes)
+Base32（16字节）
+
+Scan the secret's content
+扫描秘密内容
+
+Memo (optional)
+备忘（可选）
+
+Export %s TOTP code(s)
+导出 %s 个验证码
+
+Pick a format. TOTP seeds export plaintext so other apps can import them.
+选择格式。验证码种子以明文导出，以便其他应用导入。
+
+One per line. Google Authenticator / 1Password / Authy all import this.
+每行一个。Google Authenticator / 1Password / Authy 都能导入。
+
+JSON array
+JSON数组
+
+`[{"secret":..., "label":...}]` — same shape Safe Android imports.
+`[{"secret":..., "label":...}]`——与安卓版密库导入的格式相同。
+
+Paste an otpauth:// URI, a {secret, label} JSON, or a bare Base32 seed.
+粘贴 otpauth:// URI、{secret, label} JSON 或单独的Base32种子。
+
+TOTP source
+验证码来源
+
+Scan the authenticator QR code
+扫描验证器二维码
+
+Title (overrides parsed label)
+标题（覆盖解析出的标签）
+
+otpauth URI missing `secret`
+otpauth URI 缺少 `secret`
+
+JSON missing `secret`
+JSON 缺少 `secret`
+
+Not valid JSON
+不是有效的JSON
+
+Unrecognized format
+无法识别的格式
+
+Sender
+发送者
+
+Send to
+付给
+
+  ↳ locked until 
+  ↳ 锁定至 
+
+Carving (OP_RETURN)
+刻字（OP_RETURN）
+
+Spending inputs
+花费的输入
+
+(unknown)
+（未知）
+
+Spending sum
+花费总额
+
+Paying sum
+支付总额
+
+Fee
+交易费
+
+Fee rate
+费率
+
+About Safe
+关于密库
+
+Lock now
+立即锁定
+
+Version %s
+版本 %s
+
+An offline wallet for keys, multisigs and secrets. Values move in and out by QR code — nothing here needs a network.
+离线保管密钥、多签和秘密的密库。数据通过二维码进出——无需任何网络。
+
+File
+文件
+
+Wallet
+密库
+
+block %s
+区块 %s
+
+Invalid Base32 character: %s
+无效的Base32字符：%s

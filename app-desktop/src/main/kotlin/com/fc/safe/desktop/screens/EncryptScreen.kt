@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import com.fc.safe.desktop.i18n.tr
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.CryptoIoBlock
 import com.fc.safe.desktop.ui.KeyPickerDialog
@@ -41,9 +42,9 @@ import data.fcData.AlgorithmId
 import utils.Hex
 
 private enum class EncryptMode(val label: String, val keyHint: String) {
-    PASSWORD("By password", "Arbitrary password text"),
-    SYMKEY("By symkey (hex32)", "64 hex chars (32 bytes)"),
-    PUBKEY("By pubkey (hex)", "Compressed (66 hex) or uncompressed (130 hex) pubkey"),
+    PASSWORD(tr("By password"), tr("Arbitrary password text")),
+    SYMKEY(tr("By symkey (hex32)"), tr("64 hex chars (32 bytes)")),
+    PUBKEY(tr("By pubkey (hex)"), tr("Compressed (66 hex) or uncompressed (130 hex) pubkey")),
 }
 
 class EncryptScreen : Screen {
@@ -60,11 +61,11 @@ class EncryptScreen : Screen {
         var error by remember { mutableStateOf<String?>(null) }
 
         AppShell(
-            title = "Encrypt",
+            title = tr("Encrypt"),
             scaffoldState = scaffoldState,
             navigationIcon = {
                 IconButton(onClick = { navigator.pop() }) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = tr("Back"))
                 }
             },
         ) { padding ->
@@ -78,15 +79,15 @@ class EncryptScreen : Screen {
                 CryptoIoBlock(
                     value = text,
                     onValueChange = { text = it; error = null },
-                    label = "Plaintext",
-                    placeholder = "Text to encrypt",
+                    label = tr("Plaintext"),
+                    placeholder = tr("Text to encrypt"),
                     heightDp = 140,
                     onClear = { text = "" },
                     enableQr = true,
                     onQrError = { error = it },
                 )
 
-                Text("Key type", style = MaterialTheme.typography.subtitle2)
+                Text(tr("Key type"), style = MaterialTheme.typography.subtitle2)
                 EncryptMode.entries.forEach { m ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         RadioButton(selected = mode == m, onClick = { mode = m; error = null })
@@ -99,9 +100,9 @@ class EncryptScreen : Screen {
                     value = key,
                     onValueChange = { key = it; error = null },
                     label = when (mode) {
-                        EncryptMode.PASSWORD -> "Password"
-                        EncryptMode.SYMKEY -> "Symmetric key (hex)"
-                        EncryptMode.PUBKEY -> "Public key (hex)"
+                        EncryptMode.PASSWORD -> tr("Password")
+                        EncryptMode.SYMKEY -> tr("Symmetric key (hex)")
+                        EncryptMode.PUBKEY -> tr("Public key (hex)")
                     },
                     placeholder = mode.keyHint,
                     singleLine = true,
@@ -119,7 +120,7 @@ class EncryptScreen : Screen {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     SafeButton(onClick = {
                         text = ""; key = ""; result = ""; error = null
-                    }) { Text("Clear") }
+                    }) { Text(tr("Clear")) }
                     SafeButton(
                         enabled = text.isNotBlank() && key.isNotBlank(),
                         onClick = {
@@ -131,7 +132,7 @@ class EncryptScreen : Screen {
                                 ""
                             }
                         },
-                    ) { Text("Encrypt") }
+                    ) { Text(tr("Encrypt")) }
                 }
 
                 error?.let {
@@ -145,7 +146,7 @@ class EncryptScreen : Screen {
                 CryptoIoBlock(
                     value = result,
                     onValueChange = {},
-                    label = "Cipher (CryptoDataStr JSON)",
+                    label = tr("Cipher (CryptoDataStr JSON)"),
                     readOnly = true,
                     enableMakeQr = true,
                     heightDp = 240,
@@ -176,15 +177,15 @@ private fun encryptOne(text: String, keyStr: String, mode: EncryptMode): String 
             Encryptor(AlgorithmId.FC_AesGcm256_No1_NrC7)
                 .encryptByPassword(msgBytes, keyStr.toCharArray())
         EncryptMode.SYMKEY -> {
-            if (!Hex.isHex32(keyStr)) throw IllegalArgumentException("Symkey must be 64 hex chars (32 bytes)")
+            if (!Hex.isHex32(keyStr)) throw IllegalArgumentException(tr("Symkey must be 64 hex chars (32 bytes)"))
             Encryptor(AlgorithmId.FC_AesGcm256_No1_NrC7)
                 .encryptBySymkey(msgBytes, Hex.fromHex(keyStr))
         }
         EncryptMode.PUBKEY -> {
-            if (!KeyTools.isPubkey(keyStr)) throw IllegalArgumentException("Not a valid public key")
+            if (!KeyTools.isPubkey(keyStr)) throw IllegalArgumentException(tr("Not a valid public key"))
             Encryptor(AlgorithmId.FC_EccK1AesGcm256_No1_NrC7)
                 .encryptByAsyOneWay(msgBytes, Hex.fromHex(keyStr))
         }
     }
-    return cdb.toNiceJson() ?: throw IllegalStateException("Serialisation failed")
+    return cdb.toNiceJson() ?: throw IllegalStateException(tr("Serialisation failed"))
 }
