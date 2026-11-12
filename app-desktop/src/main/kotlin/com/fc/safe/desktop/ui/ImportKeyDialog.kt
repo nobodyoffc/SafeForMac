@@ -67,8 +67,10 @@ internal fun ImportKeyDialog(
     onInputChanged: () -> Unit,
     onSubmit: (ImportKeyRequest) -> Unit,
     onDismiss: () -> Unit,
+    /** Text the field starts with. Only the render smoke sets it. */
+    initialText: String = "",
 ) {
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(initialText) }
     var password by remember { mutableStateOf("") }
     var label by remember { mutableStateOf("") }
     // A backup picked from disk: imported as it is instead of the typed text.
@@ -78,7 +80,10 @@ internal fun ImportKeyDialog(
     val kind = remember(text, file) {
         if (file != null) Kind.BACKUP else KeyInputDetector.detect(text)
     }
-    val verdict = remember(text, kind) { verdictOf(kind, text.trim()) }
+    val verdict = remember(text, kind, awaitingPassword) {
+        if (kind == Kind.BACKUP && awaitingPassword) "This backup is encrypted. Input its password." to Tone.GOOD
+        else verdictOf(kind, text.trim())
+    }
     val importable = kind in setOf(Kind.PRIKEY, Kind.PUBKEY, Kind.FID, Kind.CIPHER, Kind.BACKUP)
     val showPassword = kind == Kind.CIPHER || (kind == Kind.BACKUP && awaitingPassword)
     val canSubmit = !busy && importable && (!showPassword || password.isNotEmpty())

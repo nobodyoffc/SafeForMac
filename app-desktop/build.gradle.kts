@@ -204,6 +204,15 @@ tasks.register<JavaExec>("keyInputDetectorSmoke") {
     classpath = sourceSets["main"].runtimeClasspath
 }
 
+// Renders the Import keys and Input phrase dialogs off-screen, one PNG
+// per detection verdict, into build/import-key-smoke/.
+tasks.register<JavaExec>("importKeyRenderSmoke") {
+    group = "verification"
+    description = "Render the add-key dialogs to PNGs"
+    mainClass.set("com.fc.safe.desktop.ImportKeyRenderSmokeKt")
+    classpath = sourceSets["main"].runtimeClasspath
+}
+
 // Make-QR round trip: split a payload, encode + rasterise every chunk,
 // decode it back with the scan-side reader, and check the parts rejoin
 // to the original. Also dumps build/qr-make-smoke.png.
