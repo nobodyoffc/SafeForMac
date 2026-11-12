@@ -175,6 +175,7 @@ class UnlockedHomeScreen(
                                     "Sign message" to { navigator.push(SignMsgScreen()) },
                                     "Verify message" to { navigator.push(VerifyScreen()) },
                                     "Change password" to { showChangePassword = true },
+                                    "Security guidelines" to { navigator.push(SecurityGuidelinesScreen()) },
                                 ),
                             ),
                             DropdownTile(

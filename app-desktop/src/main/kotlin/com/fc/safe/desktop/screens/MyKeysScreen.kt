@@ -85,7 +85,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.slf4j.LoggerFactory
 import utils.Hex
-import java.security.SecureRandom
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -171,28 +170,6 @@ class MyKeysScreen : Screen {
                             }
                         },
                     )
-                }
-            }
-        }
-
-        fun addRandomKey() {
-            error = null
-            busy = true
-            scope.launch {
-                try {
-                    withContext(Dispatchers.Default) {
-                        val newKey = createRandomKey()
-                        val db: LocalDB<DesktopKeyInfo> =
-                            WalletSession.openDb(KEYS_DB_NAME, DesktopKeyInfo::class.java)
-                        db.put(newKey.id, newKey)
-                        db.commit()
-                    }
-                    refresh()
-                } catch (t: Throwable) {
-                    log.warn("Create random key failed", t)
-                    error = "Failed: ${t.message}"
-                } finally {
-                    busy = false
                 }
             }
         }
@@ -424,8 +401,9 @@ class MyKeysScreen : Screen {
                             enabled = !busy,
                             busy = busy,
                             onImport = { error = null; showImport = true },
+                            onFindNice = { navigator.push(NewKeysScreen(findNice = true)) },
                             onPhrase = { error = null; showPhrase = true },
-                            onRandom = ::addRandomKey,
+                            onRandom = { navigator.push(NewKeysScreen(findNice = false)) },
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -661,6 +639,7 @@ private fun AddNewKeyMenu(
     enabled: Boolean,
     busy: Boolean,
     onImport: () -> Unit,
+    onFindNice: () -> Unit,
     onPhrase: () -> Unit,
     onRandom: () -> Unit,
 ) {
@@ -683,8 +662,9 @@ private fun AddNewKeyMenu(
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(onClick = { expanded = false; onImport() }) { Text("Import keys…") }
+            DropdownMenuItem(onClick = { expanded = false; onFindNice() }) { Text("Find a nice FID…") }
             DropdownMenuItem(onClick = { expanded = false; onPhrase() }) { Text("Input phrase…") }
-            DropdownMenuItem(onClick = { expanded = false; onRandom() }) { Text("Random key") }
+            DropdownMenuItem(onClick = { expanded = false; onRandom() }) { Text("Random keys…") }
         }
     }
 }
@@ -838,9 +818,3 @@ private val dateFmt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
 
 private fun formatTs(ms: Long): String =
     if (ms == 0L) "—" else dateFmt.format(Date(ms))
-
-/**
- * Fresh random 256-bit key. See [buildKeyFromPrikey32].
- */
-private fun createRandomKey(): DesktopKeyInfo =
-    buildKeyFromPrikey32(ByteArray(32).also(SecureRandom()::nextBytes), label = null)

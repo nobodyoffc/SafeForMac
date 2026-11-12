@@ -16,7 +16,7 @@ import utils.Hex
  * password (Argon2id, ~500ms per call) before storage.
  *
  * Used by:
- * - `MyKeysScreen.createRandomKey()` (Random menu entry)
+ * - `NewKeysScreen` for the random and nice-FID keys the user ticks
  * - [buildKeyFromInputs] for PRIKEY / PHRASE / PRIKEY_CIPHER paths
  * - `KeyImporter` when materialising an imported key record
  */

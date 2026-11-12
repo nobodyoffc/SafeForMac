@@ -100,6 +100,19 @@ fun main() {
     check("the two schemes give different keys", !sha.contentEquals(argon))
     println("Argon2id phrase key FID: " + KeyTools.prikeyToFid(argon))
 
+    // Find a nice FID: every hit ends as asked and belongs to its prikey.
+    check("\"0\" can't be in an FID", NiceFidFinder.problemWith("a0") != null)
+    check("\"l\" matches L", NiceFidFinder.problemWith("l") == null)
+    val hits = ArrayList<NewKeyCandidate>()
+    val started = System.nanoTime()
+    kotlinx.coroutines.runBlocking { NiceFidFinder.find("Fc", 5) { hits += it } }
+    val seconds = (System.nanoTime() - started) / 1e9
+    check("finder stops at 5 hits", hits.size == 5)
+    check("every hit ends with fc, any case", hits.all { it.fid.endsWith("fc", ignoreCase = true) })
+    check("every hit is its prikey's FID", hits.all { KeyTools.prikeyToFid(it.prikey32.copyOf()) == it.fid })
+    check("random keys differ", NewKeyCandidate.random().fid != NewKeyCandidate.random().fid)
+    println("5 two-character hits in %.1fs: %s".format(seconds, hits.map { it.fid.takeLast(4) }))
+
     if (fail > 0) {
         println("$fail check(s) failed")
         exitProcess(1)

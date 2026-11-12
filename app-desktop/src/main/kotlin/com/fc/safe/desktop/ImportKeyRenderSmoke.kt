@@ -6,6 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.Modifier
+import cafe.adriel.voyager.navigator.Navigator
+import com.fc.safe.desktop.screens.NewKeysScreen
+import com.fc.safe.desktop.screens.SecurityGuidelinesScreen
 import com.fc.safe.desktop.ui.ImportKeyDialog
 import com.fc.safe.desktop.ui.PhraseKeyDialog
 import core.crypto.Encryptor
@@ -64,5 +67,8 @@ fun main() {
     import("7-backup-awaiting-password", "{\"id\":\"$fid\",\"prikeyCipher\":\"AAAA\"}", awaitingPassword = true)
     import("8-unknown", "hello")
     shot("9-phrase") { PhraseKeyDialog(busy = false, error = null, onSubmit = { _, _, _ -> }, onDismiss = {}) }
+    shot("10-random-keys") { Navigator(NewKeysScreen(findNice = false)) }
+    shot("11-find-nice-fid") { Navigator(NewKeysScreen(findNice = true)) }
+    shot("12-guidelines") { Navigator(SecurityGuidelinesScreen()) }
     println("wrote ${out.absolutePath}")
 }
