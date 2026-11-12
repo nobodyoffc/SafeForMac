@@ -59,12 +59,10 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.fc.safe.desktop.DesktopKeyInfo
+import com.fc.safe.desktop.KeyImportOutcome
 import com.fc.safe.desktop.buildKeyFromPrikey32
-import com.fc.safe.desktop.buildWatchOnlyFromFid
-import com.fc.safe.desktop.buildWatchOnlyFromPubkey
-import com.fc.safe.desktop.ui.AddKeyDialog
-import com.fc.safe.desktop.ui.AddKeyInputs
-import com.fc.safe.desktop.ui.AddKeyMode
+import com.fc.safe.desktop.phraseToPrikey32
+import com.fc.safe.desktop.resolveKeyImport
 import com.fc.safe.desktop.ui.AppShell
 import com.fc.safe.desktop.ui.ConfirmReplaceDialog
 import com.fc.safe.desktop.ui.CopyableField
@@ -77,11 +75,10 @@ import com.fc.safe.desktop.backup.ExportResult
 import com.fc.safe.desktop.backup.KeyExporter
 import com.fc.safe.desktop.backup.KeyImporter
 import com.fc.safe.desktop.ui.ExportKeysDialog
-import com.fc.safe.desktop.ui.ImportKeysDialog
+import com.fc.safe.desktop.ui.ImportKeyDialog
+import com.fc.safe.desktop.ui.ImportKeyRequest
+import com.fc.safe.desktop.ui.PhraseKeyDialog
 import com.fc.safe.platform.macos.WalletSession
-import core.crypto.Decryptor
-import core.crypto.Hash
-import core.crypto.KeyTools
 import db.LocalDB
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -111,12 +108,11 @@ class MyKeysScreen : Screen {
 
         var revealPrikeyHex by remember { mutableStateOf<String?>(null) }
         var pendingReveal by remember { mutableStateOf<DesktopKeyInfo?>(null) }
-        var addKeyMode by remember { mutableStateOf<AddKeyMode?>(null) }
+        var showPhrase by remember { mutableStateOf(false) }
         var selectedIds by remember { mutableStateOf<Set<String>>(emptySet()) }
         var showExport by remember { mutableStateOf(false) }
         var showImport by remember { mutableStateOf(false) }
         var exportResult by remember { mutableStateOf<ExportResult?>(null) }
-        var pendingImportText by remember { mutableStateOf<String?>(null) }
         var pendingImportAwaitingPassword by remember { mutableStateOf(false) }
         var pendingReplace by remember { mutableStateOf<PendingReplaceKeys?>(null) }
 
@@ -147,7 +143,8 @@ class MyKeysScreen : Screen {
                     error = "Save failed: ${t.message}"
                 } finally {
                     busy = false
-                    addKeyMode = null
+                    showPhrase = false
+                    showImport = false
                 }
             }
         }
@@ -169,10 +166,8 @@ class MyKeysScreen : Screen {
                         onResult = { result ->
                             when (result) {
                                 ConfirmReplaceResult.REPLACE -> persistKey(key)
-                                else -> {
-                                    busy = false
-                                    addKeyMode = null
-                                }
+                                // Back to the dialog, with the input kept.
+                                else -> busy = false
                             }
                         },
                     )
@@ -202,16 +197,16 @@ class MyKeysScreen : Screen {
             }
         }
 
-        fun submitAddKey(mode: AddKeyMode, inputs: AddKeyInputs) {
+        fun submitPhrase(phrase: String, useArgon2id: Boolean, label: String?) {
             error = null
             busy = true
             scope.launch {
                 val built = withContext(Dispatchers.Default) {
-                    runCatching { buildKeyFromInputs(mode, inputs) }
+                    runCatching { buildKeyFromPrikey32(phraseToPrikey32(phrase, useArgon2id), label) }
                 }
                 built.onSuccess { saveNewKey(it) }
                 built.onFailure { t ->
-                    log.warn("Add key by {} failed", mode, t)
+                    log.warn("Add key by phrase failed", t)
                     error = t.message ?: "Invalid input"
                     busy = false
                 }
@@ -290,7 +285,6 @@ class MyKeysScreen : Screen {
                         db.commit()
                     }
                     showImport = false
-                    pendingImportText = null
                     pendingImportAwaitingPassword = false
                     refresh()
                 } catch (t: Throwable) {
@@ -344,16 +338,36 @@ class MyKeysScreen : Screen {
                 }
                 outcome.onFailure { t ->
                     when (t) {
-                        is KeyImporter.PasswordRequired -> {
-                            pendingImportText = t.pendingBlob
-                            pendingImportAwaitingPassword = true
-                            // keep import dialog open so user can enter pwd
-                        }
+                        // The dialog stays open and now asks for the password.
+                        is KeyImporter.PasswordRequired -> pendingImportAwaitingPassword = true
                         else -> {
                             log.warn("Import failed", t)
                             error = "Import failed: ${t.message}"
                         }
                     }
+                }
+            }
+        }
+
+        fun submitImport(request: ImportKeyRequest) {
+            error = null
+            busy = true
+            scope.launch {
+                val resolved = withContext(Dispatchers.Default) {
+                    runCatching {
+                        resolveKeyImport(request.kind, request.text, request.password, request.label)
+                    }
+                }
+                resolved.onSuccess { outcome ->
+                    when (outcome) {
+                        is KeyImportOutcome.One -> saveNewKey(outcome.key)
+                        is KeyImportOutcome.Backup -> runImport(outcome.json, outcome.password)
+                    }
+                }
+                resolved.onFailure { t ->
+                    log.warn("Import {} failed: {}", request.kind, t.message)
+                    error = t.message ?: "Invalid input"
+                    busy = false
                 }
             }
         }
@@ -409,13 +423,9 @@ class MyKeysScreen : Screen {
                         AddNewKeyMenu(
                             enabled = !busy,
                             busy = busy,
+                            onImport = { error = null; showImport = true },
+                            onPhrase = { error = null; showPhrase = true },
                             onRandom = ::addRandomKey,
-                            onByPhrase = { addKeyMode = AddKeyMode.PHRASE },
-                            onByPrikey = { addKeyMode = AddKeyMode.PRIKEY },
-                            onByPrikeyCipher = { addKeyMode = AddKeyMode.PRIKEY_CIPHER },
-                            onByPubkey = { addKeyMode = AddKeyMode.PUBKEY },
-                            onByFid = { addKeyMode = AddKeyMode.FID },
-                            onImport = { showImport = true },
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -444,7 +454,7 @@ class MyKeysScreen : Screen {
                     }
                 }
 
-                error?.let {
+                error?.takeUnless { showImport || showPhrase }?.let {
                     Text(
                         it,
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -523,12 +533,12 @@ class MyKeysScreen : Screen {
             )
         }
 
-        addKeyMode?.let { mode ->
-            AddKeyDialog(
-                mode = mode,
+        if (showPhrase) {
+            PhraseKeyDialog(
                 busy = busy,
-                onSubmit = { inputs -> submitAddKey(mode, inputs) },
-                onDismiss = { if (!busy) addKeyMode = null },
+                error = error,
+                onSubmit = ::submitPhrase,
+                onDismiss = { if (!busy) { showPhrase = false; error = null } },
             )
         }
 
@@ -550,22 +560,20 @@ class MyKeysScreen : Screen {
         }
 
         if (showImport) {
-            ImportKeysDialog(
+            ImportKeyDialog(
                 busy = busy,
+                error = error,
                 awaitingPassword = pendingImportAwaitingPassword,
-                onSubmit = { text, pwd ->
-                    if (pendingImportAwaitingPassword) {
-                        val blob = pendingImportText ?: text
-                        runImport(blob, pwd)
-                    } else {
-                        runImport(text, pwd)
-                    }
+                onInputChanged = {
+                    error = null
+                    pendingImportAwaitingPassword = false
                 },
+                onSubmit = ::submitImport,
                 onDismiss = {
                     if (!busy) {
                         showImport = false
-                        pendingImportText = null
                         pendingImportAwaitingPassword = false
+                        error = null
                     }
                 },
             )
@@ -652,13 +660,9 @@ private fun LongPressDeleteButton(
 private fun AddNewKeyMenu(
     enabled: Boolean,
     busy: Boolean,
-    onRandom: () -> Unit,
-    onByPhrase: () -> Unit,
-    onByPrikey: () -> Unit,
-    onByPrikeyCipher: () -> Unit,
-    onByPubkey: () -> Unit,
-    onByFid: () -> Unit,
     onImport: () -> Unit,
+    onPhrase: () -> Unit,
+    onRandom: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box {
@@ -678,14 +682,9 @@ private fun AddNewKeyMenu(
             }
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(onClick = { expanded = false; onRandom() }) { Text("Random") }
-            DropdownMenuItem(onClick = { expanded = false; onByPhrase() }) { Text("By mnemonic phrase") }
-            DropdownMenuItem(onClick = { expanded = false; onByPrikey() }) { Text("By private key (hex)") }
-            DropdownMenuItem(onClick = { expanded = false; onByPrikeyCipher() }) { Text("By prikey cipher JSON") }
-            DropdownMenuItem(onClick = { expanded = false; onByPubkey() }) { Text("By public key (watch-only)") }
-            DropdownMenuItem(onClick = { expanded = false; onByFid() }) { Text("By FID (watch-only)") }
-            Divider()
-            DropdownMenuItem(onClick = { expanded = false; onImport() }) { Text("Import keys from backup…") }
+            DropdownMenuItem(onClick = { expanded = false; onImport() }) { Text("Import keys…") }
+            DropdownMenuItem(onClick = { expanded = false; onPhrase() }) { Text("Input phrase…") }
+            DropdownMenuItem(onClick = { expanded = false; onRandom() }) { Text("Random key") }
         }
     }
 }
@@ -845,49 +844,3 @@ private fun formatTs(ms: Long): String =
  */
 private fun createRandomKey(): DesktopKeyInfo =
     buildKeyFromPrikey32(ByteArray(32).also(SecureRandom()::nextBytes), label = null)
-
-/**
- * Dispatches an [AddKeyMode] + user-provided inputs to the right builder.
- * Runs on [Dispatchers.Default] per the caller — Argon2 encrypt is
- * expensive so we stay off the UI thread.
- */
-private fun buildKeyFromInputs(mode: AddKeyMode, inputs: AddKeyInputs): DesktopKeyInfo {
-    val primary = inputs.primary
-    return when (mode) {
-        AddKeyMode.PRIKEY -> {
-            val bytes = KeyTools.getPrikey32(primary)
-                ?: throw IllegalArgumentException("Invalid private key")
-            buildKeyFromPrikey32(bytes, inputs.label)
-        }
-        AddKeyMode.PHRASE -> {
-            if (primary.isBlank()) throw IllegalArgumentException("Phrase is empty")
-            val bytes = Hash.sha256(primary.toByteArray(Charsets.UTF_8))
-            buildKeyFromPrikey32(bytes, inputs.label)
-        }
-        AddKeyMode.PRIKEY_CIPHER -> {
-            val pwdChars = inputs.password.toCharArray()
-            try {
-                val cdb = Decryptor().decryptJsonByPassword(primary, pwdChars)
-                check(cdb.code == 0) { "Wrong password or corrupted cipher" }
-                val raw = cdb.data ?: throw IllegalArgumentException("Decrypt produced no bytes")
-                try {
-                    val prikey32 = KeyTools.getPrikey32(raw)
-                        ?: throw IllegalArgumentException("Decrypted value is not a valid private key")
-                    buildKeyFromPrikey32(prikey32, inputs.label)
-                } finally {
-                    raw.fill(0)
-                }
-            } finally {
-                pwdChars.fill(Char.MIN_VALUE)
-            }
-        }
-        AddKeyMode.PUBKEY -> {
-            if (!KeyTools.isPubkey(primary)) throw IllegalArgumentException("Invalid public key")
-            buildWatchOnlyFromPubkey(primary, inputs.label)
-        }
-        AddKeyMode.FID -> {
-            if (!KeyTools.isGoodFid(primary)) throw IllegalArgumentException("Invalid FID")
-            buildWatchOnlyFromFid(primary, inputs.label)
-        }
-    }
-}

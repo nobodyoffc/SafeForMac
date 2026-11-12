@@ -195,6 +195,15 @@ tasks.register<JavaExec>("backupVectorsSmoke") {
     systemProperty("user.home", home.get().asFile.path)
 }
 
+// Android Safe's KeyInputDetectorTest against the desktop port, plus
+// the two phrase-key derivations. No wallet involved.
+tasks.register<JavaExec>("keyInputDetectorSmoke") {
+    group = "verification"
+    description = "Detect and open every form of key text the Import keys dialog takes"
+    mainClass.set("com.fc.safe.desktop.KeyInputDetectorSmokeKt")
+    classpath = sourceSets["main"].runtimeClasspath
+}
+
 // Make-QR round trip: split a payload, encode + rasterise every chunk,
 // decode it back with the scan-side reader, and check the parts rejoin
 // to the original. Also dumps build/qr-make-smoke.png.

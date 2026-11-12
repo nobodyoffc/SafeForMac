@@ -27,7 +27,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 
 /**
- * Paste-and-import dialog for secrets. Matches [ImportKeysDialog]
+ * Paste-and-import dialog for secrets. Matches [ImportKeyDialog]
  * behavior:
  *
  * - Initial mode: paste the concatenated backup JSON plus optional
