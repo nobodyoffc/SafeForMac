@@ -99,7 +99,7 @@ compose.desktop {
             packageVersion = appVersion
             macOS {
                 bundleID = "com.fc.safe.desktop"
-                // Android Safe's launcher icon (gold 密签 logo on a dial) on the
+                // Android Safe's launcher icon (the iron 密签 logo on champagne gold) on the
                 // macOS icon grid; regenerate with Android Safe's
                 // scripts/icon/make_icon.py --mac <this repo>.
                 iconFile.set(project.file("icons/Safe.icns"))
