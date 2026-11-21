@@ -7,7 +7,7 @@ Safe for macOS — the offline Safe wallet (keys, secrets, TOTP, multisig, trans
 - **Screenshots and screen recordings don't capture Safe's windows**, like Android's FLAG_SECURE.
 - **Reads everything Android Safe 2.4 writes**: type-4 password bundles, ChaCha20 / X25519 ciphers, Bitcore ciphers, and 2.4's key and secret backups. Checked against the shared FTSP test vectors.
 - Faster key use: signing no longer runs Argon2id for every key.
-- The Android app's icon.
+- Android Safe's blue "Safe" icon, in place of the default Java icon.
 - Logs go to `~/Library/Logs/com.fc.safe/safe.log` again, with secrets redacted (packaged 1.0.x builds didn't write them).
 
 ## Before you upgrade
