@@ -99,8 +99,9 @@ compose.desktop {
             packageVersion = appVersion
             macOS {
                 bundleID = "com.fc.safe.desktop"
-                // Android Safe's launcher icon on the macOS icon grid;
-                // regenerate with icons/MakeIcon.java (see its header).
+                // Android Safe's launcher icon (gold 密签 logo on a dial) on the
+                // macOS icon grid; regenerate with Android Safe's
+                // scripts/icon/make_icon.py --mac <this repo>.
                 iconFile.set(project.file("icons/Safe.icns"))
                 // The app's own text follows the system language (i18n/L10n.kt).
                 // Naming the languages here makes what macOS draws for us — the
